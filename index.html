@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HadesSave — Статистика</title>
+    <!-- Подключаем твой стиль -->
+    <link rel="stylesheet" href="mini-app.css">
+    <!-- Официальный скрипт Telegram -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body class="mini-app-body">
+    <div id="app" class="hs-app">
+        <!-- Верхняя панель -->
+        <header class="hs-topbar">
+            <button id="btn-back">‹ Назад</button>
+            <div>
+                <strong>Статистика</strong>
+                <small>HadesSave</small>
+            </div>
+            <div class="hs-topbar-spacer"></div>
+        </header>
+
+        <!-- Контент -->
+        <main class="hs-content">
+            <!-- Экран загрузки -->
+            <div id="loading" class="hs-state">
+                <div class="hs-loader"></div>
+                <strong>Загрузка...</strong>
+                <p>Получаем данные из архива</p>
+            </div>
+
+            <!-- Экран ошибки -->
+            <div id="error" class="hs-state hidden">
+                <span class="hs-state__icon">⚠️</span>
+                <strong>Ошибка</strong>
+                <p id="error-text"></p>
+                <button onclick="location.reload()">Попробовать снова</button>
+            </div>
+
+            <!-- Экран с данными -->
+            <div id="data" class="hs-page hidden">
+                <div class="hs-welcome">
+                    <small>Привет,</small>
+                    <h1 id="user-name">Пользователь</h1>
+                </div>
+
+                <div class="hs-stat-grid hs-stat-grid--wide">
+                    <article data-tone="blue">
+                        <span data-tone="blue">💬</span>
+                        <strong id="total-messages">0</strong>
+                        <small>Сообщений в архиве</small>
+                    </article>
+                    <article data-tone="red">
+                        <span data-tone="red">🗑</span>
+                        <strong id="deleted-messages">0</strong>
+                        <small>Удалённых</small>
+                    </article>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Подключаем наш скрипт -->
+    <script type="module" src="app.js"></script>
+
+    <style>
+        .hidden { display: none !important; }
+    </style>
+</body>
+</html>

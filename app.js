@@ -15,26 +15,19 @@ if (!initData) {
 
 const encodedInitData = encodeURIComponent(initData);
 
-// Переключение вкладок (Главная, Чаты, Розыгрыш, Профиль)
 window.switchTab = function(tabName) {
-    // Скрываем все экраны
     document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
-    // Убираем активный класс у кнопок меню
     document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
 
-    // Показываем нужный
     document.getElementById(`view-${tabName}`).classList.add('active');
     
-    // Подсвечиваем кнопку меню (если это не экран сообщений)
     if (tabName !== 'messages') {
         const navBtn = document.querySelector(`.nav-item[onclick="switchTab('${tabName}')"]`);
         if (navBtn) navBtn.classList.add('active');
     } else {
-        // Если открыт экран сообщений, подсвечиваем "Чаты"
         document.querySelector(`.nav-item[onclick="switchTab('chats')"]`).classList.add('active');
     }
 
-    // Загружаем данные при переходе
     if (tabName === 'home') loadStats();
     if (tabName === 'chats') loadChats();
 };
@@ -43,21 +36,23 @@ async function initApp() {
     try {
         const res = await miniAppClient.get('/api/miniapp/stats');
         const user = res.data.user || 'Пользователь';
+        const userId = res.data.user_id || 0;
         
-        // Заполняем данные на главной
+        // Заполняем главную
         document.getElementById('user-name').textContent = user;
         document.getElementById('user-avatar').textContent = user[0].toUpperCase();
-        document.getElementById('stat-chats').textContent = res.data.total_messages || 0; // Временно показываем сообщения вместо чатов
+        document.getElementById('user-id').textContent = 'ID: ' + userId;
+        document.getElementById('stat-chats').textContent = res.data.total_messages || 0;
         document.getElementById('stat-deleted').textContent = res.data.deleted_messages || 0;
         
-        // Заполняем данные в профиле
+        // Заполняем профиль
         document.getElementById('profile-name').textContent = user;
+        document.getElementById('profile-id').textContent = 'ID: ' + userId;
+        document.getElementById('profile-avatar').textContent = user[0].toUpperCase();
         
-        // Показываем главную
         switchTab('home');
     } catch (err) {
         console.error(err);
-        alert('Ошибка загрузки статистики');
     }
 }
 
@@ -71,7 +66,7 @@ async function loadStats() {
 
 async function loadChats() {
     const listEl = document.getElementById('chats-list');
-    if (listEl.children.length > 0 && !listEl.querySelector('.empty-state')) return; // Уже загружено
+    if (listEl.children.length > 0 && !listEl.querySelector('.empty-state')) return;
 
     listEl.innerHTML = '<div class="empty-state">Загрузка чатов...</div>';
     
@@ -89,11 +84,20 @@ async function loadChats() {
             const div = document.createElement('div');
             div.className = 'list-item';
             
-            // Берем первую букву для аватарки
             const initial = chat.label ? chat.label[0].toUpperCase() : '?';
             
+            // Логика аватарки: если есть username, пробуем загрузить картинку
+            let avatarHtml = `<div class="list-avatar">${initial}</div>`;
+            if (chat.chat_username && chat.chat_username.trim() !== '') {
+                const imgUrl = `https://t.me/i/userpic/320/${chat.chat_username}.jpg`;
+                avatarHtml = `
+                    <img src="${imgUrl}" class="list-avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" alt="">
+                    <div class="list-avatar" style="display:none;">${initial}</div>
+                `;
+            }
+            
             div.innerHTML = `
-                <div class="list-avatar">${initial}</div>
+                ${avatarHtml}
                 <div class="list-content">
                     <div class="list-title">${chat.label || 'Чат ' + chat.chat_id}</div>
                     <div class="list-sub">${chat.total} сообщ. • ${chat.deleted_count} удал.</div>

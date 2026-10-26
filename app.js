@@ -15,7 +15,6 @@ if (!initData) {
     initApp();
 }
 
-// Кодируем initData для передачи в URL картинок/видео
 const encodedInitData = encodeURIComponent(initData);
 
 const loadingEl = document.getElementById('loading');
@@ -148,20 +147,41 @@ async function loadMessages(chatId, chatLabel) {
             if (msg.has_media) {
                 const mediaUrl = `${miniAppClient.defaults.baseURL}/api/miniapp/media?chat_id=${chatId}&message_id=${msg.message_id}&initData=${encodedInitData}`;
                 const type = msg.content_type;
+                const ext = msg.media_ext || '';
 
-                if (type === 'photo') {
-                    mediaHtml = `<img src="${mediaUrl}" class="msg-media" loading="lazy" alt="Фото">`;
-                } else if (type === 'video') {
-                    mediaHtml = `<video src="${mediaUrl}" controls class="msg-media" preload="metadata"></video>`;
-                } else if (type === 'video_note') {
-                    mediaHtml = `<video src="${mediaUrl}" controls class="msg-video-note" preload="metadata"></video>`;
-                } else if (type === 'voice' || type === 'audio') {
+                // Обработка стикеров
+                if (type === 'sticker') {
+                    if (ext === '.tgs') {
+                        mediaHtml = `<div style="padding:10px; background:#2c2c2e; border-radius:8px; display:inline-block; font-size:12px; color:#8e8e93; margin-top:5px;">🎭 Анимированный стикер</div>`;
+                    } else if (ext === '.webm') {
+                        mediaHtml = `<video src="${mediaUrl}" autoplay loop muted playsinline class="msg-sticker"></video>`;
+                    } else {
+                        // Если картинка не загрузится, она просто скроется (onerror)
+                        mediaHtml = `<img src="${mediaUrl}" class="msg-sticker" loading="lazy" onerror="this.style.display='none'" alt="Стикер">`;
+                    }
+                } 
+                // Фото
+                else if (type === 'photo') {
+                    mediaHtml = `<img src="${mediaUrl}" class="msg-media" loading="lazy" onerror="this.style.display='none'" alt="Фото">`;
+                } 
+                // Видео
+                else if (type === 'video') {
+                    mediaHtml = `<video src="${mediaUrl}" controls playsinline class="msg-media" preload="metadata"></video>`;
+                } 
+                // Кружки
+                else if (type === 'video_note') {
+                    mediaHtml = `<video src="${mediaUrl}" controls playsinline class="msg-video-note" preload="metadata"></video>`;
+                } 
+                // Голосовые и аудио
+                else if (type === 'voice' || type === 'audio') {
                     mediaHtml = `<audio src="${mediaUrl}" controls class="msg-audio" preload="metadata"></audio>`;
-                } else if (type === 'sticker') {
-                    mediaHtml = `<img src="${mediaUrl}" class="msg-sticker" loading="lazy" alt="Стикер">`;
-                } else if (type === 'animation') {
+                } 
+                // Гифки
+                else if (type === 'animation') {
                     mediaHtml = `<video src="${mediaUrl}" autoplay loop muted playsinline class="msg-media"></video>`;
-                } else if (type === 'document') {
+                } 
+                // Документы
+                else if (type === 'document') {
                     mediaHtml = `<a href="${mediaUrl}" target="_blank" class="msg-doc">📎 Скачать файл</a>`;
                 }
             } else if (!text && msg.content_type !== 'text') {

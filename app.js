@@ -15,7 +15,6 @@ if (!initData) {
     initApp();
 }
 
-// Элементы интерфейса
 const loadingEl = document.getElementById('loading');
 const errorEl = document.getElementById('error');
 const viewStats = document.getElementById('view-stats');
@@ -24,7 +23,6 @@ const viewMessages = document.getElementById('view-messages');
 const headerTitle = document.getElementById('header-title');
 const btnBack = document.getElementById('btn-back');
 
-// Текущее состояние
 let currentView = 'stats';
 let currentChatId = null;
 
@@ -57,7 +55,6 @@ function showError(msg) {
     document.getElementById('error-text').textContent = msg;
 }
 
-// Обработка кнопки "Назад"
 btnBack.onclick = () => {
     if (currentView === 'stats') {
         tg.close();
@@ -70,19 +67,17 @@ btnBack.onclick = () => {
 
 async function initApp() {
     try {
-        // Загружаем статистику
         const res = await miniAppClient.get('/api/miniapp/stats');
         document.getElementById('user-name').textContent = res.data.user || 'Друг';
         document.getElementById('total-messages').textContent = res.data.total_messages || 0;
         document.getElementById('deleted-messages').textContent = res.data.deleted_messages || 0;
         showView('stats');
     } catch (err) {
-        const msg = err.response?.data?.error || 'Не удалось связаться с ботом. Проверь настройки API.';
+        const msg = err.response?.data?.error || 'Не удалось связаться с ботом.';
         showError(msg);
     }
 }
 
-// Клик по карточке сообщений -> открываем список чатов
 document.getElementById('card-messages').onclick = async () => {
     showView('chats');
     loadingEl.classList.remove('hidden');
@@ -110,7 +105,12 @@ document.getElementById('card-messages').onclick = async () => {
             listEl.appendChild(div);
         });
     } catch (err) {
-        showError(err.response?.data?.error || 'Ошибка загрузки чатов');
+        let errorMsg = 'Ошибка загрузки чатов';
+        if (err.response) {
+            errorMsg = `Ошибка сервера (${err.response.status})`;
+            if (err.response.status === 404) errorMsg = 'Сервер не обновлён (404). Перезапусти бота!';
+        }
+        showError(errorMsg);
     }
 };
 
@@ -142,7 +142,6 @@ async function loadMessages(chatId, chatLabel) {
             div.className = classes;
             
             let text = msg.text || `[${msg.content_type}]`;
-            // Защита от XSS
             text = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
             
             div.innerHTML = `
@@ -153,6 +152,6 @@ async function loadMessages(chatId, chatLabel) {
             listEl.appendChild(div);
         });
     } catch (err) {
-        showError(err.response?.data?.error || 'Ошибка загрузки сообщений');
+        showError('Ошибка загрузки сообщений');
     }
 }

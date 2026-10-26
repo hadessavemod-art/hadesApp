@@ -13,13 +13,21 @@
         .list-item:active { background: #2c2c2e; }
         .list-item-title { font-weight: bold; color: #fff; margin-bottom: 5px; font-size: 16px;}
         .list-item-sub { font-size: 12px; color: #8e8e93; }
+        
         .message-item { background: #1c1c1e; padding: 12px; border-radius: 12px; margin-bottom: 10px; border-left: 3px solid #007aff; }
         .message-item.deleted { border-left-color: #ff453a; opacity: 0.8; }
         .message-item.edited { border-left-color: #ffcc00; }
         .msg-author { font-size: 12px; color: #007aff; margin-bottom: 5px; font-weight: bold; }
-        .msg-text { font-size: 14px; color: #fff; word-break: break-word; }
+        .msg-text { font-size: 14px; color: #fff; word-break: break-word; margin-bottom: 8px;}
         .msg-time { font-size: 10px; color: #8e8e93; margin-top: 5px; text-align: right; }
         .header-btn { background: none; border: none; color: #007aff; font-size: 16px; cursor: pointer; padding: 0; }
+        
+        /* Стили для медиа */
+        .msg-media { max-width: 100%; border-radius: 8px; display: block; margin-top: 5px; }
+        .msg-sticker { width: 120px; height: 120px; object-fit: contain; display: block; }
+        .msg-video-note { width: 200px; height: 200px; border-radius: 50%; object-fit: cover; display: block; }
+        .msg-audio { width: 100%; max-width: 250px; margin-top: 5px; outline: none; }
+        .msg-doc { display: inline-block; background: #2c2c2e; padding: 8px 12px; border-radius: 8px; color: #007aff; text-decoration: none; font-size: 14px; margin-top: 5px;}
     </style>
 </head>
 <body class="mini-app-body">
@@ -34,14 +42,12 @@
         </header>
 
         <main class="hs-content">
-            <!-- Экран загрузки -->
             <div id="loading" class="hs-state">
                 <div class="hs-loader"></div>
                 <strong>Загрузка...</strong>
                 <p>Получаем данные из архива</p>
             </div>
 
-            <!-- Экран ошибки -->
             <div id="error" class="hs-state hidden">
                 <span class="hs-state__icon">⚠️</span>
                 <strong>Ошибка</strong>
@@ -49,7 +55,6 @@
                 <button onclick="location.reload()">Попробовать снова</button>
             </div>
 
-            <!-- 1. Экран Статистики -->
             <div id="view-stats" class="hs-page hidden">
                 <div class="hs-welcome" style="padding: 15px;">
                     <small>Привет,</small>
@@ -70,12 +75,10 @@
                 </div>
             </div>
 
-            <!-- 2. Экран Списка Чатов -->
             <div id="view-chats" class="hs-page hidden">
                 <div class="list-container" id="chats-list"></div>
             </div>
 
-            <!-- 3. Экран Сообщений -->
             <div id="view-messages" class="hs-page hidden">
                 <div class="list-container" id="messages-list"></div>
             </div>

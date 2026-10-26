@@ -53,7 +53,8 @@ body.mini-app-body {
 .back-btn { position: absolute; left: 0; background: none; border: none; color: var(--text-main); padding: 8px; cursor: pointer; }
 
 .user-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
-.avatar { width: 56px; height: 56px; border-radius: 50%; background: #2C2C2E; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; color: #fff; }
+.avatar { width: 56px; height: 56px; border-radius: 50%; background: #2C2C2E; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; color: #fff; overflow: hidden; flex-shrink: 0; position: relative;}
+.avatar-img { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; }
 .user-info h2 { font-size: 20px; font-weight: 600; margin-bottom: 4px; letter-spacing: 1px;}
 .user-id { font-size: 13px; color: var(--text-muted); }
 
@@ -86,7 +87,7 @@ body.mini-app-body {
 .list-item { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #2C2C2E; cursor: pointer; }
 .list-item:active { background: rgba(255,255,255,0.05); }
 .list-avatar { width: 46px; height: 46px; border-radius: 50%; background: #2C2C2E; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 12px; color: var(--accent-red); flex-shrink: 0; }
-.list-avatar-img { width: 46px; height: 46px; border-radius: 50%; object-fit: cover; margin-right: 12px; flex-shrink: 0; border: 1px solid #3A3A3C; } /* Стиль для аватарки-картинки */
+.list-avatar-img { width: 46px; height: 46px; border-radius: 50%; object-fit: cover; margin-right: 12px; flex-shrink: 0; border: 1px solid #3A3A3C; }
 .list-content { flex: 1; overflow: hidden; }
 .list-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .list-sub { font-size: 13px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

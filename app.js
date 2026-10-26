@@ -37,18 +37,49 @@ async function initApp() {
         const res = await miniAppClient.get('/api/miniapp/stats');
         const user = res.data.user || 'Пользователь';
         const userId = res.data.user_id || 0;
+        const username = res.data.username || '';
         
-        // Заполняем главную
+        // Заполняем текстовые данные
         document.getElementById('user-name').textContent = user;
-        document.getElementById('user-avatar').textContent = user[0].toUpperCase();
         document.getElementById('user-id').textContent = 'ID: ' + userId;
         document.getElementById('stat-chats').textContent = res.data.total_messages || 0;
         document.getElementById('stat-deleted').textContent = res.data.deleted_messages || 0;
         
-        // Заполняем профиль
         document.getElementById('profile-name').textContent = user;
         document.getElementById('profile-id').textContent = 'ID: ' + userId;
-        document.getElementById('profile-avatar').textContent = user[0].toUpperCase();
+
+        // Логика загрузки СВОЕЙ аватарки
+        if (username.trim() !== '') {
+            const myAvatarUrl = `https://t.me/i/userpic/320/${username}.jpg`;
+            
+            // Для главной
+            const homeImg = document.getElementById('user-avatar-img');
+            const homeText = document.getElementById('user-avatar-text');
+            homeImg.src = myAvatarUrl;
+            homeImg.style.display = 'block';
+            homeText.style.display = 'none';
+            homeImg.onerror = () => { // Если ава нет, показываем букву
+                homeImg.style.display = 'none';
+                homeText.style.display = 'block';
+                homeText.textContent = user[0].toUpperCase();
+            };
+
+            // Для профиля
+            const profImg = document.getElementById('profile-avatar-img');
+            const profText = document.getElementById('profile-avatar-text');
+            profImg.src = myAvatarUrl;
+            profImg.style.display = 'block';
+            profText.style.display = 'none';
+            profImg.onerror = () => {
+                profImg.style.display = 'none';
+                profText.style.display = 'block';
+                profText.textContent = user[0].toUpperCase();
+            };
+        } else {
+            // Если юзернейма нет, просто ставим букву
+            document.getElementById('user-avatar-text').textContent = user[0].toUpperCase();
+            document.getElementById('profile-avatar-text').textContent = user[0].toUpperCase();
+        }
         
         switchTab('home');
     } catch (err) {
@@ -86,7 +117,6 @@ async function loadChats() {
             
             const initial = chat.label ? chat.label[0].toUpperCase() : '?';
             
-            // Логика аватарки: если есть username, пробуем загрузить картинку
             let avatarHtml = `<div class="list-avatar">${initial}</div>`;
             if (chat.chat_username && chat.chat_username.trim() !== '') {
                 const imgUrl = `https://t.me/i/userpic/320/${chat.chat_username}.jpg`;

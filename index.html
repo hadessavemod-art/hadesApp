@@ -22,6 +22,9 @@
         <symbol id="icon-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></symbol>
         <symbol id="icon-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></symbol>
         <symbol id="icon-back" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></symbol>
+        <symbol id="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></symbol>
+        <!-- Иконка короны -->
+        <symbol id="icon-crown" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M5 16L3 5L8.5 10L12 4L15.5 10L21 5L19 16H5Z"/><path d="M5 18H19V20H5V18Z"/></symbol>
     </svg>
 
     <div id="app" class="hs-app">
@@ -37,6 +40,12 @@
                     <span id="user-id" class="user-id">ID: Загрузка...</span>
                 </div>
             </header>
+
+            <!-- Премиум статус (появляется если есть подписка) -->
+            <div id="premium-badge" class="premium-badge hidden">
+                <svg class="crown-icon"><use href="#icon-crown"></use></svg>
+                <span class="premium-text">Premium</span>
+            </div>
 
             <div class="stats-grid">
                 <div class="stat-card">
@@ -81,10 +90,10 @@
                     </div>
                     <svg class="icon chevron"><use href="#icon-chevron"></use></svg>
                 </div>
-                <div class="menu-item" onclick="alert('Раздел Premium в разработке!')">
+                <div class="menu-item" onclick="switchTab('premium')">
                     <div class="menu-icon bg-purple"><svg class="icon"><use href="#icon-diamond"></use></svg></div>
                     <div class="menu-text">
-                        <h3>HadesSave Premium</h3>
+                        <h3>Hades Premium</h3>
                         <p>Больше архива и без рекламы</p>
                     </div>
                     <svg class="icon chevron"><use href="#icon-chevron"></use></svg>
@@ -94,6 +103,84 @@
                     <div class="menu-text">
                         <h3>Реферальная программа</h3>
                         <p>5 ⭐ за подключение друга</p>
+                    </div>
+                    <svg class="icon chevron"><use href="#icon-chevron"></use></svg>
+                </div>
+            </div>
+        </main>
+
+        <!-- ЭКРАН: PREMIUM -->
+        <main id="view-premium" class="page">
+            <header class="page-header with-back">
+                <button class="back-btn" onclick="switchTab('home')">
+                    <svg class="icon"><use href="#icon-back"></use></svg>
+                </button>
+                <h2>Hades Premium</h2>
+            </header>
+
+            <div class="premium-hero">
+                <div class="premium-hero-content">
+                    <svg class="icon premium-icon"><use href="#icon-diamond"></use></svg>
+                    <div>
+                        <h3>Hades Premium</h3>
+                        <p>Твой архив на максималках</p>
+                    </div>
+                </div>
+                <button class="premium-buy-btn" onclick="alert('Оплата скоро появится!')">Подключить Premium</button>
+            </div>
+
+            <div class="premium-section-title">ЧТО ВХОДИТ</div>
+            
+            <div class="premium-features">
+                <div class="feature-item">
+                    <div class="feature-icon bg-blue"><svg class="icon"><use href="#icon-chat"></use></svg></div>
+                    <div class="feature-text">
+                        <h4>Безлимитный архив</h4>
+                        <p>Срок хранения увеличивается с 3 дней до 30 дней.</p>
+                    </div>
+                </div>
+                
+                <div class="feature-item">
+                    <div class="feature-icon bg-purple"><svg class="icon"><use href="#icon-diamond"></use></svg></div>
+                    <div class="feature-text">
+                        <h4>Приоритетное сохранение</h4>
+                        <p>Твои файлы и медиа никогда не удаляются первыми при очистке.</p>
+                    </div>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-icon bg-green"><svg class="icon"><use href="#icon-check"></use></svg></div>
+                    <div class="feature-text">
+                        <h4>Без рекламы и подписок</h4>
+                        <p>Никаких обязательных подписок на каналы.</p>
+                    </div>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-icon bg-yellow"><svg class="icon"><use href="#icon-crown"></use></svg></div>
+                    <div class="feature-text">
+                        <h4>Уникальный значок</h4>
+                        <p>Особый статус в боте и в вашем профиле Mini App.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="premium-section-title">КАК ПОЛУЧИТЬ</div>
+            
+            <div class="menu-group">
+                <div class="menu-item" onclick="alert('Оплата скоро появится!')">
+                    <div class="menu-icon bg-purple"><svg class="icon"><use href="#icon-diamond"></use></svg></div>
+                    <div class="menu-text">
+                        <h3>Купить за звёзды</h3>
+                        <p>Оплата Telegram Stars</p>
+                    </div>
+                    <svg class="icon chevron"><use href="#icon-chevron"></use></svg>
+                </div>
+                <div class="menu-item" onclick="alert('Реферальная система в разработке!')">
+                    <div class="menu-icon bg-green"><svg class="icon"><use href="#icon-users"></use></svg></div>
+                    <div class="menu-text">
+                        <h3>Пригласить друзей</h3>
+                        <p>+7 дней Premium за друга</p>
                     </div>
                     <svg class="icon chevron"><use href="#icon-chevron"></use></svg>
                 </div>

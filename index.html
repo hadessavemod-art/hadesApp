@@ -3,19 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>HadesSave — Статистика</title>
-    <!-- Подключаем твой стиль -->
+    <title>HadesSave — Архив</title>
     <link rel="stylesheet" href="mini-app.css">
-    <!-- Официальный скрипт Telegram -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        .hidden { display: none !important; }
+        .list-container { display: flex; flex-direction: column; gap: 10px; padding: 10px; }
+        .list-item { background: #1c1c1e; padding: 15px; border-radius: 12px; cursor: pointer; }
+        .list-item:active { background: #2c2c2e; }
+        .list-item-title { font-weight: bold; color: #fff; margin-bottom: 5px; }
+        .list-item-sub { font-size: 12px; color: #8e8e93; }
+        .message-item { background: #1c1c1e; padding: 12px; border-radius: 12px; margin-bottom: 10px; border-left: 3px solid #007aff; }
+        .message-item.deleted { border-left-color: #ff453a; opacity: 0.7; }
+        .message-item.edited { border-left-color: #ffcc00; }
+        .msg-author { font-size: 12px; color: #007aff; margin-bottom: 5px; font-weight: bold; }
+        .msg-text { font-size: 14px; color: #fff; word-break: break-word; }
+        .msg-time { font-size: 10px; color: #8e8e93; margin-top: 5px; text-align: right; }
+        .header-btn { background: none; border: none; color: #007aff; font-size: 16px; cursor: pointer; padding: 0; }
+    </style>
 </head>
 <body class="mini-app-body">
     <div id="app" class="hs-app">
         <!-- Верхняя панель -->
         <header class="hs-topbar">
-            <button id="btn-back">‹ Назад</button>
+            <button id="btn-back" class="header-btn">‹ Назад</button>
             <div>
-                <strong>Статистика</strong>
+                <strong id="header-title">Статистика</strong>
                 <small>HadesSave</small>
             </div>
             <div class="hs-topbar-spacer"></div>
@@ -38,18 +51,18 @@
                 <button onclick="location.reload()">Попробовать снова</button>
             </div>
 
-            <!-- Экран с данными -->
-            <div id="data" class="hs-page hidden">
+            <!-- 1. Экран с данными (Статистика) -->
+            <div id="view-stats" class="hs-page hidden">
                 <div class="hs-welcome">
                     <small>Привет,</small>
                     <h1 id="user-name">Пользователь</h1>
                 </div>
 
                 <div class="hs-stat-grid hs-stat-grid--wide">
-                    <article data-tone="blue">
+                    <article data-tone="blue" id="card-messages" style="cursor: pointer;">
                         <span data-tone="blue">💬</span>
                         <strong id="total-messages">0</strong>
-                        <small>Сообщений в архиве</small>
+                        <small>Сообщений в архиве (Нажми)</small>
                     </article>
                     <article data-tone="red">
                         <span data-tone="red">🗑</span>
@@ -58,14 +71,23 @@
                     </article>
                 </div>
             </div>
+
+            <!-- 2. Экран со списком чатов -->
+            <div id="view-chats" class="hs-page hidden">
+                <div class="list-container" id="chats-list">
+                    <!-- Сюда рендерятся чаты -->
+                </div>
+            </div>
+
+            <!-- 3. Экран с сообщениями -->
+            <div id="view-messages" class="hs-page hidden">
+                <div class="list-container" id="messages-list">
+                    <!-- Сюда рендерятся сообщения -->
+                </div>
+            </div>
         </main>
     </div>
 
-    <!-- Подключаем наш скрипт -->
     <script type="module" src="app.js"></script>
-
-    <style>
-        .hidden { display: none !important; }
-    </style>
 </body>
 </html>

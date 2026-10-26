@@ -23,7 +23,7 @@ body.mini-app-body {
     background-color: var(--bg-main);
     color: var(--text-main);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    padding-bottom: 80px; /* Место под нижнее меню */
+    padding-bottom: 80px;
     overflow-x: hidden;
 }
 
@@ -33,7 +33,6 @@ body.mini-app-body {
     min-height: 100vh;
 }
 
-/* Утилиты */
 .icon { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .big-icon { width: 48px; height: 48px; margin-bottom: 16px; }
 .text-accent { color: var(--accent-red); }
@@ -43,32 +42,27 @@ body.mini-app-body {
 .text-yellow { color: var(--accent-yellow); }
 .chevron { width: 16px; height: 16px; color: var(--text-muted); }
 
-/* Экраны */
 .page { display: none; padding: 20px 16px; animation: fadeIn 0.2s ease-out; }
 .page.active { display: block; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-/* Шапка */
 .page-header { margin-bottom: 20px; text-align: center; }
 .page-header h2 { font-size: 18px; font-weight: 600; }
 .page-header .subtitle { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
 .page-header.with-back { display: flex; align-items: center; justify-content: center; position: relative; }
 .back-btn { position: absolute; left: 0; background: none; border: none; color: var(--text-main); padding: 8px; cursor: pointer; }
 
-/* Профиль на главной */
 .user-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
 .avatar { width: 56px; height: 56px; border-radius: 50%; background: #2C2C2E; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; color: #fff; }
 .user-info h2 { font-size: 20px; font-weight: 600; margin-bottom: 4px; letter-spacing: 1px;}
 .user-id { font-size: 13px; color: var(--text-muted); }
 
-/* Сетка статистики */
 .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 24px; }
 .stat-card { background: var(--bg-card); padding: 12px 8px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
 .stat-card .icon { width: 18px; height: 18px; }
 .stat-card strong { font-size: 16px; font-weight: 700; }
 .stat-card span { font-size: 10px; color: var(--text-muted); }
 
-/* Меню */
 .menu-group { background: var(--bg-card); border-radius: 16px; overflow: hidden; margin-bottom: 20px; }
 .menu-item { display: flex; align-items: center; padding: 14px 16px; cursor: pointer; border-bottom: 1px solid #2C2C2E; transition: background 0.1s; }
 .menu-item:last-child { border-bottom: none; }
@@ -85,24 +79,19 @@ body.mini-app-body {
 .bg-cyan { background: var(--accent-cyan); }
 .bg-gray { background: #48484A; }
 
-/* Поиск и табы */
 .search-bar { background: var(--bg-card); border-radius: 10px; display: flex; align-items: center; padding: 10px 12px; margin-bottom: 16px; }
 .search-bar .icon { color: var(--text-muted); margin-right: 8px; width: 18px; height: 18px; }
 .search-bar input { background: none; border: none; color: #fff; outline: none; width: 100%; font-size: 15px; }
-.tabs { display: flex; border-bottom: 1px solid #2C2C2E; margin-bottom: 16px; }
-.tab { flex: 1; background: none; border: none; color: var(--text-muted); padding: 10px; font-size: 14px; font-weight: 500; cursor: pointer; border-bottom: 2px solid transparent; }
-.tab.active { color: var(--accent-red); border-bottom-color: var(--accent-red); }
 
-/* Списки */
 .list-item { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #2C2C2E; cursor: pointer; }
 .list-item:active { background: rgba(255,255,255,0.05); }
-.list-avatar { width: 46px; height: 46px; border-radius: 50%; background: #2C2C2E; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 12px; color: var(--accent-red); }
+.list-avatar { width: 46px; height: 46px; border-radius: 50%; background: #2C2C2E; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 12px; color: var(--accent-red); flex-shrink: 0; }
+.list-avatar-img { width: 46px; height: 46px; border-radius: 50%; object-fit: cover; margin-right: 12px; flex-shrink: 0; border: 1px solid #3A3A3C; } /* Стиль для аватарки-картинки */
 .list-content { flex: 1; overflow: hidden; }
 .list-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .list-sub { font-size: 13px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .list-meta { text-align: right; font-size: 12px; color: var(--text-muted); margin-left: 10px;}
 
-/* Сообщения */
 .messages-list { padding-bottom: 20px; }
 .message-item { background: var(--bg-card); padding: 12px 14px; border-radius: 12px; margin-bottom: 10px; border-left: 3px solid var(--accent-red); }
 .message-item.deleted { border-left-color: var(--accent-red); opacity: 0.7; }
@@ -115,13 +104,11 @@ body.mini-app-body {
 .msg-video-note { width: 180px; height: 180px; border-radius: 50%; object-fit: cover; display: block; margin-top: 8px;}
 .msg-audio { width: 100%; max-width: 250px; margin-top: 8px; outline: none; }
 
-/* Заглушки */
 .empty-state { text-align: center; color: var(--text-muted); padding: 40px 0; font-size: 14px; }
 .empty-state-box { background: var(--bg-card); border-radius: 20px; padding: 40px 20px; text-align: center; margin-top: 20px; }
 .empty-state-box h3 { font-size: 16px; margin-bottom: 8px; }
 .empty-state-box p { font-size: 13px; color: var(--text-muted); }
 
-/* Нижняя навигация */
 .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); display: flex; justify-content: space-around; padding: 10px 0 20px 0; border-top: 1px solid #1C1C1E; z-index: 100; max-width: 600px; margin: 0 auto; }
 .nav-item { background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-muted); cursor: pointer; padding: 0 10px; transition: color 0.2s; }
 .nav-item .icon { width: 22px; height: 22px; }

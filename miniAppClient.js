@@ -1,10 +1,9 @@
 import axios from 'https://cdn.skypack.dev/axios';
 
 let telegramInitData = ''
-const configuredApiUrl = (window.HADES_API_URL || 'http://api.bot.local').replace(/\/$/, '')
-const miniAppApiUrl = window.location.protocol === 'https:' && configuredApiUrl.startsWith('http://')
-  ? window.location.origin
-  : configuredApiUrl
+
+// Твой реальный адрес сервера на Bothost
+const miniAppApiUrl = 'https://bot-1792328368-8039-crom.bothost.tech';
 
 export const miniAppClient = axios.create({
   baseURL: miniAppApiUrl,

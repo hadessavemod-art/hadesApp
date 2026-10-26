@@ -15,6 +15,9 @@ if (!initData) {
     initApp();
 }
 
+// Кодируем initData для передачи в URL картинок/видео
+const encodedInitData = encodeURIComponent(initData);
+
 const loadingEl = document.getElementById('loading');
 const errorEl = document.getElementById('error');
 const viewStats = document.getElementById('view-stats');
@@ -105,12 +108,7 @@ document.getElementById('card-messages').onclick = async () => {
             listEl.appendChild(div);
         });
     } catch (err) {
-        let errorMsg = 'Ошибка загрузки чатов';
-        if (err.response) {
-            errorMsg = `Ошибка сервера (${err.response.status})`;
-            if (err.response.status === 404) errorMsg = 'Сервер не обновлён (404). Перезапусти бота!';
-        }
-        showError(errorMsg);
+        showError('Ошибка загрузки чатов');
     }
 };
 
@@ -141,12 +139,39 @@ async function loadMessages(chatId, chatLabel) {
             
             div.className = classes;
             
-            let text = msg.text || `[${msg.content_type}]`;
-            text = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            let text = msg.text || '';
+            if (text) {
+                text = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            }
+            
+            let mediaHtml = '';
+            if (msg.has_media) {
+                const mediaUrl = `${miniAppClient.defaults.baseURL}/api/miniapp/media?chat_id=${chatId}&message_id=${msg.message_id}&initData=${encodedInitData}`;
+                const type = msg.content_type;
+
+                if (type === 'photo') {
+                    mediaHtml = `<img src="${mediaUrl}" class="msg-media" loading="lazy" alt="Фото">`;
+                } else if (type === 'video') {
+                    mediaHtml = `<video src="${mediaUrl}" controls class="msg-media" preload="metadata"></video>`;
+                } else if (type === 'video_note') {
+                    mediaHtml = `<video src="${mediaUrl}" controls class="msg-video-note" preload="metadata"></video>`;
+                } else if (type === 'voice' || type === 'audio') {
+                    mediaHtml = `<audio src="${mediaUrl}" controls class="msg-audio" preload="metadata"></audio>`;
+                } else if (type === 'sticker') {
+                    mediaHtml = `<img src="${mediaUrl}" class="msg-sticker" loading="lazy" alt="Стикер">`;
+                } else if (type === 'animation') {
+                    mediaHtml = `<video src="${mediaUrl}" autoplay loop muted playsinline class="msg-media"></video>`;
+                } else if (type === 'document') {
+                    mediaHtml = `<a href="${mediaUrl}" target="_blank" class="msg-doc">📎 Скачать файл</a>`;
+                }
+            } else if (!text && msg.content_type !== 'text') {
+                text = `[${msg.content_type}]`;
+            }
             
             div.innerHTML = `
                 <div class="msg-author">${msg.sender_name || 'Пользователь'} ${msg.deleted ? '🗑' : msg.edited ? '✏️' : ''}</div>
-                <div class="msg-text">${text}</div>
+                ${text ? `<div class="msg-text">${text}</div>` : ''}
+                ${mediaHtml}
                 <div class="msg-time">${msg.updated_at}</div>
             `;
             listEl.appendChild(div);

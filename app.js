@@ -21,11 +21,12 @@ window.switchTab = function(tabName) {
 
     document.getElementById(`view-${tabName}`).classList.add('active');
     
-    if (tabName !== 'messages') {
+    if (tabName === 'premium' || tabName === 'messages') {
+        const activeNav = tabName === 'premium' ? 'home' : 'chats';
+        document.querySelector(`.nav-item[onclick="switchTab('${activeNav}')"]`).classList.add('active');
+    } else {
         const navBtn = document.querySelector(`.nav-item[onclick="switchTab('${tabName}')"]`);
         if (navBtn) navBtn.classList.add('active');
-    } else {
-        document.querySelector(`.nav-item[onclick="switchTab('chats')"]`).classList.add('active');
     }
 
     if (tabName === 'home') loadStats();
@@ -38,8 +39,8 @@ async function initApp() {
         const user = res.data.user || 'Пользователь';
         const userId = res.data.user_id || 0;
         const username = res.data.username || '';
+        const isPremium = res.data.is_premium || false; // Проверяем премиум
         
-        // Заполняем текстовые данные
         document.getElementById('user-name').textContent = user;
         document.getElementById('user-id').textContent = 'ID: ' + userId;
         document.getElementById('stat-chats').textContent = res.data.total_messages || 0;
@@ -48,23 +49,25 @@ async function initApp() {
         document.getElementById('profile-name').textContent = user;
         document.getElementById('profile-id').textContent = 'ID: ' + userId;
 
-        // Логика загрузки СВОЕЙ аватарки
+        // Включаем бейдж Premium с короной
+        if (isPremium) {
+            document.getElementById('premium-badge').classList.remove('hidden');
+        }
+
         if (username.trim() !== '') {
             const myAvatarUrl = `https://t.me/i/userpic/320/${username}.jpg`;
             
-            // Для главной
             const homeImg = document.getElementById('user-avatar-img');
             const homeText = document.getElementById('user-avatar-text');
             homeImg.src = myAvatarUrl;
             homeImg.style.display = 'block';
             homeText.style.display = 'none';
-            homeImg.onerror = () => { // Если ава нет, показываем букву
+            homeImg.onerror = () => {
                 homeImg.style.display = 'none';
                 homeText.style.display = 'block';
                 homeText.textContent = user[0].toUpperCase();
             };
 
-            // Для профиля
             const profImg = document.getElementById('profile-avatar-img');
             const profText = document.getElementById('profile-avatar-text');
             profImg.src = myAvatarUrl;
@@ -76,7 +79,6 @@ async function initApp() {
                 profText.textContent = user[0].toUpperCase();
             };
         } else {
-            // Если юзернейма нет, просто ставим букву
             document.getElementById('user-avatar-text').textContent = user[0].toUpperCase();
             document.getElementById('profile-avatar-text').textContent = user[0].toUpperCase();
         }

@@ -8,13 +8,13 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         .hidden { display: none !important; }
-        .list-container { display: flex; flex-direction: column; gap: 10px; padding: 10px; }
-        .list-item { background: #1c1c1e; padding: 15px; border-radius: 12px; cursor: pointer; }
+        .list-container { display: flex; flex-direction: column; gap: 10px; padding: 15px; }
+        .list-item { background: #1c1c1e; padding: 15px; border-radius: 12px; cursor: pointer; border-left: 3px solid #007aff; }
         .list-item:active { background: #2c2c2e; }
-        .list-item-title { font-weight: bold; color: #fff; margin-bottom: 5px; }
+        .list-item-title { font-weight: bold; color: #fff; margin-bottom: 5px; font-size: 16px;}
         .list-item-sub { font-size: 12px; color: #8e8e93; }
         .message-item { background: #1c1c1e; padding: 12px; border-radius: 12px; margin-bottom: 10px; border-left: 3px solid #007aff; }
-        .message-item.deleted { border-left-color: #ff453a; opacity: 0.7; }
+        .message-item.deleted { border-left-color: #ff453a; opacity: 0.8; }
         .message-item.edited { border-left-color: #ffcc00; }
         .msg-author { font-size: 12px; color: #007aff; margin-bottom: 5px; font-weight: bold; }
         .msg-text { font-size: 14px; color: #fff; word-break: break-word; }
@@ -24,7 +24,6 @@
 </head>
 <body class="mini-app-body">
     <div id="app" class="hs-app">
-        <!-- Верхняя панель -->
         <header class="hs-topbar">
             <button id="btn-back" class="header-btn">‹ Назад</button>
             <div>
@@ -34,7 +33,6 @@
             <div class="hs-topbar-spacer"></div>
         </header>
 
-        <!-- Контент -->
         <main class="hs-content">
             <!-- Экран загрузки -->
             <div id="loading" class="hs-state">
@@ -51,18 +49,18 @@
                 <button onclick="location.reload()">Попробовать снова</button>
             </div>
 
-            <!-- 1. Экран с данными (Статистика) -->
+            <!-- 1. Экран Статистики -->
             <div id="view-stats" class="hs-page hidden">
-                <div class="hs-welcome">
+                <div class="hs-welcome" style="padding: 15px;">
                     <small>Привет,</small>
                     <h1 id="user-name">Пользователь</h1>
                 </div>
 
-                <div class="hs-stat-grid hs-stat-grid--wide">
+                <div class="hs-stat-grid hs-stat-grid--wide" style="padding: 0 15px;">
                     <article data-tone="blue" id="card-messages" style="cursor: pointer;">
                         <span data-tone="blue">💬</span>
                         <strong id="total-messages">0</strong>
-                        <small>Сообщений в архиве (Нажми)</small>
+                        <small>Сообщений (Нажми)</small>
                     </article>
                     <article data-tone="red">
                         <span data-tone="red">🗑</span>
@@ -72,18 +70,14 @@
                 </div>
             </div>
 
-            <!-- 2. Экран со списком чатов -->
+            <!-- 2. Экран Списка Чатов -->
             <div id="view-chats" class="hs-page hidden">
-                <div class="list-container" id="chats-list">
-                    <!-- Сюда рендерятся чаты -->
-                </div>
+                <div class="list-container" id="chats-list"></div>
             </div>
 
-            <!-- 3. Экран с сообщениями -->
+            <!-- 3. Экран Сообщений -->
             <div id="view-messages" class="hs-page hidden">
-                <div class="list-container" id="messages-list">
-                    <!-- Сюда рендерятся сообщения -->
-                </div>
+                <div class="list-container" id="messages-list"></div>
             </div>
         </main>
     </div>

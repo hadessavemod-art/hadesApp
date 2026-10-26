@@ -7,9 +7,7 @@ tg.expand();
 const initData = tg.initData;
 
 if (!initData) {
-    document.getElementById('loading').classList.add('hidden');
-    document.getElementById('error').classList.remove('hidden');
-    document.getElementById('error-text').textContent = 'Пожалуйста, открой это окно через бота в Telegram.';
+    document.body.innerHTML = '<h2 style="color:white;text-align:center;margin-top:50px;">Открой через бота в Telegram</h2>';
 } else {
     setTelegramInitData(initData);
     initApp();
@@ -17,116 +15,113 @@ if (!initData) {
 
 const encodedInitData = encodeURIComponent(initData);
 
-const loadingEl = document.getElementById('loading');
-const errorEl = document.getElementById('error');
-const viewStats = document.getElementById('view-stats');
-const viewChats = document.getElementById('view-chats');
-const viewMessages = document.getElementById('view-messages');
-const headerTitle = document.getElementById('header-title');
-const btnBack = document.getElementById('btn-back');
+// Переключение вкладок (Главная, Чаты, Розыгрыш, Профиль)
+window.switchTab = function(tabName) {
+    // Скрываем все экраны
+    document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+    // Убираем активный класс у кнопок меню
+    document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
 
-let currentView = 'stats';
-let currentChatId = null;
-
-function showView(viewName) {
-    viewStats.classList.add('hidden');
-    viewChats.classList.add('hidden');
-    viewMessages.classList.add('hidden');
-    loadingEl.classList.add('hidden');
-    errorEl.classList.add('hidden');
-
-    currentView = viewName;
-    if (viewName === 'stats') {
-        viewStats.classList.remove('hidden');
-        headerTitle.textContent = 'Статистика';
-        btnBack.textContent = 'Закрыть';
-    } else if (viewName === 'chats') {
-        viewChats.classList.remove('hidden');
-        headerTitle.textContent = 'Мои чаты';
-        btnBack.textContent = '‹ Назад';
-    } else if (viewName === 'messages') {
-        viewMessages.classList.remove('hidden');
-        headerTitle.textContent = 'Сообщения';
-        btnBack.textContent = '‹ Назад';
+    // Показываем нужный
+    document.getElementById(`view-${tabName}`).classList.add('active');
+    
+    // Подсвечиваем кнопку меню (если это не экран сообщений)
+    if (tabName !== 'messages') {
+        const navBtn = document.querySelector(`.nav-item[onclick="switchTab('${tabName}')"]`);
+        if (navBtn) navBtn.classList.add('active');
+    } else {
+        // Если открыт экран сообщений, подсвечиваем "Чаты"
+        document.querySelector(`.nav-item[onclick="switchTab('chats')"]`).classList.add('active');
     }
-}
 
-function showError(msg) {
-    loadingEl.classList.add('hidden');
-    errorEl.classList.remove('hidden');
-    document.getElementById('error-text').textContent = msg;
-}
-
-btnBack.onclick = () => {
-    if (currentView === 'stats') {
-        tg.close();
-    } else if (currentView === 'chats') {
-        showView('stats');
-    } else if (currentView === 'messages') {
-        showView('chats');
-    }
+    // Загружаем данные при переходе
+    if (tabName === 'home') loadStats();
+    if (tabName === 'chats') loadChats();
 };
 
 async function initApp() {
     try {
         const res = await miniAppClient.get('/api/miniapp/stats');
-        document.getElementById('user-name').textContent = res.data.user || 'Друг';
-        document.getElementById('total-messages').textContent = res.data.total_messages || 0;
-        document.getElementById('deleted-messages').textContent = res.data.deleted_messages || 0;
-        showView('stats');
+        const user = res.data.user || 'Пользователь';
+        
+        // Заполняем данные на главной
+        document.getElementById('user-name').textContent = user;
+        document.getElementById('user-avatar').textContent = user[0].toUpperCase();
+        document.getElementById('stat-chats').textContent = res.data.total_messages || 0; // Временно показываем сообщения вместо чатов
+        document.getElementById('stat-deleted').textContent = res.data.deleted_messages || 0;
+        
+        // Заполняем данные в профиле
+        document.getElementById('profile-name').textContent = user;
+        
+        // Показываем главную
+        switchTab('home');
     } catch (err) {
-        const msg = err.response?.data?.error || 'Не удалось связаться с ботом.';
-        showError(msg);
+        console.error(err);
+        alert('Ошибка загрузки статистики');
     }
 }
 
-document.getElementById('card-messages').onclick = async () => {
-    showView('chats');
-    loadingEl.classList.remove('hidden');
-    const listEl = document.getElementById('chats-list');
-    listEl.innerHTML = '';
+async function loadStats() {
+    try {
+        const res = await miniAppClient.get('/api/miniapp/stats');
+        document.getElementById('stat-chats').textContent = res.data.total_messages || 0;
+        document.getElementById('stat-deleted').textContent = res.data.deleted_messages || 0;
+    } catch(e) {}
+}
 
+async function loadChats() {
+    const listEl = document.getElementById('chats-list');
+    if (listEl.children.length > 0 && !listEl.querySelector('.empty-state')) return; // Уже загружено
+
+    listEl.innerHTML = '<div class="empty-state">Загрузка чатов...</div>';
+    
     try {
         const res = await miniAppClient.get('/api/miniapp/chats');
-        loadingEl.classList.add('hidden');
         const chats = res.data.chats || [];
-        
+        listEl.innerHTML = '';
+
         if (chats.length === 0) {
-            listEl.innerHTML = '<p style="color:#8e8e93; text-align:center;">Архив пуст</p>';
+            listEl.innerHTML = '<div class="empty-state">Архив пуст</div>';
             return;
         }
 
         chats.forEach(chat => {
             const div = document.createElement('div');
             div.className = 'list-item';
+            
+            // Берем первую букву для аватарки
+            const initial = chat.label ? chat.label[0].toUpperCase() : '?';
+            
             div.innerHTML = `
-                <div class="list-item-title">${chat.label || 'Чат ' + chat.chat_id}</div>
-                <div class="list-item-sub">Всего: ${chat.total} • Удалено: ${chat.deleted_count} • Изменено: ${chat.edited_count}</div>
+                <div class="list-avatar">${initial}</div>
+                <div class="list-content">
+                    <div class="list-title">${chat.label || 'Чат ' + chat.chat_id}</div>
+                    <div class="list-sub">${chat.total} сообщ. • ${chat.deleted_count} удал.</div>
+                </div>
+                <div class="list-meta">${chat.last_at ? chat.last_at.split(' ')[0] : ''}</div>
             `;
             div.onclick = () => loadMessages(chat.chat_id, chat.label);
             listEl.appendChild(div);
         });
     } catch (err) {
-        showError('Ошибка загрузки чатов');
+        listEl.innerHTML = '<div class="empty-state">Ошибка загрузки</div>';
     }
-};
+}
 
 async function loadMessages(chatId, chatLabel) {
-    currentChatId = chatId;
-    showView('messages');
-    headerTitle.textContent = chatLabel || 'Сообщения';
-    loadingEl.classList.remove('hidden');
+    switchTab('messages');
+    document.getElementById('chat-title').textContent = chatLabel || 'Сообщения';
     
     const listEl = document.getElementById('messages-list');
-    listEl.innerHTML = '';
+    listEl.innerHTML = '<div class="empty-state">Загрузка...</div>';
 
     try {
         const res = await miniAppClient.get(`/api/miniapp/messages?chat_id=${chatId}`);
-        loadingEl.classList.add('hidden');
         const messages = res.data.messages || [];
+        listEl.innerHTML = '';
 
         if (messages.length === 0) {
-            listEl.innerHTML = '<p style="color:#8e8e93; text-align:center;">Нет сообщений</p>';
+            listEl.innerHTML = '<div class="empty-state">Нет сообщений</div>';
             return;
         }
 
@@ -135,13 +130,10 @@ async function loadMessages(chatId, chatLabel) {
             let classes = 'message-item';
             if (msg.deleted) classes += ' deleted';
             else if (msg.edited) classes += ' edited';
-            
             div.className = classes;
             
             let text = msg.text || '';
-            if (text) {
-                text = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-            }
+            if (text) text = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
             
             let mediaHtml = '';
             if (msg.has_media) {
@@ -149,39 +141,25 @@ async function loadMessages(chatId, chatLabel) {
                 const type = msg.content_type;
                 const ext = msg.media_ext || '';
 
-                // Обработка стикеров
                 if (type === 'sticker') {
                     if (ext === '.tgs') {
                         mediaHtml = `<div style="padding:10px; background:#2c2c2e; border-radius:8px; display:inline-block; font-size:12px; color:#8e8e93; margin-top:5px;">🎭 Анимированный стикер</div>`;
                     } else if (ext === '.webm') {
                         mediaHtml = `<video src="${mediaUrl}" autoplay loop muted playsinline class="msg-sticker"></video>`;
                     } else {
-                        // Если картинка не загрузится, она просто скроется (onerror)
                         mediaHtml = `<img src="${mediaUrl}" class="msg-sticker" loading="lazy" onerror="this.style.display='none'" alt="Стикер">`;
                     }
-                } 
-                // Фото
-                else if (type === 'photo') {
+                } else if (type === 'photo') {
                     mediaHtml = `<img src="${mediaUrl}" class="msg-media" loading="lazy" onerror="this.style.display='none'" alt="Фото">`;
-                } 
-                // Видео
-                else if (type === 'video') {
+                } else if (type === 'video') {
                     mediaHtml = `<video src="${mediaUrl}" controls playsinline class="msg-media" preload="metadata"></video>`;
-                } 
-                // Кружки
-                else if (type === 'video_note') {
+                } else if (type === 'video_note') {
                     mediaHtml = `<video src="${mediaUrl}" controls playsinline class="msg-video-note" preload="metadata"></video>`;
-                } 
-                // Голосовые и аудио
-                else if (type === 'voice' || type === 'audio') {
+                } else if (type === 'voice' || type === 'audio') {
                     mediaHtml = `<audio src="${mediaUrl}" controls class="msg-audio" preload="metadata"></audio>`;
-                } 
-                // Гифки
-                else if (type === 'animation') {
+                } else if (type === 'animation') {
                     mediaHtml = `<video src="${mediaUrl}" autoplay loop muted playsinline class="msg-media"></video>`;
-                } 
-                // Документы
-                else if (type === 'document') {
+                } else if (type === 'document') {
                     mediaHtml = `<a href="${mediaUrl}" target="_blank" class="msg-doc">📎 Скачать файл</a>`;
                 }
             } else if (!text && msg.content_type !== 'text') {
@@ -197,6 +175,6 @@ async function loadMessages(chatId, chatLabel) {
             listEl.appendChild(div);
         });
     } catch (err) {
-        showError('Ошибка загрузки сообщений');
+        listEl.innerHTML = '<div class="empty-state">Ошибка загрузки сообщений</div>';
     }
 }

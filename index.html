@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>HadesSave</title>
-    <!-- ВАЖНО: ?v=20 сбросит старый кэш -->
-    <link rel="stylesheet" href="mini-app.css?v=20">
+    <link rel="stylesheet" href="mini-app.css?v=21">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body class="mini-app-body">
@@ -28,8 +27,8 @@
     </svg>
 
     <div id="app" class="hs-app">
+        <!-- ЭКРАН 1: ГЛАВНАЯ -->
         <main id="view-home" class="page active">
-            <!-- Шапка профиля -->
             <header class="user-header">
                 <div class="avatar" id="user-avatar-container">
                     <span id="user-avatar-text">F</span>
@@ -37,26 +36,25 @@
                 </div>
                 <div class="user-info">
                     <div class="name-row">
-                        <h2 id="user-name">F L E X</h2>
+                        <h2 id="user-name">Загрузка...</h2>
                         <div id="premium-badge" class="premium-badge hidden">
                             <svg class="crown-icon"><use href="#icon-crown"></use></svg>
                             <span class="premium-text">PREMIUM</span>
                         </div>
                     </div>
-                    <span id="user-id" class="user-id">ID: 7831720836</span>
+                    <span id="user-id" class="user-id">ID: ...</span>
                 </div>
             </header>
 
-            <!-- Блок статистики -->
             <div class="stats-grid">
                 <div class="stat-card">
                     <svg class="icon text-red"><use href="#icon-chat"></use></svg>
-                    <strong id="stat-chats">1319</strong>
+                    <strong id="stat-chats">0</strong>
                     <span>Сообщений</span>
                 </div>
                 <div class="stat-card">
                     <svg class="icon text-red"><use href="#icon-flame"></use></svg>
-                    <strong id="stat-deleted">10</strong>
+                    <strong id="stat-deleted">0</strong>
                     <span>Удалено</span>
                 </div>
                 <div class="stat-card">
@@ -71,7 +69,6 @@
                 </div>
             </div>
 
-            <!-- Меню -->
             <div class="menu-group">
                 <div class="menu-item" onclick="switchTab('chats')">
                     <div class="menu-icon bg-blue"><svg class="icon"><use href="#icon-chat"></use></svg></div>
@@ -111,9 +108,100 @@
             </div>
         </main>
 
-        <!-- Остальные экраны (PREMIUM, ЧАТЫ, СООБЩЕНИЯ и т.д.) остаются как были, я не стал их сюда копировать, чтобы не мусорить. Главное - шапка и главная страница. -->
-        <!-- Если тебе нужен полный HTML, скажи, я скину. Но обычно меняются только стили и главная -->
-        
+        <!-- ЭКРАН 2: ЧАТЫ -->
+        <main id="view-chats" class="page">
+            <header class="page-header with-back">
+                <button class="back-btn" onclick="switchTab('home')">
+                    <svg class="icon"><use href="#icon-back"></use></svg>
+                </button>
+                <h2>Архив</h2>
+            </header>
+            <div class="search-bar">
+                <svg class="icon"><use href="#icon-search"></use></svg>
+                <input type="text" placeholder="Поиск по чатам...">
+            </div>
+            <div id="chats-list" class="chats-list">
+                <div class="empty-state">Загрузка...</div>
+            </div>
+        </main>
+
+        <!-- ЭКРАН 3: СООБЩЕНИЯ -->
+        <main id="view-messages" class="page">
+            <header class="page-header with-back">
+                <button class="back-btn" onclick="switchTab('chats')">
+                    <svg class="icon"><use href="#icon-back"></use></svg>
+                </button>
+                <h2 id="chat-title">Чат</h2>
+            </header>
+            <div id="messages-list" class="messages-list"></div>
+        </main>
+
+        <!-- ЭКРАН 4: ПРЕМИУМ -->
+        <main id="view-premium" class="page">
+            <header class="page-header with-back">
+                <button class="back-btn" onclick="switchTab('home')">
+                    <svg class="icon"><use href="#icon-back"></use></svg>
+                </button>
+                <h2>Premium</h2>
+            </header>
+            <div class="premium-hero">
+                <div class="premium-hero-content">
+                    <svg class="icon premium-icon"><use href="#icon-diamond"></use></svg>
+                    <div>
+                        <h3>Hades Premium</h3>
+                        <p>Твой архив на максималках</p>
+                    </div>
+                </div>
+                <button class="premium-buy-btn" onclick="alert('Оплата скоро появится!')">Подключить</button>
+            </div>
+        </main>
+
+        <!-- ЭКРАН 5: РОЗЫГРЫШ -->
+        <main id="view-draw" class="page">
+            <header class="page-header">
+                <h2>Розыгрыш</h2>
+                <p class="subtitle">Победители выбираются автоматически</p>
+            </header>
+            <div class="empty-state-box">
+                <svg class="icon big-icon text-purple"><use href="#icon-gift"></use></svg>
+                <h3>Сейчас нет активного розыгрыша</h3>
+                <p>Новый приз появится здесь сразу после публикации администратором.</p>
+            </div>
+        </main>
+
+        <!-- ЭКРАН 6: ПРОФИЛЬ -->
+        <main id="view-profile" class="page">
+            <header class="page-header">
+                <h2>Профиль</h2>
+            </header>
+            <div class="user-header" style="padding: 0 16px 20px 16px;">
+                <div class="avatar" id="profile-avatar-container" style="width: 64px; height: 64px; font-size: 24px;">
+                    <span id="profile-avatar-text">F</span>
+                    <img id="profile-avatar-img" style="display:none;" class="avatar-img" alt="">
+                </div>
+                <div class="user-info">
+                    <div class="name-row">
+                        <h2 id="profile-name">Загрузка...</h2>
+                        <div id="profile-premium-badge" class="premium-badge hidden">
+                            <svg class="crown-icon"><use href="#icon-crown"></use></svg>
+                            <span class="premium-text">PREMIUM</span>
+                        </div>
+                    </div>
+                    <span id="profile-id" class="user-id">ID: ...</span>
+                </div>
+            </div>
+            <div class="menu-group">
+                <div class="menu-item" onclick="alert('Настройки в разработке!')">
+                    <div class="menu-icon bg-gray"><svg class="icon"><use href="#icon-settings"></use></svg></div>
+                    <div class="menu-text">
+                        <h3>Настройки</h3>
+                        <p>Управление уведомлениями</p>
+                    </div>
+                    <svg class="icon chevron"><use href="#icon-chevron"></use></svg>
+                </div>
+            </div>
+        </main>
+
         <!-- НИЖНЯЯ НАВИГАЦИЯ -->
         <nav class="bottom-nav">
             <button class="nav-item active" onclick="switchTab('home')">

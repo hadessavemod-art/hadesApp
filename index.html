@@ -4,12 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>HadesSave</title>
-    <!-- Обязательно оставь ?v=4, чтобы сбросить кэш старых стилей -->
-    <link rel="stylesheet" href="mini-app.css?v=4">
+    <!-- ВАЖНО: ?v=10 сбросит старый кэш стилей -->
+    <link rel="stylesheet" href="mini-app.css?v=10">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body class="mini-app-body">
-    <!-- Скрытые SVG иконки -->
     <svg style="display: none;">
         <symbol id="icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></symbol>
         <symbol id="icon-chat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></symbol>
@@ -25,7 +24,7 @@
         <symbol id="icon-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></symbol>
         <symbol id="icon-back" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></symbol>
         <symbol id="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></symbol>
-        <!-- Иконка короны -->
+        <!-- НОВАЯ КОРОНА (простая, острая) -->
         <symbol id="icon-crown" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M5 16L3 5L8.5 10L12 4L15.5 10L21 5L19 16H5Z"/><path d="M5 18H19V20H5V18Z"/></symbol>
     </svg>
 
@@ -38,16 +37,17 @@
                     <img id="user-avatar-img" style="display:none;" class="avatar-img" alt="">
                 </div>
                 <div class="user-info">
-                    <h2 id="user-name">Пользователь</h2>
+                    <!-- ИМЯ И КОРОНА В ОДНУ СТРОКУ -->
+                    <div class="name-row">
+                        <h2 id="user-name">Пользователь</h2>
+                        <div id="premium-badge" class="premium-badge hidden">
+                            <svg class="crown-icon"><use href="#icon-crown"></use></svg>
+                            <span class="premium-text">PREMIUM</span>
+                        </div>
+                    </div>
                     <span id="user-id" class="user-id">ID: Загрузка...</span>
                 </div>
             </header>
-
-            <!-- Премиум статус (появляется если есть подписка) -->
-            <div id="premium-badge" class="premium-badge hidden">
-                <svg class="crown-icon"><use href="#icon-crown"></use></svg>
-                <span class="premium-text">Premium</span>
-            </div>
 
             <div class="stats-grid">
                 <div class="stat-card">
@@ -238,7 +238,13 @@
                     <img id="profile-avatar-img" style="display:none;" class="avatar-img" alt="">
                 </div>
                 <div class="user-info">
-                    <h2 id="profile-name">Загрузка...</h2>
+                    <div class="name-row">
+                        <h2 id="profile-name">Загрузка...</h2>
+                        <div id="profile-premium-badge" class="premium-badge hidden">
+                            <svg class="crown-icon"><use href="#icon-crown"></use></svg>
+                            <span class="premium-text">PREMIUM</span>
+                        </div>
+                    </div>
                     <span id="profile-id" class="user-id" style="color: #D00000;">ID: ...</span>
                 </div>
             </div>

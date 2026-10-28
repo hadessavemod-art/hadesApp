@@ -16,6 +16,8 @@ if (!initData) {
 const encodedInitData = encodeURIComponent(initData);
 
 window.switchTab = function(tabName) {
+    tg.HapticFeedback.impactOccurred('light'); // Вибрация при переключении
+    
     document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
 
@@ -43,23 +45,19 @@ async function initApp() {
         const username = res.data.username || '';
         const isPremium = res.data.is_premium || false; 
         
-        // Главная
         document.getElementById('user-name').textContent = user;
         document.getElementById('user-id').textContent = 'ID: ' + userId;
         document.getElementById('stat-chats').textContent = res.data.total_messages || 0;
         document.getElementById('stat-deleted').textContent = res.data.deleted_messages || 0;
         
-        // Профиль
         document.getElementById('profile-name').textContent = user;
         document.getElementById('profile-id').textContent = 'ID: ' + userId;
 
-        // Премиум бейджи
         if (isPremium) {
             document.getElementById('premium-badge').classList.remove('hidden');
             document.getElementById('profile-premium-badge').classList.remove('hidden');
         }
 
-        // Аватарки
         if (username.trim() !== '') {
             const myAvatarUrl = `https://t.me/i/userpic/320/${username}.jpg`;
             

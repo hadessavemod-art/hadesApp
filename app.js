@@ -19,13 +19,15 @@ window.switchTab = function(tabName) {
     document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
 
-    document.getElementById(`view-${tabName}`).classList.add('active');
+    const targetPage = document.getElementById(`view-${tabName}`);
+    if(targetPage) targetPage.classList.add('active');
     
-    if (tabName === 'premium' || tabName === 'messages') {
-        const activeNav = tabName === 'premium' ? 'home' : 'chats';
-        document.querySelector(`.nav-item[onclick="switchTab('${activeNav}')"]`).classList.add('active');
-    } else {
+    if (tabName !== 'messages' && tabName !== 'premium') {
         const navBtn = document.querySelector(`.nav-item[onclick="switchTab('${tabName}')"]`);
+        if (navBtn) navBtn.classList.add('active');
+    } else {
+        const activeNav = tabName === 'premium' ? 'home' : 'chats';
+        const navBtn = document.querySelector(`.nav-item[onclick="switchTab('${activeNav}')"]`);
         if (navBtn) navBtn.classList.add('active');
     }
 
@@ -39,21 +41,25 @@ async function initApp() {
         const user = res.data.user || 'Пользователь';
         const userId = res.data.user_id || 0;
         const username = res.data.username || '';
-        const isPremium = res.data.is_premium || false; // Проверяем премиум
+        const isPremium = res.data.is_premium || false; 
         
+        // Главная
         document.getElementById('user-name').textContent = user;
         document.getElementById('user-id').textContent = 'ID: ' + userId;
         document.getElementById('stat-chats').textContent = res.data.total_messages || 0;
         document.getElementById('stat-deleted').textContent = res.data.deleted_messages || 0;
         
+        // Профиль
         document.getElementById('profile-name').textContent = user;
         document.getElementById('profile-id').textContent = 'ID: ' + userId;
 
-        // Включаем бейдж Premium с короной
+        // Премиум бейджи
         if (isPremium) {
             document.getElementById('premium-badge').classList.remove('hidden');
+            document.getElementById('profile-premium-badge').classList.remove('hidden');
         }
 
+        // Аватарки
         if (username.trim() !== '') {
             const myAvatarUrl = `https://t.me/i/userpic/320/${username}.jpg`;
             

@@ -4,10 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>HadesSave</title>
-    <link rel="stylesheet" href="mini-app.css?v=21">
+    <link rel="stylesheet" href="mini-app.css?v=100">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body class="mini-app-body">
+    <!-- Набор SVG иконок -->
     <svg style="display: none;">
         <symbol id="icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></symbol>
         <symbol id="icon-chat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></symbol>
@@ -27,11 +28,11 @@
     </svg>
 
     <div id="app" class="hs-app">
-        <!-- ЭКРАН 1: ГЛАВНАЯ -->
+        <!-- ЭКРАН: ГЛАВНАЯ -->
         <main id="view-home" class="page active">
             <header class="user-header">
                 <div class="avatar" id="user-avatar-container">
-                    <span id="user-avatar-text">F</span>
+                    <span id="user-avatar-text">...</span>
                     <img id="user-avatar-img" style="display:none;" class="avatar-img" alt="">
                 </div>
                 <div class="user-info">
@@ -81,7 +82,7 @@
             </div>
 
             <div class="menu-group">
-                <div class="menu-item" onclick="alert('Раздел Зеркала в разработке!')">
+                <div class="menu-item" onclick="alert('В разработке')">
                     <div class="menu-icon bg-cyan"><svg class="icon"><use href="#icon-mirror"></use></svg></div>
                     <div class="menu-text">
                         <h3>Зеркала</h3>
@@ -97,7 +98,7 @@
                     </div>
                     <svg class="icon chevron"><use href="#icon-chevron"></use></svg>
                 </div>
-                <div class="menu-item" onclick="alert('Реферальная программа в разработке!')">
+                <div class="menu-item" onclick="alert('В разработке')">
                     <div class="menu-icon bg-green"><svg class="icon"><use href="#icon-users"></use></svg></div>
                     <div class="menu-text">
                         <h3>Рефералы</h3>
@@ -108,7 +109,7 @@
             </div>
         </main>
 
-        <!-- ЭКРАН 2: ЧАТЫ -->
+        <!-- ЭКРАН: ЧАТЫ -->
         <main id="view-chats" class="page">
             <header class="page-header with-back">
                 <button class="back-btn" onclick="switchTab('home')">
@@ -125,7 +126,7 @@
             </div>
         </main>
 
-        <!-- ЭКРАН 3: СООБЩЕНИЯ -->
+        <!-- ЭКРАН: СООБЩЕНИЯ -->
         <main id="view-messages" class="page">
             <header class="page-header with-back">
                 <button class="back-btn" onclick="switchTab('chats')">
@@ -136,7 +137,7 @@
             <div id="messages-list" class="messages-list"></div>
         </main>
 
-        <!-- ЭКРАН 4: ПРЕМИУМ -->
+        <!-- ЭКРАН: ПРЕМИУМ -->
         <main id="view-premium" class="page">
             <header class="page-header with-back">
                 <button class="back-btn" onclick="switchTab('home')">
@@ -156,7 +157,7 @@
             </div>
         </main>
 
-        <!-- ЭКРАН 5: РОЗЫГРЫШ -->
+        <!-- ЭКРАН: РОЗЫГРЫШ -->
         <main id="view-draw" class="page">
             <header class="page-header">
                 <h2>Розыгрыш</h2>
@@ -169,14 +170,14 @@
             </div>
         </main>
 
-        <!-- ЭКРАН 6: ПРОФИЛЬ -->
+        <!-- ЭКРАН: ПРОФИЛЬ -->
         <main id="view-profile" class="page">
             <header class="page-header">
                 <h2>Профиль</h2>
             </header>
             <div class="user-header" style="padding: 0 16px 20px 16px;">
                 <div class="avatar" id="profile-avatar-container" style="width: 64px; height: 64px; font-size: 24px;">
-                    <span id="profile-avatar-text">F</span>
+                    <span id="profile-avatar-text">...</span>
                     <img id="profile-avatar-img" style="display:none;" class="avatar-img" alt="">
                 </div>
                 <div class="user-info">

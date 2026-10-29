@@ -4,26 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>HadesSave</title>
-    <link rel="stylesheet" href="mini-app.css?v=101">
+    <link rel="stylesheet" href="mini-app.css?v=102">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body class="mini-app-body">
+    <!-- ОБНОВЛЕННЫЕ SVG ИКОНКИ (Более дорогие и стильные) -->
     <svg style="display: none;">
+        <!-- Основные иконки навигации -->
         <symbol id="icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></symbol>
         <symbol id="icon-chat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></symbol>
         <symbol id="icon-gift" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"></polyline><rect x="2" y="7" width="20" height="5"></rect><line x1="12" y1="22" x2="12" y2="7"></line><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path></symbol>
         <symbol id="icon-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></symbol>
         <symbol id="icon-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></symbol>
-        <symbol id="icon-mirror" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><path d="M9 3v18"></path><path d="M15 3v18"></path></symbol>
+        
+        <!-- Иконки для Premium (Стильные) -->
         <symbol id="icon-diamond" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 13L2 9z"></path></symbol>
-        <symbol id="icon-star" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></symbol>
-        <symbol id="icon-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></symbol>
-        <symbol id="icon-flame" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></symbol>
-        <symbol id="icon-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></symbol>
-        <symbol id="icon-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></symbol>
-        <symbol id="icon-back" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></symbol>
-        <symbol id="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></symbol>
+        <symbol id="icon-infinity" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.178 8c5.096 0 5.096 8 0 8-5.095 0-7.133-8-12.739-8-4.585 0-4.585 8 0 8 5.606 0 7.644-8 12.739-8z"></path></symbol>
+        <symbol id="icon-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></symbol>
+        <symbol id="icon-bot" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"></rect><circle cx="12" cy="5" r="2"></circle><path d="M12 7v4"></path><line x1="8" y1="16" x2="8" y2="16"></line><line x1="16" y1="16" x2="16" y2="16"></line></symbol>
+        <symbol id="icon-zap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></symbol>
         <symbol id="icon-crown" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M5 16L3 5L8.5 10L12 4L15.5 10L21 5L19 16H5Z"/><path d="M5 18H19V20H5V18Z"/></symbol>
+        <symbol id="icon-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></symbol>
+        <symbol id="icon-headphones" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path></symbol>
+        <symbol id="icon-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></symbol>
+        <symbol id="icon-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></symbol>
+        <symbol id="icon-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></symbol>
+        <symbol id="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></symbol>
+        <symbol id="icon-back" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></symbol>
+        <symbol id="icon-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></symbol>
+        <symbol id="icon-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></symbol>
     </svg>
 
     <div id="app" class="hs-app">
@@ -53,17 +62,17 @@
                     <span>Сообщений</span>
                 </div>
                 <div class="stat-card">
-                    <svg class="icon text-red"><use href="#icon-flame"></use></svg>
+                    <svg class="icon text-red"><use href="#icon-infinity"></use></svg>
                     <strong id="stat-deleted">0</strong>
                     <span>Удалено</span>
                 </div>
                 <div class="stat-card">
-                    <svg class="icon text-yellow"><use href="#icon-flame"></use></svg>
+                    <svg class="icon text-yellow"><use href="#icon-zap"></use></svg>
                     <strong>0</strong>
                     <span>Стрик</span>
                 </div>
                 <div class="stat-card">
-                    <svg class="icon text-blue"><use href="#icon-star"></use></svg>
+                    <svg class="icon text-blue"><use href="#icon-diamond"></use></svg>
                     <strong>0</strong>
                     <span>Звёзды</span>
                 </div>
@@ -82,7 +91,7 @@
 
             <div class="menu-group">
                 <div class="menu-item" onclick="alert('В разработке')">
-                    <div class="menu-icon bg-cyan"><svg class="icon"><use href="#icon-mirror"></use></svg></div>
+                    <div class="menu-icon bg-cyan"><svg class="icon"><use href="#icon-bot"></use></svg></div>
                     <div class="menu-text">
                         <h3>Зеркала</h3>
                         <p>Свой бот под вашим брендом</p>
@@ -97,11 +106,11 @@
                     </div>
                     <svg class="icon chevron"><use href="#icon-chevron"></use></svg>
                 </div>
-                <div class="menu-item" onclick="alert('В разработке')">
+                <div class="menu-item" onclick="switchTab('referrals')">
                     <div class="menu-icon bg-green"><svg class="icon"><use href="#icon-users"></use></svg></div>
                     <div class="menu-text">
                         <h3>Рефералы</h3>
-                        <p>5 ⭐ за каждого друга</p>
+                        <p>Пригласи друга — получи Premium</p>
                     </div>
                     <svg class="icon chevron"><use href="#icon-chevron"></use></svg>
                 </div>
@@ -111,9 +120,7 @@
         <!-- ЭКРАН: ЧАТЫ -->
         <main id="view-chats" class="page">
             <header class="page-header with-back">
-                <button class="back-btn" onclick="switchTab('home')">
-                    <svg class="icon"><use href="#icon-back"></use></svg>
-                </button>
+                <button class="back-btn" onclick="switchTab('home')"><svg class="icon"><use href="#icon-back"></use></svg></button>
                 <h2>Архив</h2>
             </header>
             <div class="search-bar">
@@ -128,20 +135,16 @@
         <!-- ЭКРАН: СООБЩЕНИЯ -->
         <main id="view-messages" class="page">
             <header class="page-header with-back">
-                <button class="back-btn" onclick="switchTab('chats')">
-                    <svg class="icon"><use href="#icon-back"></use></svg>
-                </button>
+                <button class="back-btn" onclick="switchTab('chats')"><svg class="icon"><use href="#icon-back"></use></svg></button>
                 <h2 id="chat-title">Чат</h2>
             </header>
             <div id="messages-list" class="messages-list"></div>
         </main>
 
-        <!-- ЭКРАН: PREMIUM (НОВЫЙ ДИЗАЙН) -->
+        <!-- ЭКРАН: PREMIUM -->
         <main id="view-premium" class="page">
             <header class="page-header with-back">
-                <button class="back-btn" onclick="switchTab('home')">
-                    <svg class="icon"><use href="#icon-back"></use></svg>
-                </button>
+                <button class="back-btn" onclick="switchTab('home')"><svg class="icon"><use href="#icon-back"></use></svg></button>
                 <h2>Hades Premium</h2>
             </header>
 
@@ -156,64 +159,104 @@
                 <button class="premium-buy-btn" onclick="alert('Оплата скоро появится!')">Подключить Premium</button>
             </div>
 
-            <div class="premium-section-title">ЧТО ВХОДИТ В ПОДПИСКУ</div>
+            <div class="premium-section-title">НАЖМИ НА ФИШКУ, ЧТОБЫ УЗНАТЬ БОЛЬШЕ</div>
             
             <div class="premium-features-list">
-                <div class="feature-row">
-                    <div class="feature-icon bg-blue"><svg class="icon"><use href="#icon-chat"></use></svg></div>
+                <!-- Фишки с onclick -->
+                <div class="feature-row" onclick="openFeatureModal('archive')">
+                    <div class="feature-icon bg-blue"><svg class="icon"><use href="#icon-infinity"></use></svg></div>
                     <div class="feature-text">
                         <h4>Безлимитный архив</h4>
                         <p>Срок хранения сообщений увеличивается с 3 до 30 дней.</p>
                     </div>
                 </div>
-                <div class="feature-row">
-                    <div class="feature-icon bg-purple"><svg class="icon"><use href="#icon-diamond"></use></svg></div>
+                <div class="feature-row" onclick="openFeatureModal('priority')">
+                    <div class="feature-icon bg-purple"><svg class="icon"><use href="#icon-shield"></use></svg></div>
                     <div class="feature-text">
                         <h4>Приоритетное сохранение</h4>
-                        <p>Твои файлы и медиа удаляются последними при очистке сервера.</p>
+                        <p>Твои файлы и медиа удаляются последними при очистке.</p>
                     </div>
                 </div>
-                <div class="feature-row">
-                    <div class="feature-icon bg-cyan"><svg class="icon"><use href="#icon-mirror"></use></svg></div>
+                <div class="feature-row" onclick="openFeatureModal('mirrors')">
+                    <div class="feature-icon bg-cyan"><svg class="icon"><use href="#icon-bot"></use></svg></div>
                     <div class="feature-text">
                         <h4>До 5 зеркал</h4>
                         <p>Возможность создать 5 своих ботов вместо 1 бесплатного.</p>
                     </div>
                 </div>
-                <div class="feature-row">
-                    <div class="feature-icon bg-green"><svg class="icon"><use href="#icon-users"></use></svg></div>
+                <div class="feature-row" onclick="openFeatureModal('spam')">
+                    <div class="feature-icon bg-green"><svg class="icon"><use href="#icon-zap"></use></svg></div>
                     <div class="feature-text">
                         <h4>Увеличенный .spam</h4>
                         <p>Лимит рассылки повышается с 20 до 50 сообщений.</p>
                     </div>
                 </div>
-                <div class="feature-row">
+                <div class="feature-row" onclick="openFeatureModal('badge')">
                     <div class="feature-icon bg-yellow"><svg class="icon"><use href="#icon-crown"></use></svg></div>
                     <div class="feature-text">
                         <h4>Уникальный значок</h4>
                         <p>Красная корона рядом с именем в профиле Mini App.</p>
                     </div>
                 </div>
-                <div class="feature-row">
-                    <div class="feature-icon bg-gray"><svg class="icon"><use href="#icon-diamond"></use></svg></div>
+                <div class="feature-row" onclick="openFeatureModal('export')">
+                    <div class="feature-icon bg-gray"><svg class="icon"><use href="#icon-download"></use></svg></div>
                     <div class="feature-text">
                         <h4>Экспорт архива</h4>
                         <p>Выгрузка всей истории в один файл (HTML/JSON).</p>
                     </div>
                 </div>
-                <div class="feature-row">
-                    <div class="feature-icon bg-green"><svg class="icon"><use href="#icon-check"></use></svg></div>
+                <div class="feature-row" onclick="openFeatureModal('support')">
+                    <div class="feature-icon bg-green"><svg class="icon"><use href="#icon-headphones"></use></svg></div>
                     <div class="feature-text">
                         <h4>Приоритетная поддержка</h4>
                         <p>Ответ от администратора в течение 15 минут.</p>
                     </div>
                 </div>
-                <div class="feature-row">
-                    <div class="feature-icon bg-blue"><svg class="icon"><use href="#icon-star"></use></svg></div>
+                <div class="feature-row" onclick="openFeatureModal('media')">
+                    <div class="feature-icon bg-blue"><svg class="icon"><use href="#icon-upload"></use></svg></div>
                     <div class="feature-text">
                         <h4>Увеличенный лимит медиа</h4>
                         <p>Загрузка файлов до 50 МБ вместо стандартных 20 МБ.</p>
                     </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- ЭКРАН: РЕФЕРАЛЫ -->
+        <main id="view-referrals" class="page">
+            <header class="page-header with-back">
+                <button class="back-btn" onclick="switchTab('home')"><svg class="icon"><use href="#icon-back"></use></svg></button>
+                <h2>Рефералы</h2>
+            </header>
+            
+            <div class="premium-hero" style="background: linear-gradient(135deg, #10b981 0%, #064e3b 100%);">
+                <div class="premium-hero-content">
+                    <svg class="icon premium-icon"><use href="#icon-users"></use></svg>
+                    <div>
+                        <h3>Приглашай друзей</h3>
+                        <p>Получай 1 день Premium за друга</p>
+                    </div>
+                </div>
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <strong id="ref-count" style="font-size: 48px; line-height: 1;">0</strong>
+                    <span style="display:block; font-size: 13px; opacity: 0.9; margin-top: 5px;">друзей подключили бота</span>
+                </div>
+                <button class="premium-buy-btn" onclick="copyRefLink()" style="color: #10b981; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <svg class="icon" style="width: 18px; height: 18px;"><use href="#icon-copy"></use></svg>
+                    Скопировать ссылку
+                </button>
+            </div>
+
+            <div class="menu-group" style="padding: 20px;">
+                <h4 style="color: #fff; margin-bottom: 10px; font-size: 15px;">📋 Как это работает?</h4>
+                <ul style="list-style: none; padding: 0; margin: 0; font-size: 13px; color: var(--text-muted); line-height: 1.6;">
+                    <li style="margin-bottom: 10px;">1. Отправь ссылку другу.</li>
+                    <li style="margin-bottom: 10px;">2. Друг запускает бота.</li>
+                    <li style="margin-bottom: 10px;">3. Друг <b>подключает бота</b> в настройках Telegram (Настройки → Чат-боты).</li>
+                    <li>4. Тебе начисляется <b>+1 день Premium</b>!</li>
+                </ul>
+                <div style="margin-top: 15px; padding: 10px; background: rgba(208,0,0,0.1); border-radius: 10px; border: 1px solid rgba(208,0,0,0.2);">
+                    <p style="font-size: 12px; color: #ff4d4d; margin: 0;">⚠️ Награда выдается только за реальное подключение бота к аккаунту.</p>
                 </div>
             </div>
         </main>
@@ -233,9 +276,7 @@
 
         <!-- ЭКРАН: ПРОФИЛЬ -->
         <main id="view-profile" class="page">
-            <header class="page-header">
-                <h2>Профиль</h2>
-            </header>
+            <header class="page-header"><h2>Профиль</h2></header>
             <div class="user-header" style="padding: 0 16px 20px 16px;">
                 <div class="avatar" id="profile-avatar-container" style="width: 64px; height: 64px; font-size: 24px;">
                     <span id="profile-avatar-text">...</span>
@@ -264,24 +305,29 @@
             </div>
         </main>
 
+        <!-- МОДАЛЬНОЕ ОКНО ДЛЯ ФИШЕК PREMIUM -->
+        <div id="feature-modal" class="modal-overlay" onclick="closeFeatureModal(event)">
+            <div class="modal-content" onclick="event.stopPropagation()">
+                <div class="modal-handle"></div>
+                <div class="modal-header">
+                    <div id="modal-icon-container" class="feature-icon">
+                        <svg class="icon" id="modal-icon"><use href=""></use></svg>
+                    </div>
+                    <h3 id="modal-title">Заголовок</h3>
+                </div>
+                <div class="modal-body">
+                    <p id="modal-desc">Описание...</p>
+                </div>
+                <button class="premium-buy-btn" onclick="closeFeatureModal(event)" style="margin-top: 20px; background: rgba(255,255,255,0.1); color: #fff;">Понятно</button>
+            </div>
+        </div>
+
         <!-- НИЖНЯЯ НАВИГАЦИЯ -->
         <nav class="bottom-nav">
-            <button class="nav-item active" onclick="switchTab('home')">
-                <svg class="icon"><use href="#icon-home"></use></svg>
-                <span>Главная</span>
-            </button>
-            <button class="nav-item" onclick="switchTab('chats')">
-                <svg class="icon"><use href="#icon-chat"></use></svg>
-                <span>Чаты</span>
-            </button>
-            <button class="nav-item" onclick="switchTab('draw')">
-                <svg class="icon"><use href="#icon-gift"></use></svg>
-                <span>Розыгрыш</span>
-            </button>
-            <button class="nav-item" onclick="switchTab('profile')">
-                <svg class="icon"><use href="#icon-user"></use></svg>
-                <span>Профиль</span>
-            </button>
+            <button class="nav-item active" onclick="switchTab('home')"><svg class="icon"><use href="#icon-home"></use></svg><span>Главная</span></button>
+            <button class="nav-item" onclick="switchTab('chats')"><svg class="icon"><use href="#icon-chat"></use></svg><span>Чаты</span></button>
+            <button class="nav-item" onclick="switchTab('draw')"><svg class="icon"><use href="#icon-gift"></use></svg><span>Розыгрыш</span></button>
+            <button class="nav-item" onclick="switchTab('profile')"><svg class="icon"><use href="#icon-user"></use></svg><span>Профиль</span></button>
         </nav>
     </div>
 

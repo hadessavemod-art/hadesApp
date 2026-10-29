@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>HadesSave</title>
-    <link rel="stylesheet" href="mini-app.css?v=108">
+    <link rel="stylesheet" href="mini-app.css?v=110">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body class="mini-app-body">
@@ -14,7 +14,7 @@
         <p>Загрузка данных...</p>
     </div>
 
-    <!-- Иконки (SVG) -->
+    <!-- SVG ИКОНКИ -->
     <svg style="display: none;">
         <symbol id="icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></symbol>
         <symbol id="icon-chat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></symbol>
@@ -41,22 +41,19 @@
         <symbol id="icon-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></symbol>
         <symbol id="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></symbol>
         <symbol id="icon-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></symbol>
+        <symbol id="icon-admin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M12 8v4"></path><path d="M12 16h.01"></path></symbol>
+        <symbol id="icon-money" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path><path d="M12 18V6"></path></symbol>
     </svg>
 
     <div id="app" class="hs-app">
         <main id="view-home" class="page active">
             <header class="user-header">
-                <div class="avatar" id="user-avatar-container">
-                    <span id="user-avatar-text">...</span>
-                    <img id="user-avatar-img" style="display:none;" class="avatar-img" alt="">
-                </div>
+                <div class="avatar" id="user-avatar-container"><span id="user-avatar-text">...</span><img id="user-avatar-img" style="display:none;" class="avatar-img" alt=""></div>
                 <div class="user-info">
                     <div class="name-row">
                         <h2 id="user-name">Загрузка...</h2>
-                        <div id="premium-badge" class="premium-badge hidden">
-                            <svg class="crown-icon"><use href="#icon-crown"></use></svg>
-                            <span class="premium-text">PREMIUM</span>
-                        </div>
+                        <div id="premium-badge" class="premium-badge hidden"><svg class="crown-icon"><use href="#icon-crown"></use></svg><span class="premium-text">PREMIUM</span></div>
+                        <div id="role-badge" class="role-badge hidden"></div>
                     </div>
                     <span id="user-id" class="user-id">ID: ...</span>
                 </div>
@@ -102,13 +99,11 @@
                 <h2>Архив</h2>
             </header>
             <div class="search-bar"><svg class="icon"><use href="#icon-search"></use></svg><input type="text" placeholder="Поиск по чатам..."></div>
-            
             <div class="chat-tabs">
                 <button class="chat-tab active" onclick="filterChats('all', this)">Все</button>
                 <button class="chat-tab" onclick="filterChats('private', this)">Личные</button>
                 <button class="chat-tab" onclick="filterChats('groups', this)">Группы</button>
             </div>
-
             <div id="chats-list" class="chats-list"><div class="empty-state">Загрузка...</div></div>
         </main>
 
@@ -125,23 +120,15 @@
                 <button class="back-btn" onclick="switchTab('home')"><svg class="icon"><use href="#icon-back"></use></svg></button>
                 <h2>Hades Premium</h2>
             </header>
-
             <div class="premium-hero">
                 <div class="premium-glow"></div>
                 <div class="premium-hero-content">
-                    <div class="premium-icon-wrapper">
-                        <svg class="icon premium-icon"><use href="#icon-crown"></use></svg>
-                    </div>
-                    <div class="premium-text-wrap">
-                        <h3>Hades Premium</h3>
-                        <div id="premium-status-text" class="premium-status">Проверка...</div>
-                    </div>
+                    <div class="premium-icon-wrapper"><svg class="icon premium-icon"><use href="#icon-crown"></use></svg></div>
+                    <div class="premium-text-wrap"><h3>Hades Premium</h3><div id="premium-status-text" class="premium-status">Проверка...</div></div>
                 </div>
                 <button id="premium-action-btn" class="premium-buy-btn" onclick="alert('Оплата скоро появится!')">Подключить</button>
             </div>
-
             <div class="premium-section-title">ЧТО ВХОДИТ В ПОДПИСКУ</div>
-            
             <div class="premium-features-list">
                 <div class="feature-row" onclick="openFeatureModal('archive')"><div class="feature-icon bg-blue"><svg class="icon"><use href="#icon-infinity"></use></svg></div><div class="feature-text"><h4>Безлимитный архив</h4><p>Срок хранения сообщений увеличивается с 3 до 30 дней.</p></div></div>
                 <div class="feature-row" onclick="openFeatureModal('priority')"><div class="feature-icon bg-purple"><svg class="icon"><use href="#icon-shield"></use></svg></div><div class="feature-text"><h4>Приоритетное сохранение</h4><p>Твои файлы и медиа удаляются последними при очистке.</p></div></div>
@@ -158,26 +145,19 @@
                 <button class="back-btn" onclick="switchTab('home')"><svg class="icon"><use href="#icon-back"></use></svg></button>
                 <h2>Рефералы</h2>
             </header>
-            
-            <!-- ОБНОВЛЕННЫЙ БАННЕР РЕФЕРАЛОВ -->
             <div class="premium-hero" style="background: linear-gradient(135deg, #10b981 0%, #064e3b 100%); border: none;">
                 <div class="premium-hero-content">
                     <svg class="icon premium-icon" style="color: #fff;"><use href="#icon-users"></use></svg>
-                    <div>
-                        <h3>Приглашай друзей</h3>
-                        <p><b>Вы оба</b> получаете 1 день Premium</p>
-                    </div>
+                    <div><h3>Приглашай друзей</h3><p><b>Вы оба</b> получаете 1 день Premium</p></div>
                 </div>
                 <div style="text-align: center; margin-bottom: 20px;">
                     <strong id="ref-count" style="font-size: 48px; line-height: 1; color: #fff;">0</strong>
                     <span style="display:block; font-size: 13px; opacity: 0.9; margin-top: 5px; color: #fff;">друзей подключили бота</span>
                 </div>
                 <button class="premium-buy-btn" onclick="copyRefLink()" style="color: #10b981; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                    <svg class="icon" style="width: 18px; height: 18px;"><use href="#icon-copy"></use></svg>
-                    Скопировать ссылку
+                    <svg class="icon" style="width: 18px; height: 18px;"><use href="#icon-copy"></use></svg> Скопировать ссылку
                 </button>
             </div>
-            
             <div class="menu-group" style="padding: 20px;">
                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
                     <svg class="icon text-blue"><use href="#icon-info"></use></svg>
@@ -189,10 +169,6 @@
                     <li style="margin-bottom: 10px;">3. Друг <b>подключает бота</b> в настройках Telegram (Настройки → Чат-боты).</li>
                     <li>4. <b>Вы оба</b> получаете <b>+1 день Premium</b>!</li>
                 </ul>
-                <div style="margin-top: 15px; padding: 10px; background: rgba(16, 185, 129, 0.1); border-radius: 10px; border: 1px solid rgba(16, 185, 129, 0.2); display: flex; align-items: flex-start; gap: 8px;">
-                    <svg class="icon" style="color: #10b981; flex-shrink: 0; width: 18px; height: 18px; margin-top: 2px;"><use href="#icon-gift"></use></svg>
-                    <p style="font-size: 12px; color: #34d399; margin: 0;">Бонус начисляется автоматически после того, как друг подключит бота. Не забудь сказать ему об этом!</p>
-                </div>
             </div>
         </main>
 
@@ -208,17 +184,12 @@
         <main id="view-profile" class="page">
             <header class="page-header"><h2>Профиль</h2></header>
             <div class="user-header" style="padding: 0 16px 20px 16px;">
-                <div class="avatar" id="profile-avatar-container" style="width: 64px; height: 64px; font-size: 24px;">
-                    <span id="profile-avatar-text">...</span>
-                    <img id="profile-avatar-img" style="display:none;" class="avatar-img" alt="">
-                </div>
+                <div class="avatar" id="profile-avatar-container" style="width: 64px; height: 64px; font-size: 24px;"><span id="profile-avatar-text">...</span><img id="profile-avatar-img" style="display:none;" class="avatar-img" alt=""></div>
                 <div class="user-info">
                     <div class="name-row">
                         <h2 id="profile-name">Загрузка...</h2>
-                        <div id="profile-premium-badge" class="premium-badge hidden">
-                            <svg class="crown-icon"><use href="#icon-crown"></use></svg>
-                            <span class="premium-text">PREMIUM</span>
-                        </div>
+                        <div id="profile-premium-badge" class="premium-badge hidden"><svg class="crown-icon"><use href="#icon-crown"></use></svg><span class="premium-text">PREMIUM</span></div>
+                        <div id="profile-role-badge" class="role-badge hidden"></div>
                     </div>
                     <span id="profile-id" class="user-id">ID: ...</span>
                 </div>
@@ -229,20 +200,61 @@
                     <div class="menu-text"><h3>Настройки</h3><p>Управление уведомлениями</p></div>
                     <svg class="icon chevron"><use href="#icon-chevron"></use></svg>
                 </div>
+                <div id="admin-tab-btn" class="menu-item hidden" onclick="switchTab('admin')">
+                    <div class="menu-icon bg-yellow"><svg class="icon"><use href="#icon-admin"></use></svg></div>
+                    <div class="menu-text"><h3>Админ-панель</h3><p>Управление ботом</p></div>
+                    <svg class="icon chevron"><use href="#icon-chevron"></use></svg>
+                </div>
             </div>
         </main>
+
+        <main id="view-admin" class="page">
+            <header class="page-header with-back">
+                <button class="back-btn" onclick="switchTab('profile')"><svg class="icon"><use href="#icon-back"></use></svg></button>
+                <h2>Админ-панель</h2>
+            </header>
+            <div class="premium-section-title">ОБЩАЯ СТАТИСТИКА</div>
+            <div class="stats-grid" style="grid-template-columns: repeat(2, 1fr);">
+                <div class="stat-card"><svg class="icon text-blue"><use href="#icon-users"></use></svg><strong id="adm-stat-users">0</strong><span>Юзеров</span></div>
+                <div class="stat-card"><svg class="icon text-green"><use href="#icon-money"></use></svg><strong id="adm-stat-stars">0</strong><span>Звёзд (всего)</span></div>
+                <div class="stat-card"><svg class="icon text-red"><use href="#icon-flame"></use></svg><strong id="adm-stat-prem">0</strong><span>Premium</span></div>
+                <div class="stat-card"><svg class="icon text-yellow"><use href="#icon-star"></use></svg><strong id="adm-stat-week">0</strong><span>Premium за нед.</span></div>
+            </div>
+            <div class="premium-section-title">ДЕЙСТВИЯ</div>
+            <div class="menu-group">
+                <div class="menu-item" onclick="openAdminModal('grant')"><div class="menu-icon bg-purple"><svg class="icon"><use href="#icon-diamond"></use></svg></div><div class="menu-text"><h3>Выдать Premium</h3><p>По ID или юзернейму</p></div></div>
+                <div class="menu-item" onclick="openAdminModal('ban')"><div class="menu-icon bg-red"><svg class="icon"><use href="#icon-shield"></use></svg></div><div class="menu-text"><h3>Забанить</h3><p>По ID или юзернейму</p></div></div>
+                <div class="menu-item" onclick="openAdminModal('role')"><div class="menu-icon bg-blue"><svg class="icon"><use href="#icon-admin"></use></svg></div><div class="menu-text"><h3>Выдать роль</h3><p>owner, admin, aboba</p></div></div>
+            </div>
+        </main>
+
+        <div id="admin-modal" class="modal-overlay" onclick="closeAdminModal(event)">
+            <div class="modal-content" onclick="event.stopPropagation()">
+                <div class="modal-handle"></div>
+                <div class="modal-header"><h3 id="admin-modal-title">Действие</h3></div>
+                <div class="modal-body">
+                    <input type="text" id="admin-target" class="admin-input" placeholder="ID или @username">
+                    <div id="admin-grant-fields" style="display:none;"><input type="number" id="admin-days" class="admin-input" placeholder="Количество дней" value="30"></div>
+                    <div id="admin-ban-fields" style="display:none;"><input type="text" id="admin-reason" class="admin-input" placeholder="Причина бана"></div>
+                    <div id="admin-role-fields" style="display:none;">
+                        <select id="admin-role-select" class="admin-input">
+                            <option value="owner">Owner</option><option value="admin">Admin</option><option value="aboba">Aboba</option><option value="none">Снять роль</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="margin-top: 20px; display: flex; gap: 10px;">
+                    <button class="premium-buy-btn" onclick="executeAdminAction()" style="background: var(--accent-blue); color: #fff;">Выполнить</button>
+                    <button class="premium-buy-btn" onclick="closeAdminModal(event)" style="background: rgba(255,255,255,0.1); color: #fff;">Отмена</button>
+                </div>
+            </div>
+        </div>
 
         <div id="feature-modal" class="modal-overlay" onclick="closeFeatureModal(event)">
             <div class="modal-content" onclick="event.stopPropagation()">
                 <div class="modal-handle"></div>
-                <div class="modal-header">
-                    <div id="modal-icon-container" class="feature-icon"><svg class="icon" id="modal-icon"><use href=""></use></svg></div>
-                    <h3 id="modal-title">Заголовок</h3>
-                </div>
+                <div class="modal-header"><div id="modal-icon-container" class="feature-icon"><svg class="icon" id="modal-icon"><use href=""></use></svg></div><h3 id="modal-title">Заголовок</h3></div>
                 <div class="modal-body"><p id="modal-desc">Описание...</p></div>
-                <div style="margin-top: 20px;">
-                    <button class="premium-buy-btn" onclick="closeFeatureModal(event)" style="background: rgba(255,255,255,0.1); color: #fff;">Понятно</button>
-                </div>
+                <div style="margin-top: 20px;"><button class="premium-buy-btn" onclick="closeFeatureModal(event)" style="background: rgba(255,255,255,0.1); color: #fff;">Понятно</button></div>
             </div>
         </div>
 

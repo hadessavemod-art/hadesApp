@@ -46,6 +46,17 @@ body.mini-app-body {
 .crown-icon { width: 12px; height: 12px; color: var(--accent-red); }
 .premium-text { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #ff4d4d; }
 
+/* БЕЙДЖИ РОЛЕЙ */
+.role-badge { display: inline-flex; align-items: center; padding: 2px 6px; border-radius: 6px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+.role-badge.hidden { display: none !important; }
+.role-owner { background: rgba(255, 215, 0, 0.2); color: #FFD700; border: 1px solid rgba(255, 215, 0, 0.5); }
+.role-admin { background: rgba(208, 0, 0, 0.2); color: #ff4d4d; border: 1px solid rgba(208, 0, 0, 0.5); }
+.role-aboba { background: rgba(139, 92, 246, 0.2); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.5); }
+
+.admin-input { width: 100%; background: var(--bg-card-hover); border: 1px solid var(--border-color); color: #fff; padding: 12px; border-radius: 10px; margin-bottom: 10px; font-size: 15px; outline: none; }
+.admin-input:focus { border-color: var(--accent-blue); }
+select.admin-input { appearance: none; }
+
 .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 24px; }
 .stat-card { background: var(--bg-card); border: 1px solid var(--border-color); padding: 14px 8px; border-radius: 16px; display: flex; flex-direction: column; align-items: center; gap: 4px; transition: transform 0.2s; }
 .stat-card:active { transform: scale(0.95); }
@@ -74,6 +85,7 @@ body.mini-app-body {
 .bg-cyan { background: rgba(6, 182, 212, 0.15); color: #06b6d4; }
 .bg-gray { background: rgba(255,255,255,0.05); color: #a1a1aa; }
 .bg-yellow { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+.bg-red { background: rgba(208, 0, 0, 0.15); color: #D00000; }
 
 .search-bar { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; display: flex; align-items: center; padding: 12px 16px; margin-bottom: 16px; }
 .search-bar .icon { color: var(--text-muted); margin-right: 10px; width: 20px; height: 20px; }
@@ -99,7 +111,6 @@ body.mini-app-body {
 .msg-author { font-size: 13px; color: var(--accent-red); margin-bottom: 6px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
 .msg-text { font-size: 15px; color: var(--text-main); word-break: break-word; margin-bottom: 8px; }
 .msg-time { font-size: 11px; color: var(--text-muted); margin-top: 8px; text-align: right; }
-
 .media-container { margin-top: 8px; border-radius: 12px; overflow: hidden; }
 .msg-media { max-width: 100%; border-radius: 12px; display: block; }
 .msg-sticker { width: 120px; height: 120px; object-fit: contain; display: block; }
@@ -150,37 +161,9 @@ body.mini-app-body {
 .nav-item.active { color: var(--accent-red); transform: translateY(-2px); }
 .nav-item.active .icon { filter: drop-shadow(0 0 8px rgba(208,0,0,0.5)); }
 
-/* --- ПРЕЛОАДЕР (ЭКРАН ЗАГРУЗКИ) --- */
-.preloader {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: var(--bg-main);
-    z-index: 9999;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    transition: opacity 0.4s ease, visibility 0.4s ease;
-}
-.preloader.hidden {
-    opacity: 0;
-    visibility: hidden;
-}
-.spinner {
-    width: 50px;
-    height: 50px;
-    border: 4px solid rgba(255, 255, 255, 0.1);
-    border-left-color: var(--accent-red);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin-bottom: 20px;
-}
-.preloader p {
-    font-size: 15px;
-    color: var(--text-muted);
-    font-weight: 500;
-    letter-spacing: 0.5px;
-}
-@keyframes spin {
-    100% { transform: rotate(360deg); }
-}
+/* ПРЕЛОАДЕР */
+.preloader { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg-main); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.4s ease, visibility 0.4s ease; }
+.preloader.hidden { opacity: 0; visibility: hidden; }
+.spinner { width: 50px; height: 50px; border: 4px solid rgba(255, 255, 255, 0.1); border-left-color: var(--accent-red); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+.preloader p { font-size: 15px; color: var(--text-muted); font-weight: 500; letter-spacing: 0.5px; }
+@keyframes spin { 100% { transform: rotate(360deg); } }

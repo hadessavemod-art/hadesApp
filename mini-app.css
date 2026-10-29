@@ -15,7 +15,6 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
-/* ГЛОБАЛЬНОЕ ПРАВИЛО СКРЫТИЯ (ИСПРАВЛЯЕТ БАГ С КНОПКОЙ АДМИНКИ) */
 .hidden { display: none !important; }
 
 body.mini-app-body {

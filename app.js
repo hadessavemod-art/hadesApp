@@ -15,6 +15,7 @@ if (!initData) {
 
 const encodedInitData = encodeURIComponent(initData);
 let refLink = "";
+let allChatsData = []; // Хранилище всех чатов для фильтрации
 
 const FEATURE_DATA = {
     'archive': { title: 'Безлимитный архив', icon: '#icon-infinity', bg: 'bg-blue', desc: 'Срок хранения сообщений увеличивается с 3 дней до 30 дней. Бот будет хранить всю историю переписок и медиафайлы целый месяц.' },
@@ -54,28 +55,98 @@ window.switchTab = function(tabName) {
     if (tabName === 'referrals') loadReferrals();
 };
 
+// --- ЛОГИКА ДЕЛЕНИЯ ЧАТОВ ---
+window.filterChats = function(type, btnElement) {
+    tg.HapticFeedback.impactOccurred('light');
+    
+    // Переключаем активный класс у кнопок
+    document.querySelectorAll('.chat-tab').forEach(btn => btn.classList.remove('active'));
+    btnElement.classList.add('active');
+
+    // Фильтруем массив данных
+    let filtered = [];
+    if (type === 'all') {
+        filtered = allChatsData;
+    } else if (type === 'private') {
+        filtered = allChatsData.filter(c => c.chat_id > 0);
+    } else if (type === 'groups') {
+        filtered = allChatsData.filter(c => c.chat_id < 0);
+    }
+
+    renderChatsList(filtered);
+};
+
+function renderChatsList(chats) {
+    const listEl = document.getElementById('chats-list');
+    listEl.innerHTML = '';
+
+    if (chats.length === 0) {
+        listEl.innerHTML = '<div class="empty-state">В этой категории пока пусто</div>';
+        return;
+    }
+
+    chats.forEach(chat => {
+        const div = document.createElement('div');
+        div.className = 'list-item';
+        
+        const initial = chat.label ? chat.label[0].toUpperCase() : '?';
+        
+        let avatarHtml = `<div class="list-avatar">${initial}</div>`;
+        if (chat.chat_username && chat.chat_username.trim() !== '') {
+            const imgUrl = `https://t.me/i/userpic/320/${chat.chat_username}.jpg`;
+            avatarHtml = `<img src="${imgUrl}" class="list-avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" alt=""><div class="list-avatar" style="display:none;">${initial}</div>`;
+        }
+        
+        div.innerHTML = `
+            ${avatarHtml}
+            <div class="list-content">
+                <div class="list-title">${chat.label || 'Чат ' + chat.chat_id}</div>
+                <div class="list-sub">${chat.total} сообщ. • ${chat.deleted_count} удал.</div>
+            </div>
+            <div class="list-meta">${chat.last_at ? chat.last_at.split(' ')[0] : ''}</div>
+        `;
+        div.onclick = () => loadMessages(chat.chat_id, chat.label);
+        listEl.appendChild(div);
+    });
+}
+
+async function loadChats() {
+    const listEl = document.getElementById('chats-list');
+    if (allChatsData.length > 0) {
+        // Если уже загружено, просто применяем текущий фильтр (по умолчанию 'all')
+        renderChatsList(allChatsData);
+        return;
+    }
+
+    listEl.innerHTML = '<div class="empty-state">Загрузка чатов...</div>';
+    try {
+        const res = await miniAppClient.get('/api/miniapp/chats');
+        allChatsData = res.data.chats || [];
+        
+        // При первой загрузке сбрасываем вкладки на "Все"
+        const allTabBtn = document.querySelector('.chat-tab');
+        if(allTabBtn) {
+            document.querySelectorAll('.chat-tab').forEach(btn => btn.classList.remove('active'));
+            allTabBtn.classList.add('active');
+        }
+        
+        renderChatsList(allChatsData);
+    } catch (err) { 
+        listEl.innerHTML = '<div class="empty-state">Ошибка загрузки</div>'; 
+    }
+}
+
+// --- ЛОГИКА МОДАЛКИ ---
 window.openFeatureModal = function(id) {
     const data = FEATURE_DATA[id];
     if(!data) return;
-    
     tg.HapticFeedback.impactOccurred('medium');
-    
     document.getElementById('modal-title').textContent = data.title;
     document.getElementById('modal-desc').textContent = data.desc;
-    
     const iconEl = document.getElementById('modal-icon');
     iconEl.innerHTML = `<use href="${data.icon}"></use>`;
-    
-    const iconContainer = document.getElementById('modal-icon-container');
-    iconContainer.className = `feature-icon ${data.bg}`;
-
-    const actionBtn = document.getElementById('modal-action-btn');
-    if (data.btn === 'request_export') {
-        actionBtn.style.display = 'block';
-    } else {
-        actionBtn.style.display = 'none';
-    }
-    
+    document.getElementById('modal-icon-container').className = `feature-icon ${data.bg}`;
+    document.getElementById('modal-action-btn').style.display = (data.btn === 'request_export') ? 'block' : 'none';
     document.getElementById('feature-modal').classList.add('active');
 };
 
@@ -90,14 +161,10 @@ window.requestExport = async function() {
     tg.HapticFeedback.notificationOccurred('success');
     closeFeatureModal();
     tg.showAlert("⏳ Запрос отправлен! Архив придет в бота в течение минуты.");
-    
-    try {
-        await miniAppClient.post('/api/miniapp/export');
-    } catch(e) {
-        tg.showAlert("Ошибка при запросе архива.");
-    }
+    try { await miniAppClient.post('/api/miniapp/export'); } catch(e) { tg.showAlert("Ошибка."); }
 };
 
+// --- РЕФЕРАЛЫ И СТАТИСТИКА ---
 async function loadReferrals() {
     try {
         const res = await miniAppClient.get('/api/miniapp/referrals');
@@ -105,14 +172,9 @@ async function loadReferrals() {
         document.getElementById('ref-count').textContent = res.data.count;
     } catch(e) {}
 }
-
 window.copyRefLink = function() {
-    if(refLink) {
-        navigator.clipboard.writeText(refLink);
-        tg.HapticFeedback.notificationOccurred('success');
-        tg.showAlert("Ссылка скопирована!");
-    }
-}
+    if(refLink) { navigator.clipboard.writeText(refLink); tg.HapticFeedback.notificationOccurred('success'); tg.showAlert("Ссылка скопирована!"); }
+};
 
 async function initApp() {
     try {
@@ -126,7 +188,6 @@ async function initApp() {
         document.getElementById('user-id').textContent = 'ID: ' + userId;
         document.getElementById('stat-chats').textContent = res.data.total_messages || 0;
         document.getElementById('stat-deleted').textContent = res.data.deleted_messages || 0;
-        
         document.getElementById('profile-name').textContent = user;
         document.getElementById('profile-id').textContent = 'ID: ' + userId;
 
@@ -144,32 +205,18 @@ async function initApp() {
 
         if (username.trim() !== '') {
             const myAvatarUrl = `https://t.me/i/userpic/320/${username}.jpg`;
-            const homeImg = document.getElementById('user-avatar-img');
-            const homeText = document.getElementById('user-avatar-text');
-            homeImg.src = myAvatarUrl;
-            homeImg.style.display = 'block';
-            homeText.style.display = 'none';
-            homeImg.onerror = () => {
-                homeImg.style.display = 'none';
-                homeText.style.display = 'block';
-                homeText.textContent = user[0].toUpperCase();
-            };
-
-            const profImg = document.getElementById('profile-avatar-img');
-            const profText = document.getElementById('profile-avatar-text');
-            profImg.src = myAvatarUrl;
-            profImg.style.display = 'block';
-            profText.style.display = 'none';
-            profImg.onerror = () => {
-                profImg.style.display = 'none';
-                profText.style.display = 'block';
-                profText.textContent = user[0].toUpperCase();
-            };
+            ['user', 'profile'].forEach(prefix => {
+                const img = document.getElementById(`${prefix}-avatar-img`);
+                const txt = document.getElementById(`${prefix}-avatar-text`);
+                img.src = myAvatarUrl;
+                img.style.display = 'block';
+                txt.style.display = 'none';
+                img.onerror = () => { img.style.display = 'none'; txt.style.display = 'block'; txt.textContent = user[0].toUpperCase(); };
+            });
         } else {
             document.getElementById('user-avatar-text').textContent = user[0].toUpperCase();
             document.getElementById('profile-avatar-text').textContent = user[0].toUpperCase();
         }
-        
         switchTab('home');
     } catch (err) { console.error(err); }
 }
@@ -200,35 +247,7 @@ async function loadPremiumStatus() {
     } catch(e) {}
 }
 
-async function loadChats() {
-    const listEl = document.getElementById('chats-list');
-    if (listEl.children.length > 0 && !listEl.querySelector('.empty-state')) return;
-
-    listEl.innerHTML = '<div class="empty-state">Загрузка чатов...</div>';
-    try {
-        const res = await miniAppClient.get('/api/miniapp/chats');
-        const chats = res.data.chats || [];
-        listEl.innerHTML = '';
-        if (chats.length === 0) {
-            listEl.innerHTML = '<div class="empty-state">Архив пуст</div>';
-            return;
-        }
-        chats.forEach(chat => {
-            const div = document.createElement('div');
-            div.className = 'list-item';
-            const initial = chat.label ? chat.label[0].toUpperCase() : '?';
-            let avatarHtml = `<div class="list-avatar">${initial}</div>`;
-            if (chat.chat_username && chat.chat_username.trim() !== '') {
-                const imgUrl = `https://t.me/i/userpic/320/${chat.chat_username}.jpg`;
-                avatarHtml = `<img src="${imgUrl}" class="list-avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" alt=""><div class="list-avatar" style="display:none;">${initial}</div>`;
-            }
-            div.innerHTML = `${avatarHtml}<div class="list-content"><div class="list-title">${chat.label || 'Чат ' + chat.chat_id}</div><div class="list-sub">${chat.total} сообщ. • ${chat.deleted_count} удал.</div></div><div class="list-meta">${chat.last_at ? chat.last_at.split(' ')[0] : ''}</div>`;
-            div.onclick = () => loadMessages(chat.chat_id, chat.label);
-            listEl.appendChild(div);
-        });
-    } catch (err) { listEl.innerHTML = '<div class="empty-state">Ошибка загрузки</div>'; }
-}
-
+// --- ГЛАВНАЯ ФУНКЦИЯ ЗАГРУЗКИ СООБЩЕНИЙ С МЕДИА ---
 async function loadMessages(chatId, chatLabel) {
     switchTab('messages');
     document.getElementById('chat-title').textContent = chatLabel || 'Сообщения';
@@ -239,10 +258,12 @@ async function loadMessages(chatId, chatLabel) {
         const res = await miniAppClient.get(`/api/miniapp/messages?chat_id=${chatId}`);
         const messages = res.data.messages || [];
         listEl.innerHTML = '';
+        
         if (messages.length === 0) {
             listEl.innerHTML = '<div class="empty-state">Нет сообщений</div>';
             return;
         }
+
         messages.forEach(msg => {
             const div = document.createElement('div');
             let classes = 'message-item';
@@ -255,32 +276,56 @@ async function loadMessages(chatId, chatLabel) {
             
             let mediaHtml = '';
             if (msg.has_media) {
+                // Формируем прямую ссылку на файл
                 const mediaUrl = `${miniAppClient.defaults.baseURL}/api/miniapp/media?chat_id=${chatId}&message_id=${msg.message_id}&initData=${encodedInitData}`;
                 const type = msg.content_type;
                 const ext = msg.media_ext || '';
 
+                // --- ЛОГИКА ОТРИСОВКИ МЕДИА ---
                 if (type === 'sticker') {
-                    if (ext === '.tgs') mediaHtml = `<div style="padding:10px; background:#2c2c2e; border-radius:8px; display:inline-block; font-size:12px; color:#8e8e93; margin-top:5px;">🎭 Анимированный стикер</div>`;
-                    else if (ext === '.webm') mediaHtml = `<video src="${mediaUrl}" autoplay loop muted playsinline class="msg-sticker"></video>`;
-                    else mediaHtml = `<img src="${mediaUrl}" class="msg-sticker" loading="lazy" onerror="this.style.display='none'" alt="Стикер">`;
+                    if (ext === '.tgs') {
+                        // Lottie (TGS) нельзя проиграть без библиотек, показываем плашку
+                        mediaHtml = `<div class="sticker-placeholder">🎭 Анимированный</div>`;
+                    } else if (ext === '.webm') {
+                        // Видео-стикер (WebM)
+                        mediaHtml = `<video src="${mediaUrl}" autoplay loop muted playsinline class="msg-sticker-video"></video>`;
+                    } else {
+                        // Обычный (WebP)
+                        mediaHtml = `<img src="${mediaUrl}" class="msg-sticker" loading="lazy" onerror="this.style.display='none'" alt="Стикер">`;
+                    }
                 } else if (type === 'photo') {
                     mediaHtml = `<img src="${mediaUrl}" class="msg-media" loading="lazy" onerror="this.style.display='none'" alt="Фото">`;
                 } else if (type === 'video') {
                     mediaHtml = `<video src="${mediaUrl}" controls playsinline class="msg-media" preload="metadata"></video>`;
                 } else if (type === 'video_note') {
+                    // Кружок
                     mediaHtml = `<video src="${mediaUrl}" controls playsinline class="msg-video-note" preload="metadata"></video>`;
-                } else if (type === 'voice' || type === 'audio') {
+                } else if (type === 'voice') {
+                    // ГС (Голосовое)
+                    mediaHtml = `<audio src="${mediaUrl}" controls class="msg-audio" preload="metadata"></audio>`;
+                } else if (type === 'audio') {
                     mediaHtml = `<audio src="${mediaUrl}" controls class="msg-audio" preload="metadata"></audio>`;
                 } else if (type === 'animation') {
+                    // GIF
                     mediaHtml = `<video src="${mediaUrl}" autoplay loop muted playsinline class="msg-media"></video>`;
                 } else if (type === 'document') {
                     mediaHtml = `<a href="${mediaUrl}" target="_blank" class="msg-doc">📎 Скачать файл</a>`;
                 }
             } else if (!text && msg.content_type !== 'text') {
+                // Если медиа нет, но тип не текст
                 text = `[${msg.content_type}]`;
             }
-            div.innerHTML = `<div class="msg-author">${msg.sender_name || 'Пользователь'} ${msg.deleted ? '🗑' : msg.edited ? '✏️' : ''}</div>${text ? `<div class="msg-text">${text}</div>` : ''}${mediaHtml}<div class="msg-time">${msg.updated_at}</div>`;
+            
+            // Собираем карточку
+            div.innerHTML = `
+                <div class="msg-author">${msg.sender_name || 'Пользователь'} ${msg.deleted ? '🗑' : msg.edited ? '✏️' : ''}</div>
+                ${text ? `<div class="msg-text">${text}</div>` : ''}
+                ${mediaHtml ? `<div class="media-container">${mediaHtml}</div>` : ''}
+                <div class="msg-time">${msg.updated_at}</div>
+            `;
             listEl.appendChild(div);
         });
-    } catch (err) { listEl.innerHTML = '<div class="empty-state">Ошибка загрузки сообщений</div>'; }
+    } catch (err) { 
+        listEl.innerHTML = '<div class="empty-state">Ошибка загрузки сообщений</div>'; 
+    }
 }

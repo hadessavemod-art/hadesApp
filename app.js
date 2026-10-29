@@ -14,6 +14,59 @@ if (!initData) {
 }
 
 const encodedInitData = encodeURIComponent(initData);
+let refLink = "";
+
+// Данные для модального окна Premium
+const FEATURE_DATA = {
+    'archive': {
+        title: 'Безлимитный архив',
+        icon: '#icon-infinity',
+        bg: 'bg-blue',
+        desc: 'Срок хранения сообщений увеличивается с 3 дней (бесплатный тариф) до 30 дней. Бот будет хранить всю историю переписок, медиафайлы и даже удаленные сообщения целый месяц.'
+    },
+    'priority': {
+        title: 'Приоритетное сохранение',
+        icon: '#icon-shield',
+        bg: 'bg-purple',
+        desc: 'Сервер имеет ограниченное место. При автоматической очистке старых данных файлы и медиа Premium-пользователей удаляются в самую последнюю очередь. Ваш архив всегда в безопасности.'
+    },
+    'mirrors': {
+        title: 'До 5 зеркал',
+        icon: '#icon-bot',
+        bg: 'bg-cyan',
+        desc: 'Вы можете создать до 5 клонов бота (зеркал) на своих токенах от @BotFather. Они будут работать полностью автономно с вашим брендом и кнопками.'
+    },
+    'spam': {
+        title: 'Увеличенный .spam',
+        icon: '#icon-zap',
+        bg: 'bg-green',
+        desc: 'Лимит команды `.spam` повышается с 20 до 50 сообщений за один раз. Идеально для важных объявлений или быстрых ответов в бизнес-чатах.'
+    },
+    'badge': {
+        title: 'Уникальный значок',
+        icon: '#icon-crown',
+        bg: 'bg-yellow',
+        desc: 'В профиле Mini App и в уведомлениях рядом с вашим именем появляется эксклюзивная красная корона. Ваш статус видят все пользователи.'
+    },
+    'export': {
+        title: 'Экспорт архива',
+        icon: '#icon-download',
+        bg: 'bg-gray',
+        desc: 'Вы можете выгрузить всю историю переписок, включая текст и медиа, в один удобный HTML или JSON файл и сохранить его на свое устройство.'
+    },
+    'support': {
+        title: 'Приоритетная поддержка',
+        icon: '#icon-headphones',
+        bg: 'bg-green',
+        desc: 'Ваши тикеты в поддержку обрабатываются вне очереди. Среднее время ответа администратора — до 15 минут (вместо 24 часов).'
+    },
+    'media': {
+        title: 'Увеличенный лимит медиа',
+        icon: '#icon-upload',
+        bg: 'bg-blue',
+        desc: 'Бот сможет сохранять файлы размером до 50 МБ. Для бесплатных пользователей лимит ограничен стандартными 20 МБ из-за ограничений Telegram Bot API.'
+    }
+};
 
 window.switchTab = function(tabName) {
     tg.HapticFeedback.impactOccurred('light');
@@ -24,11 +77,14 @@ window.switchTab = function(tabName) {
     const targetPage = document.getElementById(`view-${tabName}`);
     if(targetPage) targetPage.classList.add('active');
     
-    if (tabName !== 'messages' && tabName !== 'premium') {
+    if (tabName !== 'messages' && tabName !== 'premium' && tabName !== 'referrals') {
         const navBtn = document.querySelector(`.nav-item[onclick="switchTab('${tabName}')"]`);
         if (navBtn) navBtn.classList.add('active');
     } else {
-        const activeNav = tabName === 'premium' ? 'home' : 'chats';
+        let activeNav = 'home';
+        if(tabName === 'messages') activeNav = 'chats';
+        if(tabName === 'premium' || tabName === 'referrals') activeNav = 'profile';
+        
         const navBtn = document.querySelector(`.nav-item[onclick="switchTab('${activeNav}')"]`);
         if (navBtn) navBtn.classList.add('active');
     }
@@ -36,8 +92,57 @@ window.switchTab = function(tabName) {
     if (tabName === 'home') loadStats();
     if (tabName === 'chats') loadChats();
     if (tabName === 'premium') loadPremiumStatus();
+    if (tabName === 'referrals') loadReferrals();
 };
 
+// --- МОДАЛЬНОЕ ОКНО PREMIUM ---
+window.openFeatureModal = function(id) {
+    const data = FEATURE_DATA[id];
+    if(!data) return;
+    
+    tg.HapticFeedback.impactOccurred('medium');
+    
+    document.getElementById('modal-title').textContent = data.title;
+    document.getElementById('modal-desc').textContent = data.desc;
+    
+    const iconEl = document.getElementById('modal-icon');
+    iconEl.innerHTML = `<use href="${data.icon}"></use>`;
+    
+    const iconContainer = document.getElementById('modal-icon-container');
+    iconContainer.className = `feature-icon ${data.bg}`;
+    
+    const modal = document.getElementById('feature-modal');
+    modal.classList.add('active');
+};
+
+window.closeFeatureModal = function(event) {
+    const modal = document.getElementById('feature-modal');
+    if (event && event.target !== modal && !event.target.closest('button')) return;
+    
+    tg.HapticFeedback.impactOccurred('light');
+    modal.classList.remove('active');
+};
+
+// --- РЕФЕРАЛЫ ---
+async function loadReferrals() {
+    try {
+        const res = await miniAppClient.get('/api/miniapp/referrals');
+        refLink = res.data.link;
+        document.getElementById('ref-count').textContent = res.data.count;
+    } catch(e) {
+        console.error("Ошибка загрузки рефералов", e);
+    }
+}
+
+window.copyRefLink = function() {
+    if(refLink) {
+        navigator.clipboard.writeText(refLink);
+        tg.HapticFeedback.notificationOccurred('success');
+        tg.showAlert("Ссылка скопирована!");
+    }
+}
+
+// --- ОСТАЛЬНАЯ ЛОГИКА ---
 async function initApp() {
     try {
         const res = await miniAppClient.get('/api/miniapp/stats');
@@ -54,7 +159,6 @@ async function initApp() {
         document.getElementById('profile-name').textContent = user;
         document.getElementById('profile-id').textContent = 'ID: ' + userId;
 
-        // Управление бейджами Premium
         if (isPremium) {
             document.getElementById('premium-badge').classList.remove('hidden');
             document.getElementById('profile-premium-badge').classList.remove('hidden');
@@ -107,16 +211,12 @@ async function loadStats() {
 }
 
 async function loadPremiumStatus() {
-    // Просто обновляем статус, если нужно (можно дергать /api/miniapp/stats)
     try {
         const res = await miniAppClient.get('/api/miniapp/stats');
         const isPremium = res.data.is_premium || false;
         const statusText = document.getElementById('premium-status-text');
-        if (isPremium) {
-            statusText.innerHTML = '✅ Подписка <b>активна</b>';
-        } else {
-            statusText.innerHTML = '❌ Подписка <b>не активна</b>';
-        }
+        if (isPremium) statusText.innerHTML = '✅ Подписка <b>активна</b>';
+        else statusText.innerHTML = '❌ Подписка <b>не активна</b>';
     } catch(e) {}
 }
 

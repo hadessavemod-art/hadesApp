@@ -28,6 +28,9 @@ body.mini-app-body {
 .hs-app { max-width: 600px; margin: 0 auto; min-height: 100vh; padding-top: 10px; }
 .icon { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
+/* Выравнивание SVG внутри текста */
+.text-svg { width: 14px; height: 14px; vertical-align: middle; margin: 0 4px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
 .page { display: none; padding: 16px; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
 .page.active { display: block; }
 @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
@@ -74,38 +77,14 @@ body.mini-app-body {
 .bg-gray { background: rgba(255,255,255,0.05); color: #a1a1aa; }
 .bg-yellow { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
 
-/* ПОИСК И ВКЛАДКИ ЧАТОВ */
 .search-bar { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; display: flex; align-items: center; padding: 12px 16px; margin-bottom: 16px; }
 .search-bar .icon { color: var(--text-muted); margin-right: 10px; width: 20px; height: 20px; }
 .search-bar input { background: none; border: none; color: #fff; outline: none; width: 100%; font-size: 15px; }
 
-.chat-tabs {
-    display: flex;
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: 14px;
-    padding: 4px;
-    margin-bottom: 16px;
-}
-.chat-tab {
-    flex: 1;
-    background: transparent;
-    border: none;
-    color: var(--text-muted);
-    padding: 8px 0;
-    font-size: 13px;
-    font-weight: 600;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-.chat-tab.active {
-    background: var(--bg-card-hover);
-    color: #fff;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-}
+.chat-tabs { display: flex; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 4px; margin-bottom: 16px; }
+.chat-tab { flex: 1; background: transparent; border: none; color: var(--text-muted); padding: 8px 0; font-size: 13px; font-weight: 600; border-radius: 10px; cursor: pointer; transition: all 0.2s; }
+.chat-tab.active { background: var(--bg-card-hover); color: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
 
-/* СПИСОК ЧАТОВ */
 .list-item { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border-color); cursor: pointer; }
 .list-item:active { background: rgba(255,255,255,0.05); }
 .list-avatar { width: 48px; height: 48px; border-radius: 50%; background: var(--bg-card); display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 14px; color: var(--accent-red); flex-shrink: 0; border: 1px solid var(--border-color); }
@@ -115,16 +94,14 @@ body.mini-app-body {
 .list-sub { font-size: 13px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .list-meta { text-align: right; font-size: 12px; color: var(--text-muted); margin-left: 10px; flex-shrink: 0;}
 
-/* СООБЩЕНИЯ И МЕДИА */
 .messages-list { padding-bottom: 20px; }
 .message-item { background: var(--bg-card); border: 1px solid var(--border-color); padding: 14px; border-radius: 16px; margin-bottom: 12px; border-left: 3px solid var(--accent-red); }
 .message-item.deleted { border-left-color: var(--accent-red); opacity: 0.7; }
 .message-item.edited { border-left-color: var(--accent-yellow); }
-.msg-author { font-size: 13px; color: var(--accent-red); margin-bottom: 6px; font-weight: 600; }
+.msg-author { font-size: 13px; color: var(--accent-red); margin-bottom: 6px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
 .msg-text { font-size: 15px; color: var(--text-main); word-break: break-word; margin-bottom: 8px; }
 .msg-time { font-size: 11px; color: var(--text-muted); margin-top: 8px; text-align: right; }
 
-/* Стили для разных типов медиа */
 .media-container { margin-top: 8px; border-radius: 12px; overflow: hidden; }
 .msg-media { max-width: 100%; border-radius: 12px; display: block; }
 .msg-sticker { width: 120px; height: 120px; object-fit: contain; display: block; }
@@ -132,14 +109,13 @@ body.mini-app-body {
 .msg-video-note { width: 200px; height: 200px; border-radius: 50%; object-fit: cover; display: block; border: 2px solid var(--border-color); }
 .msg-audio { width: 100%; max-width: 280px; outline: none; }
 .msg-doc { display: inline-flex; align-items: center; gap: 8px; background: var(--bg-card-hover); padding: 10px 14px; border-radius: 10px; color: var(--accent-blue); text-decoration: none; font-size: 14px; font-weight: 500; }
-.sticker-placeholder { padding: 15px; background: var(--bg-card-hover); border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; font-size: 24px; }
+.sticker-placeholder { padding: 15px; background: var(--bg-card-hover); border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; }
 
 .empty-state { text-align: center; color: var(--text-muted); padding: 40px 0; font-size: 15px; }
 .empty-state-box { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 20px; padding: 40px 20px; text-align: center; margin-top: 20px; }
 .empty-state-box h3 { font-size: 16px; margin-bottom: 8px; color: #fff;}
 .empty-state-box p { font-size: 13px; color: var(--text-muted); }
 
-/* ПРЕМИУМ БАННЕР И МОДАЛКА */
 .premium-hero { position: relative; background: linear-gradient(145deg, #1c1c1e 0%, #09090b 100%); border: 1px solid rgba(208, 0, 0, 0.3); border-radius: 24px; padding: 24px; margin-bottom: 24px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1); }
 .premium-glow { position: absolute; top: -50px; left: -50px; width: 200px; height: 200px; background: radial-gradient(circle, rgba(208,0,0,0.3) 0%, transparent 70%); filter: blur(20px); z-index: 0; }
 .premium-hero-content { position: relative; display: flex; align-items: center; gap: 16px; margin-bottom: 20px; z-index: 1; }
@@ -169,7 +145,6 @@ body.mini-app-body {
 .modal-header h3 { font-size: 20px; font-weight: 700; color: #fff; }
 .modal-body p { font-size: 15px; color: var(--text-muted); line-height: 1.6; }
 
-/* НИЖНЕЕ МЕНЮ */
 .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(9, 9, 11, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); display: flex; justify-content: space-around; padding: 12px 0 25px 0; border-top: 1px solid var(--border-color); z-index: 100; max-width: 600px; margin: 0 auto; }
 .nav-item { background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-muted); cursor: pointer; transition: color 0.2s, transform 0.2s; }
 .nav-item .icon { width: 24px; height: 24px; }

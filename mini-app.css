@@ -15,6 +15,9 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
+/* ГЛОБАЛЬНОЕ ПРАВИЛО СКРЫТИЯ (ИСПРАВЛЯЕТ БАГ С КНОПКОЙ АДМИНКИ) */
+.hidden { display: none !important; }
+
 body.mini-app-body {
     background-color: var(--bg-main);
     background-image: radial-gradient(circle at top, rgba(208, 0, 0, 0.15) 0%, transparent 40%);
@@ -42,13 +45,10 @@ body.mini-app-body {
 .user-id { font-size: 13px; color: var(--text-muted); font-family: monospace; }
 
 .premium-badge { display: inline-flex; align-items: center; gap: 4px; background: rgba(208, 0, 0, 0.1); border: 1px solid rgba(208, 0, 0, 0.3); padding: 2px 8px; border-radius: 20px; }
-.premium-badge.hidden { display: none !important; }
 .crown-icon { width: 12px; height: 12px; color: var(--accent-red); }
 .premium-text { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #ff4d4d; }
 
-/* БЕЙДЖИ РОЛЕЙ */
 .role-badge { display: inline-flex; align-items: center; padding: 2px 6px; border-radius: 6px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
-.role-badge.hidden { display: none !important; }
 .role-owner { background: rgba(255, 215, 0, 0.2); color: #FFD700; border: 1px solid rgba(255, 215, 0, 0.5); }
 .role-admin { background: rgba(208, 0, 0, 0.2); color: #ff4d4d; border: 1px solid rgba(208, 0, 0, 0.5); }
 .role-aboba { background: rgba(139, 92, 246, 0.2); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.5); }
@@ -161,7 +161,6 @@ select.admin-input { appearance: none; }
 .nav-item.active { color: var(--accent-red); transform: translateY(-2px); }
 .nav-item.active .icon { filter: drop-shadow(0 0 8px rgba(208,0,0,0.5)); }
 
-/* ПРЕЛОАДЕР */
 .preloader { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg-main); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.4s ease, visibility 0.4s ease; }
 .preloader.hidden { opacity: 0; visibility: hidden; }
 .spinner { width: 50px; height: 50px; border: 4px solid rgba(255, 255, 255, 0.1); border-left-color: var(--accent-red); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }

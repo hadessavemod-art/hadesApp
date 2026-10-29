@@ -18,6 +18,7 @@ const encodedInitData = encodeURIComponent(initData);
 let refLink = "";
 let allChatsData = [];
 let currentRole = null;
+let adminActionType = '';
 
 function hidePreloader() {
     const preloader = document.getElementById('preloader');
@@ -217,6 +218,7 @@ async function loadPremiumStatus() {
 }
 
 // --- ЛОГИКА АДМИНКИ ---
+
 async function loadAdminStats() {
     try {
         const res = await miniAppClient.get('/api/miniapp/admin/stats');
@@ -224,43 +226,136 @@ async function loadAdminStats() {
         document.getElementById('adm-stat-stars').textContent = res.data.total_stars;
         document.getElementById('adm-stat-prem').textContent = res.data.premium;
         document.getElementById('adm-stat-week').textContent = res.data.week_premium;
-    } catch (err) { tg.showAlert("Ошибка загрузки статистики. Возможно, у вас нет прав."); }
+    } catch (err) { 
+        tg.showAlert("Ошибка загрузки статистики. Возможно, у вас нет прав."); 
+    }
 }
 
-let adminActionType = '';
-window.openAdminModal = function(type) {
+window.openAdminModal = async function(type) {
     adminActionType = type;
-    document.getElementById('admin-modal').classList.add('active');
-    document.getElementById('admin-modal-title').textContent = type === 'grant' ? 'Выдать Premium' : type === 'ban' ? 'Забанить' : 'Выдать роль';
-    document.getElementById('admin-grant-fields').style.display = type === 'grant' ? 'block' : 'none';
-    document.getElementById('admin-ban-fields').style.display = type === 'ban' ? 'block' : 'none';
-    document.getElementById('admin-role-fields').style.display = type === 'role' ? 'block' : 'none';
+    const modal = document.getElementById('admin-modal');
+    modal.classList.add('active');
+    
+    document.getElementById('admin-input-fields').style.display = 'none';
+    document.getElementById('admin-broadcast-fields').style.display = 'none';
+    document.getElementById('admin-list-container').style.display = 'none';
+    document.getElementById('admin-list-container').innerHTML = '';
+    
+    const title = document.getElementById('admin-modal-title');
+    const execBtn = document.getElementById('admin-execute-btn');
+    execBtn.style.display = 'block';
+
+    if (type === 'grant') {
+        title.textContent = 'Выдать Premium';
+        document.getElementById('admin-input-fields').style.display = 'block';
+        document.getElementById('admin-grant-fields').style.display = 'block';
+        document.getElementById('admin-ban-fields').style.display = 'none';
+        document.getElementById('admin-role-fields').style.display = 'none';
+    } else if (type === 'ban') {
+        title.textContent = 'Забанить';
+        document.getElementById('admin-input-fields').style.display = 'block';
+        document.getElementById('admin-grant-fields').style.display = 'none';
+        document.getElementById('admin-ban-fields').style.display = 'block';
+        document.getElementById('admin-role-fields').style.display = 'none';
+    } else if (type === 'role') {
+        title.textContent = 'Выдать роль';
+        document.getElementById('admin-input-fields').style.display = 'block';
+        document.getElementById('admin-grant-fields').style.display = 'none';
+        document.getElementById('admin-ban-fields').style.display = 'none';
+        document.getElementById('admin-role-fields').style.display = 'block';
+    } else if (type === 'broadcast') {
+        title.textContent = 'Рассылка';
+        document.getElementById('admin-broadcast-fields').style.display = 'block';
+    } else if (type === 'tickets') {
+        title.textContent = 'Тикеты поддержки';
+        document.getElementById('admin-list-container').style.display = 'block';
+        execBtn.style.display = 'none';
+        try {
+            const res = await miniAppClient.get('/api/miniapp/admin/tickets');
+            const tickets = res.data.tickets || [];
+            const container = document.getElementById('admin-list-container');
+            if (tickets.length === 0) {
+                container.innerHTML = '<p style="color:var(--text-muted);">Нет открытых тикетов</p>';
+            } else {
+                container.innerHTML = tickets.map(t => `
+                    <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; margin-bottom: 8px;">
+                        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">От: ${t.user_id} | ${t.created_at}</div>
+                        <div style="font-size: 14px; color: #fff;">${t.body}</div>
+                    </div>
+                `).join('');
+            }
+        } catch(e) { container.innerHTML = '<p style="color:red;">Ошибка загрузки</p>'; }
+    } else if (type === 'bans') {
+        title.textContent = 'Бан-лист';
+        document.getElementById('admin-list-container').style.display = 'block';
+        execBtn.style.display = 'none';
+        try {
+            const res = await miniAppClient.get('/api/miniapp/admin/bans');
+            const bans = res.data.bans || [];
+            const container = document.getElementById('admin-list-container');
+            if (bans.length === 0) {
+                container.innerHTML = '<p style="color:var(--text-muted);">Забаненных нет</p>';
+            } else {
+                container.innerHTML = bans.map(b => `
+                    <div style="background: rgba(208, 0, 0, 0.1); padding: 10px; border-radius: 8px; margin-bottom: 8px;">
+                        <div style="font-size: 12px; color: #ff4d4d; margin-bottom: 4px;">ID: ${b.user_id} ${b.username ? '@'+b.username : ''}</div>
+                        <div style="font-size: 14px; color: #fff;">Причина: ${b.reason}</div>
+                        <div style="font-size: 11px; color: var(--text-muted);">${b.banned_at}</div>
+                    </div>
+                `).join('');
+            }
+        } catch(e) { container.innerHTML = '<p style="color:red;">Ошибка загрузки</p>'; }
+    }
+    
     document.getElementById('admin-target').value = '';
+    document.getElementById('admin-broadcast-text').value = '';
 };
+
 window.closeAdminModal = function(event) {
     if (event && event.target !== document.getElementById('admin-modal') && !event.target.closest('button')) return;
     document.getElementById('admin-modal').classList.remove('active');
 };
+
 window.executeAdminAction = async function() {
-    const target = document.getElementById('admin-target').value.trim();
-    if (!target) return tg.showAlert("Введите ID или @username");
+    const execBtn = document.getElementById('admin-execute-btn');
+    const originalText = execBtn.textContent;
+    execBtn.textContent = 'Выполняется...';
+    execBtn.disabled = true;
+
     try {
         if (adminActionType === 'grant') {
+            const target = document.getElementById('admin-target').value.trim();
             const days = parseInt(document.getElementById('admin-days').value) || 30;
+            if (!target) throw new Error('Введите ID или @username');
             const res = await miniAppClient.post('/api/miniapp/admin/grant', { target, days });
             tg.showAlert(res.data.message);
         } else if (adminActionType === 'ban') {
+            const target = document.getElementById('admin-target').value.trim();
             const reason = document.getElementById('admin-reason').value || 'Без причины';
+            if (!target) throw new Error('Введите ID или @username');
             const res = await miniAppClient.post('/api/miniapp/admin/ban', { target, reason });
             tg.showAlert(res.data.message);
         } else if (adminActionType === 'role') {
+            const target = document.getElementById('admin-target').value.trim();
             const role = document.getElementById('admin-role-select').value;
+            if (!target) throw new Error('Введите ID или @username');
             const res = await miniAppClient.post('/api/miniapp/admin/roles', { target, role });
+            tg.showAlert(res.data.message);
+        } else if (adminActionType === 'broadcast') {
+            const text = document.getElementById('admin-broadcast-text').value.trim();
+            if (!text) throw new Error('Введите текст рассылки');
+            const res = await miniAppClient.post('/api/miniapp/admin/broadcast', { text });
             tg.showAlert(res.data.message);
         }
         closeAdminModal();
         loadAdminStats();
-    } catch (err) { tg.showAlert(err.response?.data?.error || "Ошибка выполнения"); }
+    } catch (err) {
+        const errorMsg = err.response?.data?.error || err.message || "Ошибка выполнения";
+        tg.showAlert(errorMsg);
+    } finally {
+        execBtn.textContent = originalText;
+        execBtn.disabled = false;
+    }
 };
 
 async function loadMessages(chatId, chatLabel) {

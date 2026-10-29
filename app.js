@@ -38,7 +38,6 @@ const FEATURE_DATA = {
     'media': { title: 'Увеличенный лимит медиа', icon: '#icon-upload', bg: 'bg-blue', desc: 'Бот сможет сохранять файлы размером до 50 МБ (вместо 20 МБ).' }
 };
 
-// ЗАЩИТА: если нет роли — не пускаем в админку
 window.switchTab = function(tabName) {
     if (tabName === 'admin' && !currentRole) {
         tg.HapticFeedback.notificationOccurred('error');
@@ -158,44 +157,30 @@ async function initApp() {
         document.getElementById('profile-name').textContent = user;
         document.getElementById('profile-id').textContent = 'ID: ' + userId;
 
-        // ПРЕМИУМ БЕЙДЖ
         if (isPremium) {
-            document.getElementById('premium-badge').style.display = 'inline-flex';
-            document.getElementById('profile-premium-badge').style.display = 'inline-flex';
+            document.getElementById('premium-badge').classList.remove('hidden');
+            document.getElementById('profile-premium-badge').classList.remove('hidden');
             document.getElementById('premium-status-text').innerHTML = 'Подписка активна';
             document.getElementById('premium-action-btn').textContent = 'Продлить подписку';
             document.getElementById('premium-action-btn').style.background = 'var(--accent-red)';
             document.getElementById('premium-action-btn').style.color = '#fff';
         } else {
-            document.getElementById('premium-badge').style.display = 'none';
-            document.getElementById('profile-premium-badge').style.display = 'none';
             document.getElementById('premium-status-text').innerHTML = 'Подписка не активна';
             document.getElementById('premium-action-btn').textContent = 'Подключить Premium';
         }
 
-        // БЕЙДЖ РОЛИ И КНОПКА АДМИНКИ (ЖЕСТКАЯ ПРОВЕРКА)
-        const adminBtn = document.getElementById('admin-tab-btn');
-        const roleBadge = document.getElementById('role-badge');
-        const profRoleBadge = document.getElementById('profile-role-badge');
-
         if (currentRole) {
+            const roleBadge = document.getElementById('role-badge');
+            const profRoleBadge = document.getElementById('profile-role-badge');
             const roleText = currentRole.toUpperCase();
-            roleBadge.textContent = roleText;
-            roleBadge.className = `role-badge role-${currentRole}`;
-            roleBadge.style.display = 'inline-flex';
-            
-            profRoleBadge.textContent = roleText;
-            profRoleBadge.className = `role-badge role-${currentRole}`;
-            profRoleBadge.style.display = 'inline-flex';
-            
-            adminBtn.style.display = 'flex';
+            [roleBadge, profRoleBadge].forEach(el => { el.textContent = roleText; el.className = `role-badge role-${currentRole}`; el.classList.remove('hidden'); });
+            document.getElementById('admin-tab-btn').classList.remove('hidden');
         } else {
-            roleBadge.style.display = 'none';
-            profRoleBadge.style.display = 'none';
-            adminBtn.style.display = 'none';
+            document.getElementById('role-badge').classList.add('hidden');
+            document.getElementById('profile-role-badge').classList.add('hidden');
+            document.getElementById('admin-tab-btn').classList.add('hidden');
         }
 
-        // АВАТАРКИ
         if (username.trim() !== '') {
             const myAvatarUrl = `https://t.me/i/userpic/320/${username}.jpg`;
             const loadImage = (imgId, txtId) => new Promise((resolve) => {

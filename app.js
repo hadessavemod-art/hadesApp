@@ -17,13 +17,13 @@ const encodedInitData = encodeURIComponent(initData);
 let refLink = "";
 let allChatsData = [];
 
+// Экспорт удален
 const FEATURE_DATA = {
     'archive': { title: 'Безлимитный архив', icon: '#icon-infinity', bg: 'bg-blue', desc: 'Срок хранения сообщений увеличивается с 3 дней до 30 дней. Бот будет хранить всю историю переписок и медиафайлы целый месяц.' },
     'priority': { title: 'Приоритетное сохранение', icon: '#icon-shield', bg: 'bg-purple', desc: 'При автоматической очистке старых данных файлы и медиа Premium-пользователей удаляются в самую последнюю очередь.' },
     'mirrors': { title: 'До 5 зеркал', icon: '#icon-bot', bg: 'bg-cyan', desc: 'Вы можете создать до 5 клонов бота (зеркал) на своих токенах от @BotFather.' },
     'spam': { title: 'Увеличенный .spam', icon: '#icon-zap', bg: 'bg-green', desc: 'Лимит команды `.spam` повышается с 20 до 50 сообщений за один раз.' },
     'badge': { title: 'Уникальный значок', icon: '#icon-crown', bg: 'bg-yellow', desc: 'В профиле Mini App и в уведомлениях рядом с вашим именем появляется эксклюзивная красная корона.' },
-    'export': { title: 'Экспорт архива', icon: '#icon-export', bg: 'bg-gray', desc: 'Вы можете выгрузить всю историю переписок, включая текст, в один удобный HTML файл. Бот пришлет его вам в чат.', btn: 'request_export' },
     'support': { title: 'Приоритетная поддержка', icon: '#icon-headphones', bg: 'bg-green', desc: 'Ваши тикеты в поддержку обрабатываются вне очереди. Среднее время ответа — до 15 минут.' },
     'media': { title: 'Увеличенный лимит медиа', icon: '#icon-upload', bg: 'bg-blue', desc: 'Бот сможет сохранять файлы размером до 50 МБ (вместо 20 МБ).' }
 };
@@ -55,7 +55,6 @@ window.switchTab = function(tabName) {
     if (tabName === 'referrals') loadReferrals();
 };
 
-// --- ЛОГИКА ДЕЛЕНИЯ ЧАТОВ ---
 window.filterChats = function(type, btnElement) {
     tg.HapticFeedback.impactOccurred('light');
     
@@ -88,9 +87,6 @@ function renderChatsList(chats) {
         div.className = 'list-item';
         
         const initial = chat.label ? chat.label[0].toUpperCase() : '?';
-        
-        // Заменяем текстовое обозначение на иконку
-        const chatIcon = chat.chat_id > 0 ? 'icon-user' : 'icon-users';
         
         let avatarHtml = `<div class="list-avatar">${initial}</div>`;
         if (chat.chat_username && chat.chat_username.trim() !== '') {
@@ -135,7 +131,7 @@ async function loadChats() {
     }
 }
 
-// --- МОДАЛКА ---
+// Модалка без кнопки экспорта
 window.openFeatureModal = function(id) {
     const data = FEATURE_DATA[id];
     if(!data) return;
@@ -145,7 +141,6 @@ window.openFeatureModal = function(id) {
     const iconEl = document.getElementById('modal-icon');
     iconEl.innerHTML = `<use href="${data.icon}"></use>`;
     document.getElementById('modal-icon-container').className = `feature-icon ${data.bg}`;
-    document.getElementById('modal-action-btn').style.display = (data.btn === 'request_export') ? 'block' : 'none';
     document.getElementById('feature-modal').classList.add('active');
 };
 
@@ -156,14 +151,6 @@ window.closeFeatureModal = function(event) {
     modal.classList.remove('active');
 };
 
-window.requestExport = async function() {
-    tg.HapticFeedback.notificationOccurred('success');
-    closeFeatureModal();
-    tg.showAlert("⏳ Запрос отправлен! Архив придет в бота в течение минуты.");
-    try { await miniAppClient.post('/api/miniapp/export'); } catch(e) { tg.showAlert("Ошибка."); }
-};
-
-// --- РЕФЕРАЛЫ И СТАТИСТИКА ---
 async function loadReferrals() {
     try {
         const res = await miniAppClient.get('/api/miniapp/referrals');
@@ -246,7 +233,6 @@ async function loadPremiumStatus() {
     } catch(e) {}
 }
 
-// --- СООБЩЕНИЯ С МЕДИА И ЗАМЕНА ЭМОДЗИ ---
 async function loadMessages(chatId, chatLabel) {
     switchTab('messages');
     document.getElementById('chat-title').textContent = chatLabel || 'Сообщения';
@@ -270,11 +256,9 @@ async function loadMessages(chatId, chatLabel) {
             else if (msg.edited) classes += ' edited';
             div.className = classes;
             
-            // Экранирование текста
             let text = msg.text || '';
             if (text) text = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
             
-            // Формируем SVG статусы вместо эмодзи
             let statusIcons = '';
             if (msg.deleted) {
                 statusIcons = '<svg class="text-svg" style="stroke: var(--accent-red);"><use href="#icon-trash"></use></svg>';

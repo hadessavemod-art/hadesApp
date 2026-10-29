@@ -19,6 +19,7 @@ let refLink = "";
 let allChatsData = [];
 let currentRole = null;
 let adminActionType = '';
+let premiumTimerInterval = null;
 
 function hidePreloader() {
     const preloader = document.getElementById('preloader');
@@ -28,14 +29,44 @@ function hidePreloader() {
     }
 }
 
+// --- ТАЙМЕР ПРЕМИУМА ---
+function startPremiumTimer(expiresAtStr) {
+    if (premiumTimerInterval) clearInterval(premiumTimerInterval);
+    if (!expiresAtStr) return;
+    
+    const expiresAt = new Date(expiresAtStr).getTime();
+    const timerEl = document.getElementById('premium-timer-text');
+    const timerWrap = document.getElementById('premium-timer');
+    timerWrap.classList.remove('hidden');
+    
+    premiumTimerInterval = setInterval(() => {
+        const now = new Date().getTime();
+        const distance = expiresAt - now;
+        
+        if (distance < 0) {
+            clearInterval(premiumTimerInterval);
+            timerEl.textContent = "Истек";
+            timerWrap.classList.add('hidden');
+            return;
+        }
+        
+        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+        
+        timerEl.textContent = `${days}д ${hours}ч ${minutes}м ${seconds}с`;
+    }, 1000);
+}
+
 const FEATURE_DATA = {
-    'archive': { title: 'Безлимитный архив', icon: '#icon-infinity', bg: 'bg-blue', desc: 'Срок хранения сообщений увеличивается с 3 дней до 30 дней. Бот будет хранить всю историю переписок и медиафайлы целый месяц.' },
-    'priority': { title: 'Приоритетное сохранение', icon: '#icon-shield', bg: 'bg-purple', desc: 'При автоматической очистке старых данных файлы и медиа Premium-пользователей удаляются в самую последнюю очередь.' },
-    'mirrors': { title: 'До 5 зеркал', icon: '#icon-bot', bg: 'bg-cyan', desc: 'Вы можете создать до 5 клонов бота (зеркал) на своих токенах от @BotFather.' },
-    'spam': { title: 'Увеличенный .spam', icon: '#icon-zap', bg: 'bg-green', desc: 'Лимит команды `.spam` повышается с 20 до 50 сообщений за один раз.' },
-    'badge': { title: 'Уникальный значок', icon: '#icon-crown', bg: 'bg-yellow', desc: 'В профиле Mini App и в уведомлениях рядом с вашим именем появляется эксклюзивная красная корона.' },
-    'support': { title: 'Приоритетная поддержка', icon: '#icon-headphones', bg: 'bg-green', desc: 'Ваши тикеты в поддержку обрабатываются вне очереди. Среднее время ответа — до 15 минут.' },
-    'media': { title: 'Увеличенный лимит медиа', icon: '#icon-upload', bg: 'bg-blue', desc: 'Бот сможет сохранять файлы размером до 50 МБ (вместо 20 МБ).' }
+    'archive': { title: 'Безлимитный архив', icon: '#icon-infinity', bg: 'bg-blue', desc: 'Срок хранения сообщений увеличивается с 3 дней до 30 дней.' },
+    'priority': { title: 'Приоритетное сохранение', icon: '#icon-shield', bg: 'bg-purple', desc: 'Твои файлы и медиа удаляются последними при очистке сервера.' },
+    'mirrors': { title: 'До 5 зеркал', icon: '#icon-bot', bg: 'bg-cyan', desc: 'Возможность создать 5 клонов бота на своих токенах.' },
+    'spam': { title: 'Увеличенный .spam', icon: '#icon-zap', bg: 'bg-green', desc: 'Лимит команды .spam повышается с 20 до 50 сообщений.' },
+    'badge': { title: 'Уникальный значок', icon: '#icon-crown', bg: 'bg-yellow', desc: 'Эксклюзивная красная корона в профиле Mini App.' },
+    'support': { title: 'Приоритетная поддержка', icon: '#icon-headphones', bg: 'bg-green', desc: 'Ответ администратора в течение 15 минут.' },
+    'media': { title: 'Увеличенный лимит медиа', icon: '#icon-upload', bg: 'bg-blue', desc: 'Загрузка файлов до 50 МБ вместо стандартных 20 МБ.' }
 };
 
 window.switchTab = function(tabName) {
@@ -51,13 +82,13 @@ window.switchTab = function(tabName) {
     const targetPage = document.getElementById(`view-${tabName}`);
     if(targetPage) targetPage.classList.add('active');
     
-    if (tabName !== 'messages' && tabName !== 'premium' && tabName !== 'referrals' && tabName !== 'admin') {
+    if (tabName !== 'messages' && tabName !== 'premium' && tabName !== 'referrals' && tabName !== 'admin' && tabName !== 'settings') {
         const navBtn = document.querySelector(`.nav-item[onclick="switchTab('${tabName}')"]`);
         if (navBtn) navBtn.classList.add('active');
     } else {
         let activeNav = 'home';
         if(tabName === 'messages') activeNav = 'chats';
-        if(tabName === 'premium' || tabName === 'referrals' || tabName === 'admin') activeNav = 'profile';
+        if(tabName === 'premium' || tabName === 'referrals' || tabName === 'admin' || tabName === 'settings') activeNav = 'profile';
         const navBtn = document.querySelector(`.nav-item[onclick="switchTab('${activeNav}')"]`);
         if (navBtn) navBtn.classList.add('active');
     }
@@ -67,6 +98,41 @@ window.switchTab = function(tabName) {
     if (tabName === 'premium') loadPremiumStatus();
     if (tabName === 'referrals') loadReferrals();
     if (tabName === 'admin') loadAdminStats();
+    if (tabName === 'settings') loadSettings();
+};
+
+// --- НАСТРОЙКИ ---
+async function loadSettings() {
+    try {
+        const res = await miniAppClient.get('/api/miniapp/settings');
+        document.getElementById('toggle-edits').checked = res.data.edits;
+        document.getElementById('toggle-deletions').checked = res.data.deletions;
+        document.getElementById('toggle-media').checked = res.data.deleted_media;
+    } catch(e) { console.error(e); }
+}
+
+window.updateSetting = async function(key, val) {
+    tg.HapticFeedback.impactOccurred('light');
+    try {
+        await miniAppClient.post('/api/miniapp/settings', { [key]: val });
+    } catch(e) { tg.showAlert("Ошибка сохранения"); }
+};
+
+window.clearArchive = function() {
+    tg.showPopup({
+        title: 'Очистить архив?',
+        message: 'Все сообщения и медиа будут удалены навсегда. Это действие нельзя отменить.',
+        buttons: [{id: 'cancel', type: 'cancel'}, {id: 'delete', type: 'destructive', text: 'Удалить'}]
+    }, async (buttonId) => {
+        if (buttonId === 'delete') {
+            tg.HapticFeedback.notificationOccurred('success');
+            try {
+                const res = await miniAppClient.post('/api/miniapp/clear_archive');
+                tg.showAlert(res.data.message);
+                loadStats();
+            } catch(e) { tg.showAlert("Ошибка очистки"); }
+        }
+    });
 };
 
 window.filterChats = function(type, btnElement) {
@@ -148,12 +214,14 @@ async function initApp() {
         const userId = res.data.user_id || 0;
         const username = res.data.username || '';
         const isPremium = res.data.is_premium || false; 
+        const premiumExpiresAt = res.data.premium_expires_at || null;
         currentRole = res.data.role || null;
         
         document.getElementById('user-name').textContent = user;
         document.getElementById('user-id').textContent = 'ID: ' + userId;
-        document.getElementById('stat-chats').textContent = res.data.total_messages || 0;
         document.getElementById('stat-deleted').textContent = res.data.deleted_messages || 0;
+        document.getElementById('stat-chats').textContent = res.data.chats_count || 0;
+        document.getElementById('stat-media').textContent = res.data.media_count || 0;
         document.getElementById('profile-name').textContent = user;
         document.getElementById('profile-id').textContent = 'ID: ' + userId;
 
@@ -164,9 +232,13 @@ async function initApp() {
             document.getElementById('premium-action-btn').textContent = 'Продлить подписку';
             document.getElementById('premium-action-btn').style.background = 'var(--accent-red)';
             document.getElementById('premium-action-btn').style.color = '#fff';
+            if (premiumExpiresAt) {
+                startPremiumTimer(premiumExpiresAt);
+            }
         } else {
             document.getElementById('premium-status-text').innerHTML = 'Подписка не активна';
             document.getElementById('premium-action-btn').textContent = 'Подключить Premium';
+            document.getElementById('premium-timer').classList.add('hidden');
         }
 
         if (currentRole) {
@@ -204,8 +276,9 @@ async function initApp() {
 async function loadStats() {
     try {
         const res = await miniAppClient.get('/api/miniapp/stats');
-        document.getElementById('stat-chats').textContent = res.data.total_messages || 0;
         document.getElementById('stat-deleted').textContent = res.data.deleted_messages || 0;
+        document.getElementById('stat-chats').textContent = res.data.chats_count || 0;
+        document.getElementById('stat-media').textContent = res.data.media_count || 0;
     } catch(e) {}
 }
 async function loadPremiumStatus() {

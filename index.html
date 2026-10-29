@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>HadesSave</title>
-    <link rel="stylesheet" href="mini-app.css?v=107">
+    <link rel="stylesheet" href="mini-app.css?v=108">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body class="mini-app-body">
@@ -44,7 +44,6 @@
     </svg>
 
     <div id="app" class="hs-app">
-        <!-- ЭКРАН: ГЛАВНАЯ -->
         <main id="view-home" class="page active">
             <header class="user-header">
                 <div class="avatar" id="user-avatar-container">
@@ -159,10 +158,15 @@
                 <button class="back-btn" onclick="switchTab('home')"><svg class="icon"><use href="#icon-back"></use></svg></button>
                 <h2>Рефералы</h2>
             </header>
+            
+            <!-- ОБНОВЛЕННЫЙ БАННЕР РЕФЕРАЛОВ -->
             <div class="premium-hero" style="background: linear-gradient(135deg, #10b981 0%, #064e3b 100%); border: none;">
                 <div class="premium-hero-content">
                     <svg class="icon premium-icon" style="color: #fff;"><use href="#icon-users"></use></svg>
-                    <div><h3>Приглашай друзей</h3><p>Получай 1 день Premium за друга</p></div>
+                    <div>
+                        <h3>Приглашай друзей</h3>
+                        <p><b>Вы оба</b> получаете 1 день Premium</p>
+                    </div>
                 </div>
                 <div style="text-align: center; margin-bottom: 20px;">
                     <strong id="ref-count" style="font-size: 48px; line-height: 1; color: #fff;">0</strong>
@@ -173,6 +177,7 @@
                     Скопировать ссылку
                 </button>
             </div>
+            
             <div class="menu-group" style="padding: 20px;">
                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
                     <svg class="icon text-blue"><use href="#icon-info"></use></svg>
@@ -182,8 +187,12 @@
                     <li style="margin-bottom: 10px;">1. Отправь ссылку другу.</li>
                     <li style="margin-bottom: 10px;">2. Друг запускает бота.</li>
                     <li style="margin-bottom: 10px;">3. Друг <b>подключает бота</b> в настройках Telegram (Настройки → Чат-боты).</li>
-                    <li>4. Тебе начисляется <b>+1 день Premium</b>!</li>
+                    <li>4. <b>Вы оба</b> получаете <b>+1 день Premium</b>!</li>
                 </ul>
+                <div style="margin-top: 15px; padding: 10px; background: rgba(16, 185, 129, 0.1); border-radius: 10px; border: 1px solid rgba(16, 185, 129, 0.2); display: flex; align-items: flex-start; gap: 8px;">
+                    <svg class="icon" style="color: #10b981; flex-shrink: 0; width: 18px; height: 18px; margin-top: 2px;"><use href="#icon-gift"></use></svg>
+                    <p style="font-size: 12px; color: #34d399; margin: 0;">Бонус начисляется автоматически после того, как друг подключит бота. Не забудь сказать ему об этом!</p>
+                </div>
             </div>
         </main>
 

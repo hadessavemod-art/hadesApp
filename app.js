@@ -10,6 +10,14 @@ if (!initData) {
     document.body.innerHTML = '<h2 style="color:white;text-align:center;margin-top:50px;">Открой через бота в Telegram</h2>';
 } else {
     setTelegramInitData(initData);
+    
+    // Ставим таймаут на 5 секунд. Если API не ответит, прелоадер исчезнет, чтобы юзер не застрял.
+    setTimeout(() => {
+        if (!document.getElementById('preloader').classList.contains('hidden')) {
+            hidePreloader();
+        }
+    }, 5000);
+    
     initApp();
 }
 
@@ -17,7 +25,16 @@ const encodedInitData = encodeURIComponent(initData);
 let refLink = "";
 let allChatsData = [];
 
-// Экспорт удален
+// Функция скрытия экрана загрузки
+function hidePreloader() {
+    const preloader = document.getElementById('preloader');
+    if (preloader) {
+        preloader.classList.add('hidden');
+        // Полностью удаляем из DOM через 400мс (после анимации)
+        setTimeout(() => preloader.remove(), 400);
+    }
+}
+
 const FEATURE_DATA = {
     'archive': { title: 'Безлимитный архив', icon: '#icon-infinity', bg: 'bg-blue', desc: 'Срок хранения сообщений увеличивается с 3 дней до 30 дней. Бот будет хранить всю историю переписок и медиафайлы целый месяц.' },
     'priority': { title: 'Приоритетное сохранение', icon: '#icon-shield', bg: 'bg-purple', desc: 'При автоматической очистке старых данных файлы и медиа Premium-пользователей удаляются в самую последнюю очередь.' },
@@ -131,7 +148,6 @@ async function loadChats() {
     }
 }
 
-// Модалка без кнопки экспорта
 window.openFeatureModal = function(id) {
     const data = FEATURE_DATA[id];
     if(!data) return;
@@ -164,12 +180,16 @@ window.copyRefLink = function() {
 
 async function initApp() {
     try {
+        // Показываем, что пошла загрузка
+        document.getElementById('user-name').textContent = 'Загрузка...';
+        
         const res = await miniAppClient.get('/api/miniapp/stats');
         const user = res.data.user || 'Пользователь';
         const userId = res.data.user_id || 0;
         const username = res.data.username || '';
         const isPremium = res.data.is_premium || false; 
         
+        // Подставляем данные
         document.getElementById('user-name').textContent = user;
         document.getElementById('user-id').textContent = 'ID: ' + userId;
         document.getElementById('stat-chats').textContent = res.data.total_messages || 0;
@@ -189,22 +209,42 @@ async function initApp() {
             document.getElementById('premium-action-btn').textContent = 'Подключить Premium';
         }
 
+        // Грузим аватарки
         if (username.trim() !== '') {
             const myAvatarUrl = `https://t.me/i/userpic/320/${username}.jpg`;
-            ['user', 'profile'].forEach(prefix => {
-                const img = document.getElementById(`${prefix}-avatar-img`);
-                const txt = document.getElementById(`${prefix}-avatar-text`);
-                img.src = myAvatarUrl;
-                img.style.display = 'block';
-                txt.style.display = 'none';
-                img.onerror = () => { img.style.display = 'none'; txt.style.display = 'block'; txt.textContent = user[0].toUpperCase(); };
-            });
+            
+            const loadImage = (imgId, txtId) => {
+                return new Promise((resolve) => {
+                    const img = document.getElementById(imgId);
+                    const txt = document.getElementById(txtId);
+                    if (!img || !txt) return resolve();
+                    
+                    img.onload = () => { img.style.display = 'block'; txt.style.display = 'none'; resolve(); };
+                    img.onerror = () => { img.style.display = 'none'; txt.style.display = 'block'; txt.textContent = user[0].toUpperCase(); resolve(); };
+                    img.src = myAvatarUrl;
+                });
+            };
+
+            // Ждем загрузки обеих аватарок (в главном и профиле)
+            await Promise.all([
+                loadImage('user-avatar-img', 'user-avatar-text'),
+                loadImage('profile-avatar-img', 'profile-avatar-text')
+            ]);
         } else {
             document.getElementById('user-avatar-text').textContent = user[0].toUpperCase();
             document.getElementById('profile-avatar-text').textContent = user[0].toUpperCase();
         }
+
         switchTab('home');
-    } catch (err) { console.error(err); }
+        
+        // Прячем прелоадер только когда ВСЁ загрузилось
+        hidePreloader();
+        
+    } catch (err) { 
+        console.error(err);
+        // Если ошибка — все равно убираем прелоадер, чтобы человек увидел интерфейс
+        hidePreloader(); 
+    }
 }
 
 async function loadStats() {

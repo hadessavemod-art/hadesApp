@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>HadesSave</title>
-    <link rel="stylesheet" href="mini-app.css?v=104">
+    <link rel="stylesheet" href="mini-app.css?v=105">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body class="mini-app-body">
-    <!-- Иконки -->
+    <!-- ОБНОВЛЕННЫЙ SVG СПРАЙТ -->
     <svg style="display: none;">
         <symbol id="icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></symbol>
         <symbol id="icon-chat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></symbol>
@@ -32,6 +32,13 @@
         <symbol id="icon-headphones" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path></symbol>
         <symbol id="icon-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></symbol>
         <symbol id="icon-bot" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"></rect><circle cx="12" cy="5" r="2"></circle><path d="M12 7v4"></path><line x1="8" y1="16" x2="8" y2="16"></line><line x1="16" y1="16" x2="16" y2="16"></line></symbol>
+        <!-- НОВЫЕ ИКОНКИ ДЛЯ ЗАМЕНЫ ЭМОДЗИ -->
+        <symbol id="icon-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></symbol>
+        <symbol id="icon-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></symbol>
+        <symbol id="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></symbol>
+        <symbol id="icon-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></symbol>
+        <symbol id="icon-external-link" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></symbol>
+        <symbol id="icon-play" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></symbol>
     </svg>
 
     <div id="app" class="hs-app">
@@ -87,7 +94,6 @@
             </div>
         </main>
 
-        <!-- ЭКРАН: ЧАТЫ С ДЕЛЕНИЕМ -->
         <main id="view-chats" class="page">
             <header class="page-header with-back">
                 <button class="back-btn" onclick="switchTab('home')"><svg class="icon"><use href="#icon-back"></use></svg></button>
@@ -95,7 +101,6 @@
             </header>
             <div class="search-bar"><svg class="icon"><use href="#icon-search"></use></svg><input type="text" placeholder="Поиск по чатам..."></div>
             
-            <!-- ВКЛАДКИ (ДЕЛЕНИЕ ЧАТОВ) -->
             <div class="chat-tabs">
                 <button class="chat-tab active" onclick="filterChats('all', this)">Все</button>
                 <button class="chat-tab" onclick="filterChats('private', this)">Личные</button>
@@ -113,7 +118,6 @@
             <div id="messages-list" class="messages-list"></div>
         </main>
 
-        <!-- ЭКРАН: PREMIUM -->
         <main id="view-premium" class="page">
             <header class="page-header with-back">
                 <button class="back-btn" onclick="switchTab('home')"><svg class="icon"><use href="#icon-back"></use></svg></button>
@@ -147,7 +151,6 @@
             </div>
         </main>
 
-        <!-- ЭКРАН: РЕФЕРАЛЫ -->
         <main id="view-referrals" class="page">
             <header class="page-header with-back">
                 <button class="back-btn" onclick="switchTab('home')"><svg class="icon"><use href="#icon-back"></use></svg></button>
@@ -162,10 +165,16 @@
                     <strong id="ref-count" style="font-size: 48px; line-height: 1; color: #fff;">0</strong>
                     <span style="display:block; font-size: 13px; opacity: 0.9; margin-top: 5px; color: #fff;">друзей подключили бота</span>
                 </div>
-                <button class="premium-buy-btn" onclick="copyRefLink()" style="color: #10b981; display: flex; align-items: center; justify-content: center; gap: 8px;">📋 Скопировать ссылку</button>
+                <button class="premium-buy-btn" onclick="copyRefLink()" style="color: #10b981; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <svg class="icon" style="width: 18px; height: 18px;"><use href="#icon-copy"></use></svg>
+                    Скопировать ссылку
+                </button>
             </div>
             <div class="menu-group" style="padding: 20px;">
-                <h4 style="color: #fff; margin-bottom: 10px; font-size: 15px;">📋 Как это работает?</h4>
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+                    <svg class="icon text-blue"><use href="#icon-info"></use></svg>
+                    <h4 style="color: #fff; font-size: 15px; margin: 0;">Как это работает?</h4>
+                </div>
                 <ul style="list-style: none; padding: 0; margin: 0; font-size: 13px; color: var(--text-muted); line-height: 1.6;">
                     <li style="margin-bottom: 10px;">1. Отправь ссылку другу.</li>
                     <li style="margin-bottom: 10px;">2. Друг запускает бота.</li>
@@ -175,7 +184,6 @@
             </div>
         </main>
 
-        <!-- ЭКРАН: РОЗЫГРЫШ -->
         <main id="view-draw" class="page">
             <header class="page-header"><h2>Розыгрыш</h2></header>
             <div class="empty-state-box">
@@ -185,7 +193,6 @@
             </div>
         </main>
 
-        <!-- ЭКРАН: ПРОФИЛЬ -->
         <main id="view-profile" class="page">
             <header class="page-header"><h2>Профиль</h2></header>
             <div class="user-header" style="padding: 0 16px 20px 16px;">
@@ -213,7 +220,6 @@
             </div>
         </main>
 
-        <!-- МОДАЛЬНОЕ ОКНО -->
         <div id="feature-modal" class="modal-overlay" onclick="closeFeatureModal(event)">
             <div class="modal-content" onclick="event.stopPropagation()">
                 <div class="modal-handle"></div>

@@ -16,56 +16,15 @@ if (!initData) {
 const encodedInitData = encodeURIComponent(initData);
 let refLink = "";
 
-// Данные для модального окна Premium
 const FEATURE_DATA = {
-    'archive': {
-        title: 'Безлимитный архив',
-        icon: '#icon-infinity',
-        bg: 'bg-blue',
-        desc: 'Срок хранения сообщений увеличивается с 3 дней (бесплатный тариф) до 30 дней. Бот будет хранить всю историю переписок, медиафайлы и даже удаленные сообщения целый месяц.'
-    },
-    'priority': {
-        title: 'Приоритетное сохранение',
-        icon: '#icon-shield',
-        bg: 'bg-purple',
-        desc: 'Сервер имеет ограниченное место. При автоматической очистке старых данных файлы и медиа Premium-пользователей удаляются в самую последнюю очередь. Ваш архив всегда в безопасности.'
-    },
-    'mirrors': {
-        title: 'До 5 зеркал',
-        icon: '#icon-bot',
-        bg: 'bg-cyan',
-        desc: 'Вы можете создать до 5 клонов бота (зеркал) на своих токенах от @BotFather. Они будут работать полностью автономно с вашим брендом и кнопками.'
-    },
-    'spam': {
-        title: 'Увеличенный .spam',
-        icon: '#icon-zap',
-        bg: 'bg-green',
-        desc: 'Лимит команды `.spam` повышается с 20 до 50 сообщений за один раз. Идеально для важных объявлений или быстрых ответов в бизнес-чатах.'
-    },
-    'badge': {
-        title: 'Уникальный значок',
-        icon: '#icon-crown',
-        bg: 'bg-yellow',
-        desc: 'В профиле Mini App и в уведомлениях рядом с вашим именем появляется эксклюзивная красная корона. Ваш статус видят все пользователи.'
-    },
-    'export': {
-        title: 'Экспорт архива',
-        icon: '#icon-download',
-        bg: 'bg-gray',
-        desc: 'Вы можете выгрузить всю историю переписок, включая текст и медиа, в один удобный HTML или JSON файл и сохранить его на свое устройство.'
-    },
-    'support': {
-        title: 'Приоритетная поддержка',
-        icon: '#icon-headphones',
-        bg: 'bg-green',
-        desc: 'Ваши тикеты в поддержку обрабатываются вне очереди. Среднее время ответа администратора — до 15 минут (вместо 24 часов).'
-    },
-    'media': {
-        title: 'Увеличенный лимит медиа',
-        icon: '#icon-upload',
-        bg: 'bg-blue',
-        desc: 'Бот сможет сохранять файлы размером до 50 МБ. Для бесплатных пользователей лимит ограничен стандартными 20 МБ из-за ограничений Telegram Bot API.'
-    }
+    'archive': { title: 'Безлимитный архив', icon: '#icon-infinity', bg: 'bg-blue', desc: 'Срок хранения сообщений увеличивается с 3 дней до 30 дней. Бот будет хранить всю историю переписок и медиафайлы целый месяц.' },
+    'priority': { title: 'Приоритетное сохранение', icon: '#icon-shield', bg: 'bg-purple', desc: 'При автоматической очистке старых данных файлы и медиа Premium-пользователей удаляются в самую последнюю очередь.' },
+    'mirrors': { title: 'До 5 зеркал', icon: '#icon-bot', bg: 'bg-cyan', desc: 'Вы можете создать до 5 клонов бота (зеркал) на своих токенах от @BotFather.' },
+    'spam': { title: 'Увеличенный .spam', icon: '#icon-zap', bg: 'bg-green', desc: 'Лимит команды `.spam` повышается с 20 до 50 сообщений за один раз.' },
+    'badge': { title: 'Уникальный значок', icon: '#icon-crown', bg: 'bg-yellow', desc: 'В профиле Mini App и в уведомлениях рядом с вашим именем появляется эксклюзивная красная корона.' },
+    'export': { title: 'Экспорт архива', icon: '#icon-export', bg: 'bg-gray', desc: 'Вы можете выгрузить всю историю переписок, включая текст, в один удобный HTML файл. Бот пришлет его вам в чат.', btn: 'request_export' },
+    'support': { title: 'Приоритетная поддержка', icon: '#icon-headphones', bg: 'bg-green', desc: 'Ваши тикеты в поддержку обрабатываются вне очереди. Среднее время ответа — до 15 минут.' },
+    'media': { title: 'Увеличенный лимит медиа', icon: '#icon-upload', bg: 'bg-blue', desc: 'Бот сможет сохранять файлы размером до 50 МБ (вместо 20 МБ).' }
 };
 
 window.switchTab = function(tabName) {
@@ -95,7 +54,6 @@ window.switchTab = function(tabName) {
     if (tabName === 'referrals') loadReferrals();
 };
 
-// --- МОДАЛЬНОЕ ОКНО PREMIUM ---
 window.openFeatureModal = function(id) {
     const data = FEATURE_DATA[id];
     if(!data) return;
@@ -110,28 +68,42 @@ window.openFeatureModal = function(id) {
     
     const iconContainer = document.getElementById('modal-icon-container');
     iconContainer.className = `feature-icon ${data.bg}`;
+
+    const actionBtn = document.getElementById('modal-action-btn');
+    if (data.btn === 'request_export') {
+        actionBtn.style.display = 'block';
+    } else {
+        actionBtn.style.display = 'none';
+    }
     
-    const modal = document.getElementById('feature-modal');
-    modal.classList.add('active');
+    document.getElementById('feature-modal').classList.add('active');
 };
 
 window.closeFeatureModal = function(event) {
     const modal = document.getElementById('feature-modal');
     if (event && event.target !== modal && !event.target.closest('button')) return;
-    
     tg.HapticFeedback.impactOccurred('light');
     modal.classList.remove('active');
 };
 
-// --- РЕФЕРАЛЫ ---
+window.requestExport = async function() {
+    tg.HapticFeedback.notificationOccurred('success');
+    closeFeatureModal();
+    tg.showAlert("⏳ Запрос отправлен! Архив придет в бота в течение минуты.");
+    
+    try {
+        await miniAppClient.post('/api/miniapp/export');
+    } catch(e) {
+        tg.showAlert("Ошибка при запросе архива.");
+    }
+};
+
 async function loadReferrals() {
     try {
         const res = await miniAppClient.get('/api/miniapp/referrals');
         refLink = res.data.link;
         document.getElementById('ref-count').textContent = res.data.count;
-    } catch(e) {
-        console.error("Ошибка загрузки рефералов", e);
-    }
+    } catch(e) {}
 }
 
 window.copyRefLink = function() {
@@ -142,7 +114,6 @@ window.copyRefLink = function() {
     }
 }
 
-// --- ОСТАЛЬНАЯ ЛОГИКА ---
 async function initApp() {
     try {
         const res = await miniAppClient.get('/api/miniapp/stats');
@@ -162,14 +133,17 @@ async function initApp() {
         if (isPremium) {
             document.getElementById('premium-badge').classList.remove('hidden');
             document.getElementById('profile-premium-badge').classList.remove('hidden');
-            document.getElementById('premium-status-text').innerHTML = '✅ Подписка <b>активна</b>';
+            document.getElementById('premium-status-text').innerHTML = '✅ Подписка активна';
+            document.getElementById('premium-action-btn').textContent = 'Продлить подписку';
+            document.getElementById('premium-action-btn').style.background = 'var(--accent-red)';
+            document.getElementById('premium-action-btn').style.color = '#fff';
         } else {
-            document.getElementById('premium-status-text').innerHTML = '❌ Подписка <b>не активна</b>';
+            document.getElementById('premium-status-text').innerHTML = '❌ Подписка не активна';
+            document.getElementById('premium-action-btn').textContent = 'Подключить Premium';
         }
 
         if (username.trim() !== '') {
             const myAvatarUrl = `https://t.me/i/userpic/320/${username}.jpg`;
-            
             const homeImg = document.getElementById('user-avatar-img');
             const homeText = document.getElementById('user-avatar-text');
             homeImg.src = myAvatarUrl;
@@ -197,9 +171,7 @@ async function initApp() {
         }
         
         switchTab('home');
-    } catch (err) {
-        console.error(err);
-    }
+    } catch (err) { console.error(err); }
 }
 
 async function loadStats() {
@@ -214,9 +186,17 @@ async function loadPremiumStatus() {
     try {
         const res = await miniAppClient.get('/api/miniapp/stats');
         const isPremium = res.data.is_premium || false;
-        const statusText = document.getElementById('premium-status-text');
-        if (isPremium) statusText.innerHTML = '✅ Подписка <b>активна</b>';
-        else statusText.innerHTML = '❌ Подписка <b>не активна</b>';
+        if (isPremium) {
+            document.getElementById('premium-status-text').innerHTML = '✅ Подписка активна';
+            document.getElementById('premium-action-btn').textContent = 'Продлить подписку';
+            document.getElementById('premium-action-btn').style.background = 'var(--accent-red)';
+            document.getElementById('premium-action-btn').style.color = '#fff';
+        } else {
+            document.getElementById('premium-status-text').innerHTML = '❌ Подписка не активна';
+            document.getElementById('premium-action-btn').textContent = 'Подключить Premium';
+            document.getElementById('premium-action-btn').style.background = 'var(--bg-card)';
+            document.getElementById('premium-action-btn').style.color = '#fff';
+        }
     } catch(e) {}
 }
 
@@ -225,52 +205,33 @@ async function loadChats() {
     if (listEl.children.length > 0 && !listEl.querySelector('.empty-state')) return;
 
     listEl.innerHTML = '<div class="empty-state">Загрузка чатов...</div>';
-    
     try {
         const res = await miniAppClient.get('/api/miniapp/chats');
         const chats = res.data.chats || [];
         listEl.innerHTML = '';
-
         if (chats.length === 0) {
             listEl.innerHTML = '<div class="empty-state">Архив пуст</div>';
             return;
         }
-
         chats.forEach(chat => {
             const div = document.createElement('div');
             div.className = 'list-item';
-            
             const initial = chat.label ? chat.label[0].toUpperCase() : '?';
-            
             let avatarHtml = `<div class="list-avatar">${initial}</div>`;
             if (chat.chat_username && chat.chat_username.trim() !== '') {
                 const imgUrl = `https://t.me/i/userpic/320/${chat.chat_username}.jpg`;
-                avatarHtml = `
-                    <img src="${imgUrl}" class="list-avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" alt="">
-                    <div class="list-avatar" style="display:none;">${initial}</div>
-                `;
+                avatarHtml = `<img src="${imgUrl}" class="list-avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" alt=""><div class="list-avatar" style="display:none;">${initial}</div>`;
             }
-            
-            div.innerHTML = `
-                ${avatarHtml}
-                <div class="list-content">
-                    <div class="list-title">${chat.label || 'Чат ' + chat.chat_id}</div>
-                    <div class="list-sub">${chat.total} сообщ. • ${chat.deleted_count} удал.</div>
-                </div>
-                <div class="list-meta">${chat.last_at ? chat.last_at.split(' ')[0] : ''}</div>
-            `;
+            div.innerHTML = `${avatarHtml}<div class="list-content"><div class="list-title">${chat.label || 'Чат ' + chat.chat_id}</div><div class="list-sub">${chat.total} сообщ. • ${chat.deleted_count} удал.</div></div><div class="list-meta">${chat.last_at ? chat.last_at.split(' ')[0] : ''}</div>`;
             div.onclick = () => loadMessages(chat.chat_id, chat.label);
             listEl.appendChild(div);
         });
-    } catch (err) {
-        listEl.innerHTML = '<div class="empty-state">Ошибка загрузки</div>';
-    }
+    } catch (err) { listEl.innerHTML = '<div class="empty-state">Ошибка загрузки</div>'; }
 }
 
 async function loadMessages(chatId, chatLabel) {
     switchTab('messages');
     document.getElementById('chat-title').textContent = chatLabel || 'Сообщения';
-    
     const listEl = document.getElementById('messages-list');
     listEl.innerHTML = '<div class="empty-state">Загрузка...</div>';
 
@@ -278,12 +239,10 @@ async function loadMessages(chatId, chatLabel) {
         const res = await miniAppClient.get(`/api/miniapp/messages?chat_id=${chatId}`);
         const messages = res.data.messages || [];
         listEl.innerHTML = '';
-
         if (messages.length === 0) {
             listEl.innerHTML = '<div class="empty-state">Нет сообщений</div>';
             return;
         }
-
         messages.forEach(msg => {
             const div = document.createElement('div');
             let classes = 'message-item';
@@ -301,13 +260,9 @@ async function loadMessages(chatId, chatLabel) {
                 const ext = msg.media_ext || '';
 
                 if (type === 'sticker') {
-                    if (ext === '.tgs') {
-                        mediaHtml = `<div style="padding:10px; background:#2c2c2e; border-radius:8px; display:inline-block; font-size:12px; color:#8e8e93; margin-top:5px;">🎭 Анимированный стикер</div>`;
-                    } else if (ext === '.webm') {
-                        mediaHtml = `<video src="${mediaUrl}" autoplay loop muted playsinline class="msg-sticker"></video>`;
-                    } else {
-                        mediaHtml = `<img src="${mediaUrl}" class="msg-sticker" loading="lazy" onerror="this.style.display='none'" alt="Стикер">`;
-                    }
+                    if (ext === '.tgs') mediaHtml = `<div style="padding:10px; background:#2c2c2e; border-radius:8px; display:inline-block; font-size:12px; color:#8e8e93; margin-top:5px;">🎭 Анимированный стикер</div>`;
+                    else if (ext === '.webm') mediaHtml = `<video src="${mediaUrl}" autoplay loop muted playsinline class="msg-sticker"></video>`;
+                    else mediaHtml = `<img src="${mediaUrl}" class="msg-sticker" loading="lazy" onerror="this.style.display='none'" alt="Стикер">`;
                 } else if (type === 'photo') {
                     mediaHtml = `<img src="${mediaUrl}" class="msg-media" loading="lazy" onerror="this.style.display='none'" alt="Фото">`;
                 } else if (type === 'video') {
@@ -324,16 +279,8 @@ async function loadMessages(chatId, chatLabel) {
             } else if (!text && msg.content_type !== 'text') {
                 text = `[${msg.content_type}]`;
             }
-            
-            div.innerHTML = `
-                <div class="msg-author">${msg.sender_name || 'Пользователь'} ${msg.deleted ? '🗑' : msg.edited ? '✏️' : ''}</div>
-                ${text ? `<div class="msg-text">${text}</div>` : ''}
-                ${mediaHtml}
-                <div class="msg-time">${msg.updated_at}</div>
-            `;
+            div.innerHTML = `<div class="msg-author">${msg.sender_name || 'Пользователь'} ${msg.deleted ? '🗑' : msg.edited ? '✏️' : ''}</div>${text ? `<div class="msg-text">${text}</div>` : ''}${mediaHtml}<div class="msg-time">${msg.updated_at}</div>`;
             listEl.appendChild(div);
         });
-    } catch (err) {
-        listEl.innerHTML = '<div class="empty-state">Ошибка загрузки сообщений</div>';
-    }
+    } catch (err) { listEl.innerHTML = '<div class="empty-state">Ошибка загрузки сообщений</div>'; }
 }

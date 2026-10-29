@@ -22,7 +22,6 @@
 
 body.mini-app-body {
     background-color: var(--bg-main);
-    /* Легкое красное свечение сверху */
     background-image: radial-gradient(circle at top, rgba(208, 0, 0, 0.15) 0%, transparent 40%);
     color: var(--text-main);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -48,6 +47,7 @@ body.mini-app-body {
 .page.active { display: block; }
 @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
+/* --- ШАПКА ПРОФИЛЯ --- */
 .user-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; padding: 10px 4px; }
 .avatar { 
     width: 60px; height: 60px; border-radius: 50%; background: var(--bg-card); 
@@ -62,7 +62,7 @@ body.mini-app-body {
 .user-info h2 { font-size: 22px; font-weight: 700; letter-spacing: 0.5px; color: #fff; }
 .user-id { font-size: 13px; color: var(--text-muted); font-family: monospace; }
 
-/* Аккуратный бейдж Premium */
+/* --- ПРЕМИУМ БЕЙДЖ --- */
 .premium-badge {
     display: inline-flex; align-items: center; gap: 4px;
     background: rgba(208, 0, 0, 0.1); border: 1px solid rgba(208, 0, 0, 0.3);
@@ -72,6 +72,7 @@ body.mini-app-body {
 .crown-icon { width: 12px; height: 12px; color: var(--accent-red); }
 .premium-text { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #ff4d4d; }
 
+/* --- СТАТИСТИКА --- */
 .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 24px; }
 .stat-card { 
     background: var(--bg-card); border: 1px solid var(--border-color);
@@ -83,6 +84,7 @@ body.mini-app-body {
 .stat-card strong { font-size: 18px; font-weight: 800; color: #fff;}
 .stat-card span { font-size: 11px; font-weight: 500; color: var(--text-muted); }
 
+/* --- МЕНЮ --- */
 .menu-group { 
     background: var(--bg-card); border: 1px solid var(--border-color);
     border-radius: 20px; overflow: hidden; margin-bottom: 20px; 
@@ -109,12 +111,15 @@ body.mini-app-body {
 .page-header.with-back { display: flex; align-items: center; justify-content: center; position: relative; }
 .back-btn { position: absolute; left: 0; background: rgba(255,255,255,0.05); border: none; color: #fff; width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
+/* Цветные подложки */
 .bg-blue { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
 .bg-purple { background: rgba(139, 92, 246, 0.15); color: #8b5cf6; }
 .bg-green { background: rgba(16, 185, 129, 0.15); color: #10b981; }
 .bg-cyan { background: rgba(6, 182, 212, 0.15); color: #06b6d4; }
 .bg-gray { background: rgba(255,255,255,0.05); color: #a1a1aa; }
+.bg-yellow { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
 
+/* Списки */
 .search-bar { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; display: flex; align-items: center; padding: 12px 16px; margin-bottom: 16px; }
 .search-bar .icon { color: var(--text-muted); margin-right: 10px; width: 20px; height: 20px; }
 .search-bar input { background: none; border: none; color: #fff; outline: none; width: 100%; font-size: 15px; }
@@ -140,18 +145,76 @@ body.mini-app-body {
 .msg-video-note { width: 200px; height: 200px; border-radius: 50%; object-fit: cover; display: block; margin-top: 8px;}
 .msg-audio { width: 100%; max-width: 250px; margin-top: 8px; outline: none; }
 
+/* Пустые состояния */
 .empty-state { text-align: center; color: var(--text-muted); padding: 40px 0; font-size: 15px; }
 .empty-state-box { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 20px; padding: 40px 20px; text-align: center; margin-top: 20px; }
 .empty-state-box h3 { font-size: 16px; margin-bottom: 8px; color: #fff;}
 .empty-state-box p { font-size: 13px; color: var(--text-muted); }
 
-.premium-hero { background: linear-gradient(135deg, #D00000 0%, #500000 100%); border-radius: 20px; padding: 24px; margin-bottom: 24px; box-shadow: 0 8px 24px rgba(208, 0, 0, 0.3); color: #fff; }
+/* --- СТРАНИЦА PREMIUM --- */
+.premium-hero { 
+    background: linear-gradient(135deg, #D00000 0%, #500000 100%); 
+    border-radius: 20px; padding: 24px; margin-bottom: 24px; 
+    box-shadow: 0 8px 24px rgba(208, 0, 0, 0.3); color: #fff; 
+}
 .premium-hero-content { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
 .premium-icon { width: 48px; height: 48px; color: #fff; }
 .premium-hero h3 { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
 .premium-hero p { font-size: 14px; opacity: 0.9; }
-.premium-buy-btn { width: 100%; background: #fff; color: #D00000; border: none; padding: 14px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; }
+.premium-buy-btn { 
+    width: 100%; background: #fff; color: #D00000; border: none; 
+    padding: 14px; border-radius: 12px; font-size: 16px; font-weight: 700; 
+    cursor: pointer; transition: opacity 0.2s;
+}
 .premium-buy-btn:active { opacity: 0.8; }
+
+.premium-section-title { 
+    font-size: 12px; color: var(--text-muted); font-weight: 600; 
+    margin-bottom: 12px; padding-left: 4px; letter-spacing: 0.5px; 
+}
+
+/* Список фич в Premium */
+.premium-features-list {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+
+.feature-row {
+    display: flex;
+    align-items: flex-start;
+    padding: 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+.feature-row:last-child { border-bottom: none; }
+
+.feature-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 14px;
+    flex-shrink: 0;
+    color: #fff;
+}
+.feature-icon .icon { width: 18px; height: 18px; }
+
+.feature-text h4 {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: #fff;
+}
+.feature-text p {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.4;
+}
 
 /* Стеклянное меню снизу */
 .bottom-nav { 

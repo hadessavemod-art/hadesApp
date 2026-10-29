@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>HadesSave</title>
-    <link rel="stylesheet" href="mini-app.css?v=111">
+    <link rel="stylesheet" href="mini-app.css?v=115">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body class="mini-app-body">
@@ -92,7 +92,6 @@
             </div>
         </main>
 
-        <!-- ЧАТЫ -->
         <main id="view-chats" class="page">
             <header class="page-header with-back">
                 <button class="back-btn" onclick="switchTab('home')"><svg class="icon"><use href="#icon-back"></use></svg></button>
@@ -107,7 +106,6 @@
             <div id="chats-list" class="chats-list"><div class="empty-state">Загрузка...</div></div>
         </main>
 
-        <!-- СООБЩЕНИЯ -->
         <main id="view-messages" class="page">
             <header class="page-header with-back">
                 <button class="back-btn" onclick="switchTab('chats')"><svg class="icon"><use href="#icon-back"></use></svg></button>
@@ -116,7 +114,6 @@
             <div id="messages-list" class="messages-list"></div>
         </main>
 
-        <!-- ПРЕМИУМ -->
         <main id="view-premium" class="page">
             <header class="page-header with-back">
                 <button class="back-btn" onclick="switchTab('home')"><svg class="icon"><use href="#icon-back"></use></svg></button>
@@ -142,7 +139,6 @@
             </div>
         </main>
 
-        <!-- РЕФЕРАЛЫ -->
         <main id="view-referrals" class="page">
             <header class="page-header with-back">
                 <button class="back-btn" onclick="switchTab('home')"><svg class="icon"><use href="#icon-back"></use></svg></button>
@@ -175,7 +171,6 @@
             </div>
         </main>
 
-        <!-- РОЗЫГРЫШ -->
         <main id="view-draw" class="page">
             <header class="page-header"><h2>Розыгрыш</h2></header>
             <div class="empty-state-box">
@@ -185,7 +180,6 @@
             </div>
         </main>
 
-        <!-- ПРОФИЛЬ -->
         <main id="view-profile" class="page">
             <header class="page-header"><h2>Профиль</h2></header>
             <div class="user-header" style="padding: 0 16px 20px 16px;">
@@ -213,7 +207,6 @@
             </div>
         </main>
 
-        <!-- АДМИН-ПАНЕЛЬ -->
         <main id="view-admin" class="page">
             <header class="page-header with-back">
                 <button class="back-btn" onclick="switchTab('profile')"><svg class="icon"><use href="#icon-back"></use></svg></button>
@@ -240,7 +233,7 @@
                 </div>
                 <div class="menu-item" onclick="openAdminModal('role')">
                     <div class="menu-icon bg-blue"><svg class="icon"><use href="#icon-admin"></use></svg></div>
-                    <div class="menu-text"><h3>Выдать роль</h3><p>owner, admin, aboba</p></div>
+                    <div class="menu-text"><h3>Выдать админку</h3><p>Префиксы: owner, admin, aboba</p></div>
                 </div>
             </div>
 
@@ -261,7 +254,6 @@
             </div>
         </main>
 
-        <!-- МОДАЛКА АДМИНКИ -->
         <div id="admin-modal" class="modal-overlay" onclick="closeAdminModal(event)">
             <div class="modal-content" onclick="event.stopPropagation()">
                 <div class="modal-handle"></div>
@@ -277,10 +269,10 @@
                         </div>
                         <div id="admin-role-fields" style="display:none;">
                             <select id="admin-role-select" class="admin-input">
-                                <option value="owner">Owner</option>
-                                <option value="admin">Admin</option>
+                                <option value="owner">Owner (Владелец)</option>
+                                <option value="admin">Admin (Админ)</option>
                                 <option value="aboba">Aboba</option>
-                                <option value="none">Снять роль</option>
+                                <option value="none">Снять админ-доступ</option>
                             </select>
                         </div>
                     </div>
@@ -296,7 +288,6 @@
             </div>
         </div>
 
-        <!-- МОДАЛКА ПРЕМИУМА -->
         <div id="feature-modal" class="modal-overlay" onclick="closeFeatureModal(event)">
             <div class="modal-content" onclick="event.stopPropagation()">
                 <div class="modal-handle"></div>

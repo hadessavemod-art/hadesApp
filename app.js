@@ -38,7 +38,13 @@ const FEATURE_DATA = {
     'media': { title: 'Увеличенный лимит медиа', icon: '#icon-upload', bg: 'bg-blue', desc: 'Бот сможет сохранять файлы размером до 50 МБ (вместо 20 МБ).' }
 };
 
+// ЗАЩИТА: если нет роли — не пускаем в админку
 window.switchTab = function(tabName) {
+    if (tabName === 'admin' && !currentRole) {
+        tg.HapticFeedback.notificationOccurred('error');
+        tg.showAlert('У вас нет доступа к админ-панели');
+        return;
+    }
     tg.HapticFeedback.impactOccurred('light');
     document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
@@ -152,26 +158,44 @@ async function initApp() {
         document.getElementById('profile-name').textContent = user;
         document.getElementById('profile-id').textContent = 'ID: ' + userId;
 
+        // ПРЕМИУМ БЕЙДЖ
         if (isPremium) {
-            document.getElementById('premium-badge').classList.remove('hidden');
-            document.getElementById('profile-premium-badge').classList.remove('hidden');
+            document.getElementById('premium-badge').style.display = 'inline-flex';
+            document.getElementById('profile-premium-badge').style.display = 'inline-flex';
             document.getElementById('premium-status-text').innerHTML = 'Подписка активна';
             document.getElementById('premium-action-btn').textContent = 'Продлить подписку';
             document.getElementById('premium-action-btn').style.background = 'var(--accent-red)';
             document.getElementById('premium-action-btn').style.color = '#fff';
         } else {
+            document.getElementById('premium-badge').style.display = 'none';
+            document.getElementById('profile-premium-badge').style.display = 'none';
             document.getElementById('premium-status-text').innerHTML = 'Подписка не активна';
             document.getElementById('premium-action-btn').textContent = 'Подключить Premium';
         }
 
+        // БЕЙДЖ РОЛИ И КНОПКА АДМИНКИ (ЖЕСТКАЯ ПРОВЕРКА)
+        const adminBtn = document.getElementById('admin-tab-btn');
+        const roleBadge = document.getElementById('role-badge');
+        const profRoleBadge = document.getElementById('profile-role-badge');
+
         if (currentRole) {
-            const roleBadge = document.getElementById('role-badge');
-            const profRoleBadge = document.getElementById('profile-role-badge');
             const roleText = currentRole.toUpperCase();
-            [roleBadge, profRoleBadge].forEach(el => { el.textContent = roleText; el.className = `role-badge role-${currentRole}`; el.classList.remove('hidden'); });
-            document.getElementById('admin-tab-btn').classList.remove('hidden');
+            roleBadge.textContent = roleText;
+            roleBadge.className = `role-badge role-${currentRole}`;
+            roleBadge.style.display = 'inline-flex';
+            
+            profRoleBadge.textContent = roleText;
+            profRoleBadge.className = `role-badge role-${currentRole}`;
+            profRoleBadge.style.display = 'inline-flex';
+            
+            adminBtn.style.display = 'flex';
+        } else {
+            roleBadge.style.display = 'none';
+            profRoleBadge.style.display = 'none';
+            adminBtn.style.display = 'none';
         }
 
+        // АВАТАРКИ
         if (username.trim() !== '') {
             const myAvatarUrl = `https://t.me/i/userpic/320/${username}.jpg`;
             const loadImage = (imgId, txtId) => new Promise((resolve) => {
@@ -220,6 +244,7 @@ async function loadPremiumStatus() {
 // --- ЛОГИКА АДМИНКИ ---
 
 async function loadAdminStats() {
+    if (!currentRole) return;
     try {
         const res = await miniAppClient.get('/api/miniapp/admin/stats');
         document.getElementById('adm-stat-users').textContent = res.data.users;
@@ -232,6 +257,7 @@ async function loadAdminStats() {
 }
 
 window.openAdminModal = async function(type) {
+    if (!currentRole) return;
     adminActionType = type;
     const modal = document.getElementById('admin-modal');
     modal.classList.add('active');
@@ -258,7 +284,7 @@ window.openAdminModal = async function(type) {
         document.getElementById('admin-ban-fields').style.display = 'block';
         document.getElementById('admin-role-fields').style.display = 'none';
     } else if (type === 'role') {
-        title.textContent = 'Выдать роль';
+        title.textContent = 'Выдать админку';
         document.getElementById('admin-input-fields').style.display = 'block';
         document.getElementById('admin-grant-fields').style.display = 'none';
         document.getElementById('admin-ban-fields').style.display = 'none';
@@ -317,6 +343,7 @@ window.closeAdminModal = function(event) {
 };
 
 window.executeAdminAction = async function() {
+    if (!currentRole) return;
     const execBtn = document.getElementById('admin-execute-btn');
     const originalText = execBtn.textContent;
     execBtn.textContent = 'Выполняется...';

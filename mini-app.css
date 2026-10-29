@@ -27,8 +27,6 @@ body.mini-app-body {
 
 .hs-app { max-width: 600px; margin: 0 auto; min-height: 100vh; padding-top: 10px; }
 .icon { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-
-/* Выравнивание SVG внутри текста */
 .text-svg { width: 14px; height: 14px; vertical-align: middle; margin: 0 4px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
 .page { display: none; padding: 16px; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
@@ -151,3 +149,38 @@ body.mini-app-body {
 .nav-item span { font-size: 10px; font-weight: 600; }
 .nav-item.active { color: var(--accent-red); transform: translateY(-2px); }
 .nav-item.active .icon { filter: drop-shadow(0 0 8px rgba(208,0,0,0.5)); }
+
+/* --- ПРЕЛОАДЕР (ЭКРАН ЗАГРУЗКИ) --- */
+.preloader {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: var(--bg-main);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+.preloader.hidden {
+    opacity: 0;
+    visibility: hidden;
+}
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(255, 255, 255, 0.1);
+    border-left-color: var(--accent-red);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
+.preloader p {
+    font-size: 15px;
+    color: var(--text-muted);
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+@keyframes spin {
+    100% { transform: rotate(360deg); }
+}

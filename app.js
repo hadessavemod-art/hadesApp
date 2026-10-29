@@ -16,7 +16,7 @@ if (!initData) {
 const encodedInitData = encodeURIComponent(initData);
 
 window.switchTab = function(tabName) {
-    tg.HapticFeedback.impactOccurred('light'); // Вибрация при переключении
+    tg.HapticFeedback.impactOccurred('light');
     
     document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
@@ -35,6 +35,7 @@ window.switchTab = function(tabName) {
 
     if (tabName === 'home') loadStats();
     if (tabName === 'chats') loadChats();
+    if (tabName === 'premium') loadPremiumStatus();
 };
 
 async function initApp() {
@@ -53,9 +54,13 @@ async function initApp() {
         document.getElementById('profile-name').textContent = user;
         document.getElementById('profile-id').textContent = 'ID: ' + userId;
 
+        // Управление бейджами Premium
         if (isPremium) {
             document.getElementById('premium-badge').classList.remove('hidden');
             document.getElementById('profile-premium-badge').classList.remove('hidden');
+            document.getElementById('premium-status-text').innerHTML = '✅ Подписка <b>активна</b>';
+        } else {
+            document.getElementById('premium-status-text').innerHTML = '❌ Подписка <b>не активна</b>';
         }
 
         if (username.trim() !== '') {
@@ -98,6 +103,20 @@ async function loadStats() {
         const res = await miniAppClient.get('/api/miniapp/stats');
         document.getElementById('stat-chats').textContent = res.data.total_messages || 0;
         document.getElementById('stat-deleted').textContent = res.data.deleted_messages || 0;
+    } catch(e) {}
+}
+
+async function loadPremiumStatus() {
+    // Просто обновляем статус, если нужно (можно дергать /api/miniapp/stats)
+    try {
+        const res = await miniAppClient.get('/api/miniapp/stats');
+        const isPremium = res.data.is_premium || false;
+        const statusText = document.getElementById('premium-status-text');
+        if (isPremium) {
+            statusText.innerHTML = '✅ Подписка <b>активна</b>';
+        } else {
+            statusText.innerHTML = '❌ Подписка <b>не активна</b>';
+        }
     } catch(e) {}
 }
 

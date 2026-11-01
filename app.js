@@ -86,13 +86,13 @@ window.switchTab = function(tabName) {
     const targetPage = document.getElementById(`view-${tabName}`);
     if(targetPage) targetPage.classList.add('active');
     
-    if (tabName !== 'messages' && tabName !== 'premium' && tabName !== 'referrals' && tabName !== 'admin' && tabName !== 'settings') {
+    if (tabName !== 'messages' && tabName !== 'premium' && tabName !== 'referrals' && tabName !== 'admin' && tabName !== 'settings' && tabName !== 'support') {
         const navBtn = document.querySelector(`.nav-item[onclick="switchTab('${tabName}')"]`);
         if (navBtn) navBtn.classList.add('active');
     } else {
         let activeNav = 'home';
         if(tabName === 'messages') activeNav = 'chats';
-        if(tabName === 'premium' || tabName === 'referrals' || tabName === 'admin' || tabName === 'settings') activeNav = 'profile';
+        if(tabName === 'premium' || tabName === 'referrals' || tabName === 'admin' || tabName === 'settings' || tabName === 'support') activeNav = 'profile';
         const navBtn = document.querySelector(`.nav-item[onclick="switchTab('${activeNav}')"]`);
         if (navBtn) navBtn.classList.add('active');
     }
@@ -108,6 +108,7 @@ window.switchTab = function(tabName) {
     if (tabName === 'referrals') loadReferrals();
     if (tabName === 'admin') loadAdminStats();
     if (tabName === 'settings') loadSettings();
+    if (tabName === 'support') loadMyTickets();
 };
 
 // --- ЛАЙТБОКС (МЕДИА) ---
@@ -115,7 +116,6 @@ window.openLightbox = function(url, type, chatId, messageId) {
     currentMediaChatId = chatId;
     currentMediaMessageId = messageId;
     
-    // 1. Останавливаем ВСЕ видео и аудио в фоне, чтобы не было двойного звука
     document.querySelectorAll('video, audio').forEach(media => {
         media.pause();
         media.currentTime = 0;
@@ -124,11 +124,9 @@ window.openLightbox = function(url, type, chatId, messageId) {
     const container = document.getElementById('lightbox-media-container');
     container.innerHTML = '';
     
-    // 2. Отрисовываем медиа с правильными стилями
     if (type === 'photo') {
         container.innerHTML = `<img src="${url}" class="lightbox-photo" alt="Фото">`;
     } else if (type === 'video_note') {
-        // Кружки делаем круглыми!
         container.innerHTML = `<video src="${url}" controls autoplay playsinline class="lightbox-video-note"></video>`;
     } else if (type === 'video' || type === 'animation') {
         container.innerHTML = `<video src="${url}" controls autoplay playsinline class="lightbox-video"></video>`;
@@ -145,7 +143,6 @@ window.openLightbox = function(url, type, chatId, messageId) {
 window.closeLightbox = function(event) {
     if (event && event.target !== document.getElementById('media-lightbox') && !event.target.closest('button')) return;
     
-    // Останавливаем видео в лайтбоксе перед закрытием
     const container = document.getElementById('lightbox-media-container');
     const videos = container.querySelectorAll('video, audio');
     videos.forEach(v => { v.pause(); v.removeAttribute('src'); v.load(); });
@@ -168,7 +165,6 @@ window.requestMedia = async function() {
     }, async (btn) => {
         if (btn === 'ok') {
             try {
-                // Показываем процесс загрузки
                 tg.showAlert('Отправляем файл... Это может занять пару секунд.');
                 
                 const res = await miniAppClient.post('/api/miniapp/request_media', {
@@ -180,7 +176,6 @@ window.requestMedia = async function() {
                 closeLightbox();
             } catch (e) {
                 console.error("Подробная ошибка:", e);
-                // Если бэкенд вернул конкретную ошибку, показываем её
                 const errorMsg = e.response?.data?.error || e.message || 'Ошибка сети. Проверь соединение.';
                 tg.showAlert('Ошибка: ' + errorMsg);
             }
@@ -411,6 +406,48 @@ async function loadStats() {
     } catch(e) {}
 }
 
+// --- ПОДДЕРЖКА (ТИКЕТЫ) ---
+async function loadMyTickets() {
+    const list = document.getElementById('my-tickets-list');
+    list.innerHTML = '<div class="empty-state">Загрузка...</div>';
+    try {
+        const res = await miniAppClient.get('/api/miniapp/support');
+        const tickets = res.data.tickets || [];
+        list.innerHTML = '';
+        if (tickets.length === 0) {
+            list.innerHTML = '<div class="empty-state">У вас пока нет обращений</div>';
+            return;
+        }
+        tickets.forEach(t => {
+            const div = document.createElement('div');
+            div.className = 'message-item';
+            if (t.priority) div.style.borderLeftColor = 'var(--accent-yellow)';
+            const date = t.created_at.split(' ')[0];
+            div.innerHTML = `
+                <div class="msg-author">Тикет #${t.id} <span style="color:var(--text-muted);font-size:11px;margin-left:auto;">${date}</span></div>
+                <div class="msg-text">${t.body}</div>
+                <div class="msg-time" style="color: ${t.status === 'open' ? 'var(--accent-blue)' : 'var(--text-muted)'};">${t.status === 'open' ? 'В обработке' : 'Закрыт'}</div>
+            `;
+            list.appendChild(div);
+        });
+    } catch(e) { list.innerHTML = '<div class="empty-state">Ошибка загрузки</div>'; }
+}
+
+window.sendTicket = async function() {
+    const text = document.getElementById('support-text').value.trim();
+    if (!text) return tg.showAlert('Введите текст обращения');
+    
+    tg.HapticFeedback.impactOccurred('medium');
+    try {
+        const res = await miniAppClient.post('/api/miniapp/support', { text });
+        tg.showAlert(res.data.message);
+        document.getElementById('support-text').value = '';
+        loadMyTickets();
+    } catch(e) {
+        tg.showAlert(e.response?.data?.error || 'Ошибка отправки');
+    }
+};
+
 // --- ИНИЦИАЛИЗАЦИЯ ---
 async function initApp() {
     try {
@@ -539,8 +576,10 @@ window.openAdminModal = async function(type) {
                 container.innerHTML = '<p style="color:var(--text-muted);">Нет открытых тикетов</p>';
             } else {
                 container.innerHTML = tickets.map(t => `
-                    <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; margin-bottom: 8px;">
-                        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">От: ${t.user_id} | ${t.created_at}</div>
+                    <div style="background: ${t.priority ? 'rgba(245, 158, 11, 0.1)' : 'rgba(255,255,255,0.05)'}; padding: 10px; border-radius: 8px; margin-bottom: 8px; border-left: 3px solid ${t.priority ? 'var(--accent-yellow)' : 'transparent'};">
+                        <div style="font-size: 12px; color: ${t.priority ? '#f59e0b' : 'var(--text-muted)'}; margin-bottom: 4px;">
+                            ${t.priority ? '⭐ PRIORITY ' : ''}От: ${t.user_id} | ${t.created_at}
+                        </div>
                         <div style="font-size: 14px; color: #fff;">${t.body}</div>
                     </div>
                 `).join('');

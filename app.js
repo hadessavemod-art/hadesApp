@@ -168,14 +168,21 @@ window.requestMedia = async function() {
     }, async (btn) => {
         if (btn === 'ok') {
             try {
+                // Показываем процесс загрузки
+                tg.showAlert('Отправляем файл... Это может занять пару секунд.');
+                
                 const res = await miniAppClient.post('/api/miniapp/request_media', {
                     chat_id: currentMediaChatId,
                     message_id: currentMediaMessageId
                 });
+                
                 tg.showAlert(res.data.message || 'Файл отправлен в бота!');
                 closeLightbox();
             } catch (e) {
-                tg.showAlert(e.response?.data?.error || 'Ошибка запроса файла');
+                console.error("Подробная ошибка:", e);
+                // Если бэкенд вернул конкретную ошибку, показываем её
+                const errorMsg = e.response?.data?.error || e.message || 'Ошибка сети. Проверь соединение.';
+                tg.showAlert('Ошибка: ' + errorMsg);
             }
         }
     });

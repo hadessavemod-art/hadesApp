@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>HadesSave</title>
-    <link rel="stylesheet" href="mini-app.css?v=122">
+    <link rel="stylesheet" href="mini-app.css?v=123">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body class="mini-app-body">
@@ -28,6 +28,7 @@
         <symbol id="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></symbol>
         <symbol id="icon-image" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></symbol>
         <symbol id="icon-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></symbol>
+        <symbol id="icon-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></symbol>
     </svg>
 
     <div id="app" class="hs-app">
@@ -41,7 +42,12 @@
                         <div id="role-badge" class="role-badge hidden"></div>
                     </div>
                     <span id="user-id" class="user-id">ID: ...</span>
-                    <div id="premium-timer" class="premium-timer hidden">До конца Premium: <span id="premium-timer-text"></span></div>
+                    
+                    <!-- НОВЫЙ ТАЙМЕР ПРЕМИУМА (СТРОГИЙ) -->
+                    <div id="premium-timer" class="premium-timer hidden">
+                        <svg class="icon" style="width: 14px; height: 14px; color: #FFD700; margin-right: 4px;"><use href="#icon-clock"></use></svg>
+                        <span id="premium-timer-text" style="color: #FFD700; font-family: monospace;">00:00:00</span>
+                    </div>
                 </div>
             </header>
 
@@ -60,9 +66,9 @@
             </div>
 
             <div class="menu-group">
-                <div class="menu-item" onclick="alert('В разработке')">
-                    <div class="menu-icon bg-cyan"><svg class="icon"><use href="#icon-bot"></use></svg></div>
-                    <div class="menu-text"><h3>Зеркала</h3><p>Свой бот под вашим брендом</p></div>
+                <div class="menu-item" onclick="switchTab('draw')">
+                    <div class="menu-icon bg-cyan"><svg class="icon"><use href="#icon-gift"></use></svg></div>
+                    <div class="menu-text"><h3>Розыгрыши</h3><p>Участвуй и выигрывай Stars</p></div>
                     <svg class="icon chevron"><use href="#icon-chevron"></use></svg>
                 </div>
                 <div class="menu-item" onclick="switchTab('premium')">
@@ -152,6 +158,20 @@
             <div id="messages-list" class="messages-list"></div>
         </main>
 
+        <!-- ОБНОВЛЕННАЯ СТРАНИЦА РОЗЫГРЫША -->
+        <main id="view-draw" class="page">
+            <header class="page-header with-back">
+                <button class="back-btn" onclick="switchTab('home')"><svg class="icon"><use href="#icon-back"></use></svg></button>
+                <h2>Розыгрыш</h2>
+            </header>
+            <div id="giveaway-container">
+                <div class="empty-state-box">
+                    <svg class="icon big-icon text-purple"><use href="#icon-gift"></use></svg>
+                    <h3>Загрузка...</h3>
+                </div>
+            </div>
+        </main>
+
         <main id="view-premium" class="page">
             <header class="page-header with-back">
                 <button class="back-btn" onclick="switchTab('home')"><svg class="icon"><use href="#icon-back"></use></svg></button>
@@ -209,15 +229,6 @@
             </div>
         </main>
 
-        <main id="view-draw" class="page">
-            <header class="page-header"><h2>Розыгрыш</h2></header>
-            <div class="empty-state-box">
-                <svg class="icon big-icon text-purple"><use href="#icon-gift"></use></svg>
-                <h3>Сейчас нет активного розыгрыша</h3>
-                <p>Новый приз появится здесь сразу после публикации администратором.</p>
-            </div>
-        </main>
-
         <main id="view-profile" class="page">
             <header class="page-header"><h2>Профиль</h2></header>
             <div class="user-header" style="padding: 0 16px 20px 16px;">
@@ -261,6 +272,7 @@
             <div class="premium-section-title">ДЕЙСТВИЯ</div>
             <div class="menu-group">
                 <div class="menu-item" onclick="openAdminModal('grant')"><div class="menu-icon bg-purple"><svg class="icon"><use href="#icon-diamond"></use></svg></div><div class="menu-text"><h3>Выдать Premium</h3><p>По ID или юзернейму</p></div></div>
+                <div class="menu-item" onclick="openAdminModal('giveaway')"><div class="menu-icon bg-cyan"><svg class="icon"><use href="#icon-gift"></use></svg></div><div class="menu-text"><h3>Создать розыгрыш</h3><p>Розыгрыш Stars</p></div></div>
                 <div class="menu-item" onclick="openAdminModal('ban')"><div class="menu-icon bg-red"><svg class="icon"><use href="#icon-ban"></use></svg></div><div class="menu-text"><h3>Забанить</h3><p>По ID или юзернейму</p></div></div>
                 <div class="menu-item" onclick="openAdminModal('role')"><div class="menu-icon bg-blue"><svg class="icon"><use href="#icon-admin"></use></svg></div><div class="menu-text"><h3>Выдать админку</h3><p>Префиксы: owner, admin, aboba</p></div></div>
             </div>
@@ -288,6 +300,13 @@
                                 <option value="aboba">Aboba</option>
                                 <option value="none">Снять админ-доступ</option>
                             </select>
+                        </div>
+                        
+                        <!-- ПОЛЯ ДЛЯ СОЗДАНИЯ РОЗЫГРЫША -->
+                        <div id="admin-giveaway-fields" style="display:none;">
+                            <input type="number" id="admin-giveaway-stars" class="admin-input" placeholder="Количество Stars" value="100">
+                            <input type="number" id="admin-giveaway-winners" class="admin-input" placeholder="Победителей" value="1">
+                            <input type="number" id="admin-giveaway-hours" class="admin-input" placeholder="Длительность (часов)" value="24">
                         </div>
                     </div>
                     <div id="admin-broadcast-fields" style="display:none;"><textarea id="admin-broadcast-text" class="admin-input" placeholder="Введите текст рассылки..." rows="4"></textarea></div>

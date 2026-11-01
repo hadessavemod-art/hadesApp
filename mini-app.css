@@ -30,6 +30,10 @@ body.mini-app-body {
 .icon { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .text-svg { width: 14px; height: 14px; vertical-align: middle; margin: 0 4px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
+/* Цвета для текста */
+.text-red { color: var(--accent-red); }
+.text-orange { color: var(--accent-yellow); }
+
 .page { display: none; padding: 16px; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
 .page.active { display: block; }
 @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
@@ -56,9 +60,18 @@ body.mini-app-body {
     font-weight: 600;
 }
 
-.premium-badge { display: inline-flex; align-items: center; gap: 4px; background: rgba(208, 0, 0, 0.1); border: 1px solid rgba(208, 0, 0, 0.3); padding: 2px 8px; border-radius: 20px; }
+/* СТРОГИЙ ПРЕМИУМ БЕЙДЖ (БЕЗ ИИ-СВЕЧЕНИЯ) */
+.premium-badge { 
+    display: inline-flex; 
+    align-items: center; 
+    gap: 4px; 
+    background: transparent; 
+    border: 1px solid var(--accent-red); 
+    padding: 2px 8px; 
+    border-radius: 4px; 
+}
 .crown-icon { width: 12px; height: 12px; color: var(--accent-red); }
-.premium-text { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #ff4d4d; }
+.premium-text { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--accent-red); }
 
 .role-badge { display: inline-flex; align-items: center; padding: 2px 6px; border-radius: 6px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
 .role-owner { background: rgba(255, 215, 0, 0.2); color: #FFD700; border: 1px solid rgba(255, 215, 0, 0.5); }

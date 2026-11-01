@@ -45,7 +45,6 @@ body.mini-app-body {
 .user-info h2 { font-size: 22px; font-weight: 700; letter-spacing: 0.5px; color: #fff; }
 .user-id { font-size: 13px; color: var(--text-muted); font-family: monospace; }
 
-/* НОВЫЙ ТАЙМЕР ПРЕМИУМА (СТРОГИЙ) */
 .premium-timer { 
     display: inline-flex;
     align-items: center;
@@ -138,8 +137,9 @@ input:checked + .slider:before { transform: translateX(20px); }
 .msg-author { font-size: 13px; color: var(--accent-red); margin-bottom: 6px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
 .msg-text { font-size: 15px; color: var(--text-main); word-break: break-word; margin-bottom: 8px; }
 .msg-time { font-size: 11px; color: var(--text-muted); margin-top: 8px; text-align: right; }
-.media-container { margin-top: 8px; border-radius: 12px; overflow: hidden; }
-.msg-media { max-width: 100%; border-radius: 12px; display: block; }
+.media-container { margin-top: 8px; border-radius: 12px; overflow: hidden; cursor: pointer; }
+.msg-media { max-width: 100%; border-radius: 12px; display: block; transition: opacity 0.2s; }
+.msg-media:active { opacity: 0.8; }
 .msg-sticker { width: 120px; height: 120px; object-fit: contain; display: block; }
 .msg-sticker-video { width: 120px; height: 120px; border-radius: 8px; object-fit: cover; display: block; }
 .msg-video-note { width: 200px; height: 200px; border-radius: 50%; object-fit: cover; display: block; border: 2px solid var(--border-color); }
@@ -151,42 +151,6 @@ input:checked + .slider:before { transform: translateX(20px); }
 .empty-state-box { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 20px; padding: 40px 20px; text-align: center; margin-top: 20px; }
 .empty-state-box h3 { font-size: 16px; margin-bottom: 8px; color: #fff;}
 .empty-state-box p { font-size: 13px; color: var(--text-muted); }
-
-/* --- РОЗЫГРЫШ (SVG ТАЙМЕР) --- */
-.giveaway-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: 24px;
-    padding: 24px;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-}
-.giveaway-card::before {
-    content: '';
-    position: absolute;
-    top: -50px; left: 50%;
-    transform: translateX(-50%);
-    width: 200px; height: 200px;
-    background: radial-gradient(circle, rgba(6, 182, 212, 0.2) 0%, transparent 70%);
-    filter: blur(20px);
-    z-index: 0;
-}
-.giveaway-content { position: relative; z-index: 1; }
-.giveaway-prize { font-size: 32px; font-weight: 800; color: #fff; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; }
-.giveaway-winners { font-size: 14px; color: var(--text-muted); margin-bottom: 24px; }
-
-.svg-timer-container { position: relative; width: 160px; height: 160px; margin: 0 auto 20px auto; }
-.countdown-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-.countdown-bg { fill: none; stroke: rgba(255,255,255,0.05); stroke-width: 8; }
-.countdown-progress { fill: none; stroke: var(--accent-cyan); stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 1s linear; }
-.timer-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
-.timer-text span { display: block; font-size: 24px; font-weight: 800; color: #fff; font-family: monospace; }
-.timer-text small { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
-
-.giveaway-join-btn { width: 100%; background: var(--accent-cyan); color: #000; border: none; padding: 16px; border-radius: 14px; font-size: 16px; font-weight: 700; cursor: pointer; transition: transform 0.2s; }
-.giveaway-join-btn:active { transform: scale(0.98); }
 
 .premium-hero { position: relative; background: linear-gradient(145deg, #1c1c1e 0%, #09090b 100%); border: 1px solid rgba(208, 0, 0, 0.3); border-radius: 24px; padding: 24px; margin-bottom: 24px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1); }
 .premium-glow { position: absolute; top: -50px; left: -50px; width: 200px; height: 200px; background: radial-gradient(circle, rgba(208,0,0,0.3) 0%, transparent 70%); filter: blur(20px); z-index: 0; }
@@ -207,6 +171,13 @@ input:checked + .slider:before { transform: translateX(20px); }
 .feature-icon .icon { width: 20px; height: 20px; }
 .feature-text h4 { font-size: 15px; font-weight: 600; margin-bottom: 4px; color: #fff; }
 .feature-text p { font-size: 13px; color: var(--text-muted); line-height: 1.4; }
+
+/* --- LIGHTBOX (ПРОСМОТР МЕДИА) --- */
+.lightbox { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.95); z-index: 3000; display: none; align-items: center; justify-content: center; flex-direction: column; opacity: 0; transition: opacity 0.3s; }
+.lightbox.active { display: flex; opacity: 1; }
+.lightbox-content { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+.lightbox-close { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.1); border: none; color: #fff; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 3001; }
+.lightbox img, .lightbox video { max-width: 100%; max-height: 80vh; border-radius: 12px; object-fit: contain; }
 
 .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); display: none; align-items: flex-end; justify-content: center; z-index: 1000; opacity: 0; transition: opacity 0.3s ease; }
 .modal-overlay.active { display: flex; opacity: 1; }

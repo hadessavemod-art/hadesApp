@@ -4,13 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>HadesSave</title>
-    <link rel="stylesheet" href="mini-app.css?v=201">
+    <link rel="stylesheet" href="mini-app.css?v=210">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body class="mini-app-body">
     <div id="preloader" class="preloader"><div class="spinner"></div><p>Загрузка данных...</p></div>
 
-    <!-- ВСЕ SVG ТЕПЕРЬ ЗДЕСЬ -->
     <svg style="display: none;">
         <symbol id="icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></symbol>
         <symbol id="icon-chat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></symbol>
@@ -165,7 +164,7 @@
                 <div class="feature-row" onclick="openFeatureModal('mirrors')"><div class="feature-icon bg-cyan"><svg class="icon"><use href="#icon-bot"></use></svg></div><div class="feature-text"><h4>До 5 зеркал</h4><p>Возможность создать 5 своих ботов вместо 1 бесплатного.</p></div></div>
                 <div class="feature-row" onclick="openFeatureModal('spam')"><div class="feature-icon bg-green"><svg class="icon"><use href="#icon-zap"></use></svg></div><div class="feature-text"><h4>Увеличенный .spam</h4><p>Лимит рассылки повышается с 20 до 50 сообщений.</p></div></div>
                 <div class="feature-row" onclick="openFeatureModal('badge')"><div class="feature-icon bg-yellow"><svg class="icon"><use href="#icon-crown"></use></svg></div><div class="feature-text"><h4>Уникальный значок</h4><p>Красная корона рядом с именем в профиле Mini App.</p></div></div>
-                <div class="feature-row" onclick="openFeatureModal('support')"><div class="feature-icon bg-green"><svg class="icon"><use href="#icon-headphones"></use></svg></div><div class="feature-text"><h4>Приоритетная поддержка</h4><p>Ответ от администратора в течение 15 минут.</p></div></div>
+                <div class="feature-row" onclick="openFeatureModal('support')"><div class="feature-icon bg-green"><svg class="icon"><use href="#icon-headphones"></use></svg></div><div class="feature-text"><h4>Приоритетная поддержка</h4><p>Ответ администратора в течение 15 минут.</p></div></div>
                 <div class="feature-row" onclick="openFeatureModal('media')"><div class="feature-icon bg-blue"><svg class="icon"><use href="#icon-upload"></use></svg></div><div class="feature-text"><h4>Увеличенный лимит медиа</h4><p>Загрузка файлов до 50 МБ вместо стандартных 20 МБ.</p></div></div>
             </div>
         </main>
@@ -202,6 +201,21 @@
             </div>
         </main>
 
+        <main id="view-support" class="page">
+            <header class="page-header with-back">
+                <button class="back-btn" onclick="switchTab('profile')"><svg class="icon"><use href="#icon-back"></use></svg></button>
+                <h2>Поддержка</h2>
+            </header>
+            
+            <div class="menu-group" style="padding: 16px;">
+                <textarea id="support-text" class="admin-input" placeholder="Опишите вашу проблему..." rows="4" style="resize: none; margin-bottom: 12px;"></textarea>
+                <button class="request-btn" onclick="sendTicket()" style="max-width: 100%;">Отправить</button>
+            </div>
+
+            <div class="premium-section-title">МОИ ОБРАЩЕНИЯ</div>
+            <div id="my-tickets-list" class="chats-list"></div>
+        </main>
+
         <main id="view-profile" class="page">
             <header class="page-header"><h2>Профиль</h2></header>
             <div class="user-header" style="padding: 0 16px 20px 16px;">
@@ -219,6 +233,11 @@
                 <div class="menu-item" onclick="switchTab('settings')">
                     <div class="menu-icon bg-gray"><svg class="icon"><use href="#icon-settings"></use></svg></div>
                     <div class="menu-text"><h3>Настройки</h3><p>Управление архивом и уведомлениями</p></div>
+                    <svg class="icon chevron"><use href="#icon-chevron"></use></svg>
+                </div>
+                <div class="menu-item" onclick="switchTab('support')">
+                    <div class="menu-icon bg-green"><svg class="icon"><use href="#icon-headphones"></use></svg></div>
+                    <div class="menu-text"><h3>Поддержка</h3><p>Связаться с администратором</p></div>
                     <svg class="icon chevron"><use href="#icon-chevron"></use></svg>
                 </div>
                 <div id="admin-tab-btn" class="menu-item hidden" onclick="switchTab('admin')">

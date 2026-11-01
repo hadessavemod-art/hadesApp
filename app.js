@@ -86,13 +86,13 @@ window.switchTab = function(tabName) {
     const targetPage = document.getElementById(`view-${tabName}`);
     if(targetPage) targetPage.classList.add('active');
     
-    if (tabName !== 'messages' && tabName !== 'premium' && tabName !== 'referrals' && tabName !== 'admin' && tabName !== 'settings' && tabName !== 'support') {
+    if (tabName !== 'messages' && tabName !== 'premium' && tabName !== 'referrals' && tabName !== 'admin' && tabName !== 'settings') {
         const navBtn = document.querySelector(`.nav-item[onclick="switchTab('${tabName}')"]`);
         if (navBtn) navBtn.classList.add('active');
     } else {
         let activeNav = 'home';
         if(tabName === 'messages') activeNav = 'chats';
-        if(tabName === 'premium' || tabName === 'referrals' || tabName === 'admin' || tabName === 'settings' || tabName === 'support') activeNav = 'profile';
+        if(tabName === 'premium' || tabName === 'referrals' || tabName === 'admin' || tabName === 'settings') activeNav = 'profile';
         const navBtn = document.querySelector(`.nav-item[onclick="switchTab('${activeNav}')"]`);
         if (navBtn) navBtn.classList.add('active');
     }
@@ -108,7 +108,6 @@ window.switchTab = function(tabName) {
     if (tabName === 'referrals') loadReferrals();
     if (tabName === 'admin') loadAdminStats();
     if (tabName === 'settings') loadSettings();
-    if (tabName === 'support') loadMyTickets();
 };
 
 // --- ЛАЙТБОКС (МЕДИА) ---
@@ -406,48 +405,6 @@ async function loadStats() {
     } catch(e) {}
 }
 
-// --- ПОДДЕРЖКА (ТИКЕТЫ) ---
-async function loadMyTickets() {
-    const list = document.getElementById('my-tickets-list');
-    list.innerHTML = '<div class="empty-state">Загрузка...</div>';
-    try {
-        const res = await miniAppClient.get('/api/miniapp/support');
-        const tickets = res.data.tickets || [];
-        list.innerHTML = '';
-        if (tickets.length === 0) {
-            list.innerHTML = '<div class="empty-state">У вас пока нет обращений</div>';
-            return;
-        }
-        tickets.forEach(t => {
-            const div = document.createElement('div');
-            div.className = 'message-item';
-            if (t.priority) div.style.borderLeftColor = 'var(--accent-yellow)';
-            const date = t.created_at.split(' ')[0];
-            div.innerHTML = `
-                <div class="msg-author">Тикет #${t.id} <span style="color:var(--text-muted);font-size:11px;margin-left:auto;">${date}</span></div>
-                <div class="msg-text">${t.body}</div>
-                <div class="msg-time" style="color: ${t.status === 'open' ? 'var(--accent-blue)' : 'var(--text-muted)'};">${t.status === 'open' ? 'В обработке' : 'Закрыт'}</div>
-            `;
-            list.appendChild(div);
-        });
-    } catch(e) { list.innerHTML = '<div class="empty-state">Ошибка загрузки</div>'; }
-}
-
-window.sendTicket = async function() {
-    const text = document.getElementById('support-text').value.trim();
-    if (!text) return tg.showAlert('Введите текст обращения');
-    
-    tg.HapticFeedback.impactOccurred('medium');
-    try {
-        const res = await miniAppClient.post('/api/miniapp/support', { text });
-        tg.showAlert(res.data.message);
-        document.getElementById('support-text').value = '';
-        loadMyTickets();
-    } catch(e) {
-        tg.showAlert(e.response?.data?.error || 'Ошибка отправки');
-    }
-};
-
 // --- ИНИЦИАЛИЗАЦИЯ ---
 async function initApp() {
     try {
@@ -564,27 +521,6 @@ window.openAdminModal = async function(type) {
     } else if (type === 'broadcast') {
         title.textContent = 'Рассылка';
         document.getElementById('admin-broadcast-fields').style.display = 'block';
-    } else if (type === 'tickets') {
-        title.textContent = 'Тикеты поддержки';
-        document.getElementById('admin-list-container').style.display = 'block';
-        execBtn.style.display = 'none';
-        try {
-            const res = await miniAppClient.get('/api/miniapp/admin/tickets');
-            const tickets = res.data.tickets || [];
-            const container = document.getElementById('admin-list-container');
-            if (tickets.length === 0) {
-                container.innerHTML = '<p style="color:var(--text-muted);">Нет открытых тикетов</p>';
-            } else {
-                container.innerHTML = tickets.map(t => `
-                    <div style="background: ${t.priority ? 'rgba(245, 158, 11, 0.1)' : 'rgba(255,255,255,0.05)'}; padding: 10px; border-radius: 8px; margin-bottom: 8px; border-left: 3px solid ${t.priority ? 'var(--accent-yellow)' : 'transparent'};">
-                        <div style="font-size: 12px; color: ${t.priority ? '#f59e0b' : 'var(--text-muted)'}; margin-bottom: 4px;">
-                            ${t.priority ? '⭐ PRIORITY ' : ''}От: ${t.user_id} | ${t.created_at}
-                        </div>
-                        <div style="font-size: 14px; color: #fff;">${t.body}</div>
-                    </div>
-                `).join('');
-            }
-        } catch(e) { container.innerHTML = '<p style="color:red;">Ошибка загрузки</p>'; }
     } else if (type === 'bans') {
         title.textContent = 'Бан-лист';
         document.getElementById('admin-list-container').style.display = 'block';

@@ -20,7 +20,7 @@ let allChatsData = [];
 let currentRole = null;
 let adminActionType = '';
 let premiumTimerInterval = null;
-let giveawayTimerInterval = null;
+let currentMediaUrl = ""; // Для лайтбокса
 
 function hidePreloader() {
     const preloader = document.getElementById('preloader');
@@ -101,11 +101,55 @@ window.switchTab = function(tabName) {
         if (allTab) allTab.classList.add('active');
         loadChats();
     }
-    if (tabName === 'draw') loadGiveaway();
     if (tabName === 'premium') loadPremiumStatus();
     if (tabName === 'referrals') loadReferrals();
     if (tabName === 'admin') loadAdminStats();
     if (tabName === 'settings') loadSettings();
+};
+
+// --- ЛАЙТБОКС (МЕДИА) ---
+window.openLightbox = function(url, type) {
+    currentMediaUrl = url;
+    const container = document.getElementById('lightbox-media-container');
+    container.innerHTML = '';
+    
+    if (type === 'photo') {
+        container.innerHTML = `<img src="${url}" alt="Фото">`;
+    } else if (type === 'video' || type === 'video_note' || type === 'animation') {
+        container.innerHTML = `<video src="${url}" controls autoplay playsinline></video>`;
+    } else if (type === 'voice' || type === 'audio') {
+        container.innerHTML = `<audio src="${url}" controls autoplay style="width: 100%;"></audio>`;
+    } else {
+        container.innerHTML = `<div style="color: white; text-align: center;">Предпросмотр недоступен</div>`;
+    }
+    
+    document.getElementById('media-lightbox').classList.add('active');
+    tg.HapticFeedback.impactOccurred('light');
+};
+
+window.closeLightbox = function(event) {
+    if (event && event.target !== document.getElementById('media-lightbox') && !event.target.closest('button')) return;
+    document.getElementById('media-lightbox').classList.remove('active');
+    document.getElementById('lightbox-media-container').innerHTML = ''; // Останавливаем видео/аудио
+    currentMediaUrl = "";
+};
+
+window.downloadMedia = async function() {
+    if (!currentMediaUrl) return;
+    try {
+        tg.HapticFeedback.notificationOccurred('success');
+        const response = await fetch(currentMediaUrl);
+        const blob = await response.blob();
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'hades_media_' + Date.now();
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        tg.showAlert('Скачивание начато!');
+    } catch (e) {
+        tg.showAlert('Ошибка скачивания');
+    }
 };
 
 // --- НАСТРОЙКИ ---
@@ -154,7 +198,7 @@ window.filterChats = function(type, btnElement) {
     } else if (type === 'deleted') {
         filtered = allChatsData.filter(c => c.deleted_count > 0);
     } else if (type === 'media') {
-        filtered = allChatsData.filter(c => c.media_count > 0); // Проверяем все медиа
+        filtered = allChatsData.filter(c => c.media_count > 0);
     }
     renderChatsList(filtered, type);
 };
@@ -213,7 +257,7 @@ async function loadChats() {
     }
 }
 
-// --- СООБЩЕНИЯ С ФИЛЬТРОМ ---
+// --- СООБЩЕНИЯ С ФИЛЬТРОМ И ЛАЙТБОКСОМ ---
 async function loadMessages(chatId, chatLabel, filterType = 'all') {
     switchTab('messages');
     document.getElementById('chat-title').textContent = chatLabel || 'Сообщения';
@@ -250,13 +294,13 @@ async function loadMessages(chatId, chatLabel, filterType = 'all') {
                 
                 if (type === 'sticker') {
                     if (ext === '.tgs') mediaHtml = `<div class="sticker-placeholder"><svg class="icon" style="width:48px;height:48px;color:var(--text-muted);"><use href="#icon-star"></use></svg></div>`;
-                    else if (ext === '.webm') mediaHtml = `<video src="${mediaUrl}" autoplay loop muted playsinline class="msg-sticker-video"></video>`;
-                    else mediaHtml = `<img src="${mediaUrl}" class="msg-sticker" loading="lazy" onerror="this.style.display='none'" alt="Стикер">`;
-                } else if (type === 'photo') mediaHtml = `<img src="${mediaUrl}" class="msg-media" loading="lazy" onerror="this.style.display='none'" alt="Фото">`;
-                else if (type === 'video') mediaHtml = `<video src="${mediaUrl}" controls playsinline class="msg-media" preload="metadata"></video>`;
-                else if (type === 'video_note') mediaHtml = `<video src="${mediaUrl}" controls playsinline class="msg-video-note" preload="metadata"></video>`;
+                    else if (ext === '.webm') mediaHtml = `<video src="${mediaUrl}" autoplay loop muted playsinline class="msg-sticker-video" onclick="openLightbox('${mediaUrl}', '${type}')"></video>`;
+                    else mediaHtml = `<img src="${mediaUrl}" class="msg-sticker" loading="lazy" onerror="this.style.display='none'" alt="Стикер" onclick="openLightbox('${mediaUrl}', '${type}')">`;
+                } else if (type === 'photo') mediaHtml = `<img src="${mediaUrl}" class="msg-media" loading="lazy" onerror="this.style.display='none'" alt="Фото" onclick="openLightbox('${mediaUrl}', '${type}')">`;
+                else if (type === 'video') mediaHtml = `<video src="${mediaUrl}" controls playsinline class="msg-media" preload="metadata" onclick="openLightbox('${mediaUrl}', '${type}')"></video>`;
+                else if (type === 'video_note') mediaHtml = `<video src="${mediaUrl}" controls playsinline class="msg-video-note" preload="metadata" onclick="openLightbox('${mediaUrl}', '${type}')"></video>`;
                 else if (type === 'voice' || type === 'audio') mediaHtml = `<audio src="${mediaUrl}" controls class="msg-audio" preload="metadata"></audio>`;
-                else if (type === 'animation') mediaHtml = `<video src="${mediaUrl}" autoplay loop muted playsinline class="msg-media"></video>`;
+                else if (type === 'animation') mediaHtml = `<video src="${mediaUrl}" autoplay loop muted playsinline class="msg-media" onclick="openLightbox('${mediaUrl}', '${type}')"></video>`;
                 else if (type === 'document') mediaHtml = `<a href="${mediaUrl}" target="_blank" class="msg-doc"><svg class="text-svg"><use href="#icon-export"></use></svg> Скачать файл</a>`;
             } else if (!text && msg.content_type !== 'text') {
                 text = `[${msg.content_type}]`;
@@ -273,96 +317,6 @@ async function loadMessages(chatId, chatLabel, filterType = 'all') {
     } catch (err) { 
         listEl.innerHTML = '<div class="empty-state">Ошибка загрузки сообщений</div>'; 
     }
-}
-
-// --- РОЗЫГРЫШ (SVG) ---
-async function loadGiveaway() {
-    const container = document.getElementById('giveaway-container');
-    container.innerHTML = '<div class="empty-state-box"><svg class="icon big-icon text-purple"><use href="#icon-gift"></use></svg><h3>Загрузка...</h3></div>';
-    
-    try {
-        const res = await miniAppClient.get('/api/miniapp/giveaway');
-        if (!res.data.active) {
-            container.innerHTML = `
-                <div class="empty-state-box">
-                    <svg class="icon big-icon text-purple" style="width:48px; height:48px; margin-bottom:16px;"><use href="#icon-gift"></use></svg>
-                    <h3>Сейчас нет активного розыгрыша</h3>
-                    <p>Новый приз появится здесь сразу после публикации администратором.</p>
-                </div>`;
-            return;
-        }
-        
-        const { stars, winners, start_time, end_time } = res.data;
-        const startTimeMs = new Date(start_time).getTime();
-        const endTimeMs = new Date(end_time).getTime();
-        
-        container.innerHTML = `
-            <div class="giveaway-card">
-                <div class="giveaway-content">
-                    <div class="giveaway-prize">
-                        <svg class="icon" style="color: #FFD700; width: 32px; height: 32px;"><use href="#icon-star"></use></svg>
-                        ${stars} Stars
-                    </div>
-                    <div class="giveaway-winners">Победителей: ${winners}</div>
-                    
-                    <div class="svg-timer-container">
-                        <svg class="countdown-svg" viewBox="0 0 100 100">
-                            <circle class="countdown-bg" cx="50" cy="50" r="45"></circle>
-                            <circle class="countdown-progress" id="giveaway-progress" cx="50" cy="50" r="45"></circle>
-                        </svg>
-                        <div class="timer-text">
-                            <span id="giveaway-time">00:00</span>
-                            <small>осталось</small>
-                        </div>
-                    </div>
-                    
-                    <button class="giveaway-join-btn" onclick="tg.showAlert('Вы успешно участвуете!')">Участвовать</button>
-                </div>
-            </div>
-        `;
-        
-        startGiveawayTimer(startTimeMs, endTimeMs);
-    } catch (e) {
-        container.innerHTML = '<div class="empty-state-box"><h3>Ошибка загрузки</h3></div>';
-    }
-}
-
-function startGiveawayTimer(startTimeMs, endTimeMs) {
-    if (giveawayTimerInterval) clearInterval(giveawayTimerInterval);
-    
-    const timeEl = document.getElementById('giveaway-time');
-    const progressEl = document.getElementById('giveaway-progress');
-    
-    const circumference = 2 * Math.PI * 45;
-    progressEl.style.strokeDasharray = circumference;
-    const totalDuration = endTimeMs - startTimeMs;
-    
-    giveawayTimerInterval = setInterval(() => {
-        const now = new Date().getTime();
-        const distance = endTimeMs - now;
-        
-        if (distance < 0) {
-            clearInterval(giveawayTimerInterval);
-            timeEl.textContent = "Завершен";
-            progressEl.style.strokeDashoffset = circumference;
-            return;
-        }
-        
-        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-        
-        let timeStr = "";
-        if (days > 0) timeStr += `${days}д `;
-        timeStr += `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        timeEl.textContent = timeStr;
-        
-        // Рассчитываем процент оставшегося времени
-        const progress = distance / totalDuration;
-        progressEl.style.strokeDashoffset = circumference * (1 - progress);
-        
-    }, 1000);
 }
 
 // --- ПРЕМИУМ И РЕФЕРАЛЫ ---
@@ -514,11 +468,9 @@ window.openAdminModal = async function(type) {
     document.getElementById('admin-list-container').style.display = 'none';
     document.getElementById('admin-list-container').innerHTML = '';
     
-    // Скрываем все специфичные поля ввода
     document.getElementById('admin-grant-fields').style.display = 'none';
     document.getElementById('admin-ban-fields').style.display = 'none';
     document.getElementById('admin-role-fields').style.display = 'none';
-    document.getElementById('admin-giveaway-fields').style.display = 'none';
 
     const title = document.getElementById('admin-modal-title');
     const execBtn = document.getElementById('admin-execute-btn');
@@ -528,10 +480,6 @@ window.openAdminModal = async function(type) {
         title.textContent = 'Выдать Premium';
         document.getElementById('admin-input-fields').style.display = 'block';
         document.getElementById('admin-grant-fields').style.display = 'block';
-    } else if (type === 'giveaway') {
-        title.textContent = 'Создать розыгрыш';
-        document.getElementById('admin-input-fields').style.display = 'block';
-        document.getElementById('admin-giveaway-fields').style.display = 'block';
     } else if (type === 'ban') {
         title.textContent = 'Забанить';
         document.getElementById('admin-input-fields').style.display = 'block';
@@ -606,13 +554,6 @@ window.executeAdminAction = async function() {
             const days = parseInt(document.getElementById('admin-days').value) || 30;
             if (!target) throw new Error('Введите ID или @username');
             const res = await miniAppClient.post('/api/miniapp/admin/grant', { target, days });
-            tg.showAlert(res.data.message);
-        } else if (adminActionType === 'giveaway') {
-            const stars = parseInt(document.getElementById('admin-giveaway-stars').value);
-            const winners = parseInt(document.getElementById('admin-giveaway-winners').value);
-            const hours = parseInt(document.getElementById('admin-giveaway-hours').value);
-            if (!stars || !winners || !hours) throw new Error('Заполните все поля розыгрыша');
-            const res = await miniAppClient.post('/api/miniapp/admin/giveaway', { stars, winners, hours });
             tg.showAlert(res.data.message);
         } else if (adminActionType === 'ban') {
             const target = document.getElementById('admin-target').value.trim();

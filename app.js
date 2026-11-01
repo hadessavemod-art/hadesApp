@@ -20,7 +20,10 @@ let allChatsData = [];
 let currentRole = null;
 let adminActionType = '';
 let premiumTimerInterval = null;
-let currentMediaUrl = ""; // Для лайтбокса
+
+// Переменные для лайтбокса
+let currentMediaChatId = 0;
+let currentMediaMessageId = 0;
 
 function hidePreloader() {
     const preloader = document.getElementById('preloader');
@@ -108,19 +111,31 @@ window.switchTab = function(tabName) {
 };
 
 // --- ЛАЙТБОКС (МЕДИА) ---
-window.openLightbox = function(url, type) {
-    currentMediaUrl = url;
+window.openLightbox = function(url, type, chatId, messageId) {
+    currentMediaChatId = chatId;
+    currentMediaMessageId = messageId;
+    
+    // 1. Останавливаем ВСЕ видео и аудио в фоне, чтобы не было двойного звука
+    document.querySelectorAll('video, audio').forEach(media => {
+        media.pause();
+        media.currentTime = 0;
+    });
+    
     const container = document.getElementById('lightbox-media-container');
     container.innerHTML = '';
     
+    // 2. Отрисовываем медиа с правильными стилями
     if (type === 'photo') {
-        container.innerHTML = `<img src="${url}" alt="Фото">`;
-    } else if (type === 'video' || type === 'video_note' || type === 'animation') {
-        container.innerHTML = `<video src="${url}" controls autoplay playsinline></video>`;
+        container.innerHTML = `<img src="${url}" class="lightbox-photo" alt="Фото">`;
+    } else if (type === 'video_note') {
+        // Кружки делаем круглыми!
+        container.innerHTML = `<video src="${url}" controls autoplay playsinline class="lightbox-video-note"></video>`;
+    } else if (type === 'video' || type === 'animation') {
+        container.innerHTML = `<video src="${url}" controls autoplay playsinline class="lightbox-video"></video>`;
     } else if (type === 'voice' || type === 'audio') {
-        container.innerHTML = `<audio src="${url}" controls autoplay style="width: 100%;"></audio>`;
+        container.innerHTML = `<div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 20px; width: 100%;"><audio src="${url}" controls autoplay style="width: 100%;"></audio></div>`;
     } else {
-        container.innerHTML = `<div style="color: white; text-align: center;">Предпросмотр недоступен</div>`;
+        container.innerHTML = `<div style="color: white; text-align: center; padding: 20px;">Предпросмотр недоступен</div>`;
     }
     
     document.getElementById('media-lightbox').classList.add('active');
@@ -129,27 +144,41 @@ window.openLightbox = function(url, type) {
 
 window.closeLightbox = function(event) {
     if (event && event.target !== document.getElementById('media-lightbox') && !event.target.closest('button')) return;
+    
+    // Останавливаем видео в лайтбоксе перед закрытием
+    const container = document.getElementById('lightbox-media-container');
+    const videos = container.querySelectorAll('video, audio');
+    videos.forEach(v => { v.pause(); v.removeAttribute('src'); v.load(); });
+    
     document.getElementById('media-lightbox').classList.remove('active');
-    document.getElementById('lightbox-media-container').innerHTML = ''; // Останавливаем видео/аудио
-    currentMediaUrl = "";
+    container.innerHTML = '';
+    currentMediaChatId = 0;
+    currentMediaMessageId = 0;
 };
 
-window.downloadMedia = async function() {
-    if (!currentMediaUrl) return;
-    try {
-        tg.HapticFeedback.notificationOccurred('success');
-        const response = await fetch(currentMediaUrl);
-        const blob = await response.blob();
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = 'hades_media_' + Date.now();
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        tg.showAlert('Скачивание начато!');
-    } catch (e) {
-        tg.showAlert('Ошибка скачивания');
-    }
+window.requestMedia = async function() {
+    if (!currentMediaChatId || !currentMediaMessageId) return;
+    
+    tg.HapticFeedback.impactOccurred('medium');
+    
+    tg.showPopup({
+        title: 'Запрос файла',
+        message: 'Отправить этот файл в чат с ботом?',
+        buttons: [{id: 'ok', type: 'default', text: 'Отправить'}, {id: 'cancel', type: 'cancel'}]
+    }, async (btn) => {
+        if (btn === 'ok') {
+            try {
+                const res = await miniAppClient.post('/api/miniapp/request_media', {
+                    chat_id: currentMediaChatId,
+                    message_id: currentMediaMessageId
+                });
+                tg.showAlert(res.data.message || 'Файл отправлен в бота!');
+                closeLightbox();
+            } catch (e) {
+                tg.showAlert(e.response?.data?.error || 'Ошибка запроса файла');
+            }
+        }
+    });
 };
 
 // --- НАСТРОЙКИ ---
@@ -294,13 +323,13 @@ async function loadMessages(chatId, chatLabel, filterType = 'all') {
                 
                 if (type === 'sticker') {
                     if (ext === '.tgs') mediaHtml = `<div class="sticker-placeholder"><svg class="icon" style="width:48px;height:48px;color:var(--text-muted);"><use href="#icon-star"></use></svg></div>`;
-                    else if (ext === '.webm') mediaHtml = `<video src="${mediaUrl}" autoplay loop muted playsinline class="msg-sticker-video" onclick="openLightbox('${mediaUrl}', '${type}')"></video>`;
-                    else mediaHtml = `<img src="${mediaUrl}" class="msg-sticker" loading="lazy" onerror="this.style.display='none'" alt="Стикер" onclick="openLightbox('${mediaUrl}', '${type}')">`;
-                } else if (type === 'photo') mediaHtml = `<img src="${mediaUrl}" class="msg-media" loading="lazy" onerror="this.style.display='none'" alt="Фото" onclick="openLightbox('${mediaUrl}', '${type}')">`;
-                else if (type === 'video') mediaHtml = `<video src="${mediaUrl}" controls playsinline class="msg-media" preload="metadata" onclick="openLightbox('${mediaUrl}', '${type}')"></video>`;
-                else if (type === 'video_note') mediaHtml = `<video src="${mediaUrl}" controls playsinline class="msg-video-note" preload="metadata" onclick="openLightbox('${mediaUrl}', '${type}')"></video>`;
+                    else if (ext === '.webm') mediaHtml = `<video src="${mediaUrl}" autoplay loop muted playsinline class="msg-sticker-video" onclick="openLightbox('${mediaUrl}', '${type}', ${chatId}, ${msg.message_id})"></video>`;
+                    else mediaHtml = `<img src="${mediaUrl}" class="msg-sticker" loading="lazy" onerror="this.style.display='none'" alt="Стикер" onclick="openLightbox('${mediaUrl}', '${type}', ${chatId}, ${msg.message_id})">`;
+                } else if (type === 'photo') mediaHtml = `<img src="${mediaUrl}" class="msg-media" loading="lazy" onerror="this.style.display='none'" alt="Фото" onclick="openLightbox('${mediaUrl}', '${type}', ${chatId}, ${msg.message_id})">`;
+                else if (type === 'video') mediaHtml = `<video src="${mediaUrl}" controls playsinline class="msg-media" preload="metadata" onclick="openLightbox('${mediaUrl}', '${type}', ${chatId}, ${msg.message_id})"></video>`;
+                else if (type === 'video_note') mediaHtml = `<video src="${mediaUrl}" controls playsinline class="msg-video-note" preload="metadata" onclick="openLightbox('${mediaUrl}', '${type}', ${chatId}, ${msg.message_id})"></video>`;
                 else if (type === 'voice' || type === 'audio') mediaHtml = `<audio src="${mediaUrl}" controls class="msg-audio" preload="metadata"></audio>`;
-                else if (type === 'animation') mediaHtml = `<video src="${mediaUrl}" autoplay loop muted playsinline class="msg-media" onclick="openLightbox('${mediaUrl}', '${type}')"></video>`;
+                else if (type === 'animation') mediaHtml = `<video src="${mediaUrl}" autoplay loop muted playsinline class="msg-media" onclick="openLightbox('${mediaUrl}', '${type}', ${chatId}, ${msg.message_id})"></video>`;
                 else if (type === 'document') mediaHtml = `<a href="${mediaUrl}" target="_blank" class="msg-doc"><svg class="text-svg"><use href="#icon-export"></use></svg> Скачать файл</a>`;
             } else if (!text && msg.content_type !== 'text') {
                 text = `[${msg.content_type}]`;

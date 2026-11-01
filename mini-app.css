@@ -142,7 +142,7 @@ input:checked + .slider:before { transform: translateX(20px); }
 .msg-media:active { opacity: 0.8; }
 .msg-sticker { width: 120px; height: 120px; object-fit: contain; display: block; }
 .msg-sticker-video { width: 120px; height: 120px; border-radius: 8px; object-fit: cover; display: block; }
-.msg-video-note { width: 200px; height: 200px; border-radius: 50%; object-fit: cover; display: block; border: 2px solid var(--border-color); }
+.msg-video-note { width: 150px; height: 150px; border-radius: 50%; object-fit: cover; display: block; border: 2px solid var(--border-color); }
 .msg-audio { width: 100%; max-width: 280px; outline: none; }
 .msg-doc { display: inline-flex; align-items: center; gap: 8px; background: var(--bg-card-hover); padding: 10px 14px; border-radius: 10px; color: var(--accent-blue); text-decoration: none; font-size: 14px; font-weight: 500; }
 .sticker-placeholder { padding: 15px; background: var(--bg-card-hover); border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; }
@@ -175,9 +175,56 @@ input:checked + .slider:before { transform: translateX(20px); }
 /* --- LIGHTBOX (ПРОСМОТР МЕДИА) --- */
 .lightbox { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.95); z-index: 3000; display: none; align-items: center; justify-content: center; flex-direction: column; opacity: 0; transition: opacity 0.3s; }
 .lightbox.active { display: flex; opacity: 1; }
-.lightbox-content { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
-.lightbox-close { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.1); border: none; color: #fff; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 3001; }
-.lightbox img, .lightbox video { max-width: 100%; max-height: 80vh; border-radius: 12px; object-fit: contain; }
+.lightbox-content { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; position: relative; }
+.lightbox-close { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.1); border: none; color: #fff; width: 44px; height: 44px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 3001; transition: background 0.2s; }
+.lightbox-close:active { background: rgba(255,255,255,0.2); }
+
+.lightbox-media-box { 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    width: 100%; 
+    max-width: 500px;
+    max-height: 70vh;
+    margin-bottom: 20px;
+}
+
+/* Стили для разных типов медиа в лайтбоксе */
+.lightbox-photo { max-width: 100%; max-height: 70vh; border-radius: 12px; object-fit: contain; }
+
+.lightbox-video { max-width: 100%; max-height: 70vh; border-radius: 12px; background: #000; }
+
+/* Кружок (видеосообщение) */
+.lightbox-video-note { 
+    width: 250px; 
+    height: 250px; 
+    border-radius: 50%; 
+    object-fit: cover; 
+    border: 3px solid rgba(255,255,255,0.1); 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.lightbox-actions { width: 100%; display: flex; justify-content: center; padding: 0 20px; }
+
+.request-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--accent-blue);
+    color: #fff;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.2s;
+    width: 100%;
+    max-width: 300px;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+}
+.request-btn:active { transform: scale(0.96); background: #2563eb; }
 
 .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); display: none; align-items: flex-end; justify-content: center; z-index: 1000; opacity: 0; transition: opacity 0.3s ease; }
 .modal-overlay.active { display: flex; opacity: 1; }

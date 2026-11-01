@@ -20,7 +20,7 @@ let allChatsData = [];
 let currentRole = null;
 let adminActionType = '';
 let premiumTimerInterval = null;
-let currentChatFilter = 'all'; // Храним текущий фильтр для передачи в сообщения
+let giveawayTimerInterval = null;
 
 function hidePreloader() {
     const preloader = document.getElementById('preloader');
@@ -96,13 +96,12 @@ window.switchTab = function(tabName) {
 
     if (tabName === 'home') loadStats();
     if (tabName === 'chats') {
-        // При переходе в чаты всегда сбрасываем на "Все"
         document.querySelectorAll('.chat-tab').forEach(btn => btn.classList.remove('active'));
         const allTab = document.querySelector('.chat-tab');
         if (allTab) allTab.classList.add('active');
-        currentChatFilter = 'all';
         loadChats();
     }
+    if (tabName === 'draw') loadGiveaway();
     if (tabName === 'premium') loadPremiumStatus();
     if (tabName === 'referrals') loadReferrals();
     if (tabName === 'admin') loadAdminStats();
@@ -143,12 +142,11 @@ window.clearArchive = function() {
     });
 };
 
-// --- ФИЛЬТРАЦИЯ ЧАТОВ (НОВОЕ) ---
+// --- ЧАТЫ ---
 window.filterChats = function(type, btnElement) {
     tg.HapticFeedback.impactOccurred('light');
     document.querySelectorAll('.chat-tab').forEach(btn => btn.classList.remove('active'));
     btnElement.classList.add('active');
-    currentChatFilter = type;
 
     let filtered = [];
     if (type === 'all') {
@@ -156,7 +154,7 @@ window.filterChats = function(type, btnElement) {
     } else if (type === 'deleted') {
         filtered = allChatsData.filter(c => c.deleted_count > 0);
     } else if (type === 'media') {
-        filtered = allChatsData.filter(c => c.deleted_media_count > 0);
+        filtered = allChatsData.filter(c => c.media_count > 0); // Проверяем все медиа
     }
     renderChatsList(filtered, type);
 };
@@ -180,14 +178,13 @@ function renderChatsList(chats, filterType = 'all') {
             avatarHtml = `<img src="${imgUrl}" class="list-avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" alt=""><div class="list-avatar" style="display:none;">${initial}</div>`;
         }
 
-        // Формируем подпись в зависимости от вкладки
         let subtext = '';
         if (filterType === 'all') {
             subtext = `${chat.total} сообщ. • ${chat.deleted_count} удал.`;
         } else if (filterType === 'deleted') {
             subtext = `<span class="text-red">${chat.deleted_count} удаленных</span>`;
         } else if (filterType === 'media') {
-            subtext = `<span class="text-orange">${chat.deleted_media_count} удаленных медиа</span>`;
+            subtext = `<span class="text-orange">${chat.media_count} медиа</span>`;
         }
 
         div.innerHTML = `
@@ -216,7 +213,159 @@ async function loadChats() {
     }
 }
 
-// --- МОДАЛКА ПРЕМИУМА ---
+// --- СООБЩЕНИЯ С ФИЛЬТРОМ ---
+async function loadMessages(chatId, chatLabel, filterType = 'all') {
+    switchTab('messages');
+    document.getElementById('chat-title').textContent = chatLabel || 'Сообщения';
+    const listEl = document.getElementById('messages-list');
+    listEl.innerHTML = '<div class="empty-state">Загрузка...</div>';
+    
+    try {
+        const res = await miniAppClient.get(`/api/miniapp/messages?chat_id=${chatId}&filter=${filterType}`);
+        const messages = res.data.messages || [];
+        listEl.innerHTML = '';
+        if (messages.length === 0) { 
+            listEl.innerHTML = '<div class="empty-state">Нет сообщений</div>'; 
+            return; 
+        }
+        
+        messages.forEach(msg => {
+            const div = document.createElement('div');
+            let classes = 'message-item';
+            if (msg.deleted) classes += ' deleted'; 
+            else if (msg.edited) classes += ' edited';
+            div.className = classes;
+            
+            let text = msg.text || '';
+            if (text) text = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            
+            let statusIcons = '';
+            if (msg.deleted) statusIcons = '<svg class="text-svg" style="stroke: var(--accent-red);"><use href="#icon-trash"></use></svg>';
+            else if (msg.edited) statusIcons = '<svg class="text-svg" style="stroke: var(--accent-yellow);"><use href="#icon-edit"></use></svg>';
+            
+            let mediaHtml = '';
+            if (msg.has_media) {
+                const mediaUrl = `${miniAppClient.defaults.baseURL}/api/miniapp/media?chat_id=${chatId}&message_id=${msg.message_id}&initData=${encodedInitData}`;
+                const type = msg.content_type; const ext = msg.media_ext || '';
+                
+                if (type === 'sticker') {
+                    if (ext === '.tgs') mediaHtml = `<div class="sticker-placeholder"><svg class="icon" style="width:48px;height:48px;color:var(--text-muted);"><use href="#icon-star"></use></svg></div>`;
+                    else if (ext === '.webm') mediaHtml = `<video src="${mediaUrl}" autoplay loop muted playsinline class="msg-sticker-video"></video>`;
+                    else mediaHtml = `<img src="${mediaUrl}" class="msg-sticker" loading="lazy" onerror="this.style.display='none'" alt="Стикер">`;
+                } else if (type === 'photo') mediaHtml = `<img src="${mediaUrl}" class="msg-media" loading="lazy" onerror="this.style.display='none'" alt="Фото">`;
+                else if (type === 'video') mediaHtml = `<video src="${mediaUrl}" controls playsinline class="msg-media" preload="metadata"></video>`;
+                else if (type === 'video_note') mediaHtml = `<video src="${mediaUrl}" controls playsinline class="msg-video-note" preload="metadata"></video>`;
+                else if (type === 'voice' || type === 'audio') mediaHtml = `<audio src="${mediaUrl}" controls class="msg-audio" preload="metadata"></audio>`;
+                else if (type === 'animation') mediaHtml = `<video src="${mediaUrl}" autoplay loop muted playsinline class="msg-media"></video>`;
+                else if (type === 'document') mediaHtml = `<a href="${mediaUrl}" target="_blank" class="msg-doc"><svg class="text-svg"><use href="#icon-export"></use></svg> Скачать файл</a>`;
+            } else if (!text && msg.content_type !== 'text') {
+                text = `[${msg.content_type}]`;
+            }
+            
+            div.innerHTML = `
+                <div class="msg-author">${msg.sender_name || 'Пользователь'} ${statusIcons}</div>
+                ${text ? `<div class="msg-text">${text}</div>` : ''}
+                ${mediaHtml ? `<div class="media-container">${mediaHtml}</div>` : ''}
+                <div class="msg-time">${msg.updated_at}</div>
+            `;
+            listEl.appendChild(div);
+        });
+    } catch (err) { 
+        listEl.innerHTML = '<div class="empty-state">Ошибка загрузки сообщений</div>'; 
+    }
+}
+
+// --- РОЗЫГРЫШ (SVG) ---
+async function loadGiveaway() {
+    const container = document.getElementById('giveaway-container');
+    container.innerHTML = '<div class="empty-state-box"><svg class="icon big-icon text-purple"><use href="#icon-gift"></use></svg><h3>Загрузка...</h3></div>';
+    
+    try {
+        const res = await miniAppClient.get('/api/miniapp/giveaway');
+        if (!res.data.active) {
+            container.innerHTML = `
+                <div class="empty-state-box">
+                    <svg class="icon big-icon text-purple" style="width:48px; height:48px; margin-bottom:16px;"><use href="#icon-gift"></use></svg>
+                    <h3>Сейчас нет активного розыгрыша</h3>
+                    <p>Новый приз появится здесь сразу после публикации администратором.</p>
+                </div>`;
+            return;
+        }
+        
+        const { stars, winners, start_time, end_time } = res.data;
+        const startTimeMs = new Date(start_time).getTime();
+        const endTimeMs = new Date(end_time).getTime();
+        
+        container.innerHTML = `
+            <div class="giveaway-card">
+                <div class="giveaway-content">
+                    <div class="giveaway-prize">
+                        <svg class="icon" style="color: #FFD700; width: 32px; height: 32px;"><use href="#icon-star"></use></svg>
+                        ${stars} Stars
+                    </div>
+                    <div class="giveaway-winners">Победителей: ${winners}</div>
+                    
+                    <div class="svg-timer-container">
+                        <svg class="countdown-svg" viewBox="0 0 100 100">
+                            <circle class="countdown-bg" cx="50" cy="50" r="45"></circle>
+                            <circle class="countdown-progress" id="giveaway-progress" cx="50" cy="50" r="45"></circle>
+                        </svg>
+                        <div class="timer-text">
+                            <span id="giveaway-time">00:00</span>
+                            <small>осталось</small>
+                        </div>
+                    </div>
+                    
+                    <button class="giveaway-join-btn" onclick="tg.showAlert('Вы успешно участвуете!')">Участвовать</button>
+                </div>
+            </div>
+        `;
+        
+        startGiveawayTimer(startTimeMs, endTimeMs);
+    } catch (e) {
+        container.innerHTML = '<div class="empty-state-box"><h3>Ошибка загрузки</h3></div>';
+    }
+}
+
+function startGiveawayTimer(startTimeMs, endTimeMs) {
+    if (giveawayTimerInterval) clearInterval(giveawayTimerInterval);
+    
+    const timeEl = document.getElementById('giveaway-time');
+    const progressEl = document.getElementById('giveaway-progress');
+    
+    const circumference = 2 * Math.PI * 45;
+    progressEl.style.strokeDasharray = circumference;
+    const totalDuration = endTimeMs - startTimeMs;
+    
+    giveawayTimerInterval = setInterval(() => {
+        const now = new Date().getTime();
+        const distance = endTimeMs - now;
+        
+        if (distance < 0) {
+            clearInterval(giveawayTimerInterval);
+            timeEl.textContent = "Завершен";
+            progressEl.style.strokeDashoffset = circumference;
+            return;
+        }
+        
+        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+        
+        let timeStr = "";
+        if (days > 0) timeStr += `${days}д `;
+        timeStr += `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        timeEl.textContent = timeStr;
+        
+        // Рассчитываем процент оставшегося времени
+        const progress = distance / totalDuration;
+        progressEl.style.strokeDashoffset = circumference * (1 - progress);
+        
+    }, 1000);
+}
+
+// --- ПРЕМИУМ И РЕФЕРАЛЫ ---
 window.openFeatureModal = function(id) {
     const data = FEATURE_DATA[id];
     if(!data) return;
@@ -244,6 +393,33 @@ async function loadReferrals() {
 window.copyRefLink = function() {
     if(refLink) { navigator.clipboard.writeText(refLink); tg.HapticFeedback.notificationOccurred('success'); tg.showAlert("Ссылка скопирована!"); }
 };
+
+async function loadPremiumStatus() {
+    try {
+        const res = await miniAppClient.get('/api/miniapp/stats');
+        const isPremium = res.data.is_premium || false;
+        if (isPremium) {
+            document.getElementById('premium-status-text').innerHTML = 'Подписка активна';
+            document.getElementById('premium-action-btn').textContent = 'Продлить подписку';
+            document.getElementById('premium-action-btn').style.background = 'var(--accent-red)';
+            document.getElementById('premium-action-btn').style.color = '#fff';
+        } else {
+            document.getElementById('premium-status-text').innerHTML = 'Подписка не активна';
+            document.getElementById('premium-action-btn').textContent = 'Подключить Premium';
+            document.getElementById('premium-action-btn').style.background = 'var(--bg-card)';
+            document.getElementById('premium-action-btn').style.color = '#fff';
+        }
+    } catch(e) {}
+}
+
+async function loadStats() {
+    try {
+        const res = await miniAppClient.get('/api/miniapp/stats');
+        document.getElementById('stat-deleted').textContent = res.data.deleted_messages || 0;
+        document.getElementById('stat-chats').textContent = res.data.chats_count || 0;
+        document.getElementById('stat-media').textContent = res.data.media_count || 0;
+    } catch(e) {}
+}
 
 // --- ИНИЦИАЛИЗАЦИЯ ---
 async function initApp() {
@@ -313,34 +489,7 @@ async function initApp() {
     } catch (err) { console.error(err); hidePreloader(); }
 }
 
-async function loadStats() {
-    try {
-        const res = await miniAppClient.get('/api/miniapp/stats');
-        document.getElementById('stat-deleted').textContent = res.data.deleted_messages || 0;
-        document.getElementById('stat-chats').textContent = res.data.chats_count || 0;
-        document.getElementById('stat-media').textContent = res.data.media_count || 0;
-    } catch(e) {}
-}
-
-async function loadPremiumStatus() {
-    try {
-        const res = await miniAppClient.get('/api/miniapp/stats');
-        const isPremium = res.data.is_premium || false;
-        if (isPremium) {
-            document.getElementById('premium-status-text').innerHTML = 'Подписка активна';
-            document.getElementById('premium-action-btn').textContent = 'Продлить подписку';
-            document.getElementById('premium-action-btn').style.background = 'var(--accent-red)';
-            document.getElementById('premium-action-btn').style.color = '#fff';
-        } else {
-            document.getElementById('premium-status-text').innerHTML = 'Подписка не активна';
-            document.getElementById('premium-action-btn').textContent = 'Подключить Premium';
-            document.getElementById('premium-action-btn').style.background = 'var(--bg-card)';
-            document.getElementById('premium-action-btn').style.color = '#fff';
-        }
-    } catch(e) {}
-}
-
-// --- ЛОГИКА АДМИНКИ ---
+// --- АДМИНКА ---
 async function loadAdminStats() {
     if (!currentRole) return;
     try {
@@ -365,6 +514,12 @@ window.openAdminModal = async function(type) {
     document.getElementById('admin-list-container').style.display = 'none';
     document.getElementById('admin-list-container').innerHTML = '';
     
+    // Скрываем все специфичные поля ввода
+    document.getElementById('admin-grant-fields').style.display = 'none';
+    document.getElementById('admin-ban-fields').style.display = 'none';
+    document.getElementById('admin-role-fields').style.display = 'none';
+    document.getElementById('admin-giveaway-fields').style.display = 'none';
+
     const title = document.getElementById('admin-modal-title');
     const execBtn = document.getElementById('admin-execute-btn');
     execBtn.style.display = 'block';
@@ -373,19 +528,17 @@ window.openAdminModal = async function(type) {
         title.textContent = 'Выдать Premium';
         document.getElementById('admin-input-fields').style.display = 'block';
         document.getElementById('admin-grant-fields').style.display = 'block';
-        document.getElementById('admin-ban-fields').style.display = 'none';
-        document.getElementById('admin-role-fields').style.display = 'none';
+    } else if (type === 'giveaway') {
+        title.textContent = 'Создать розыгрыш';
+        document.getElementById('admin-input-fields').style.display = 'block';
+        document.getElementById('admin-giveaway-fields').style.display = 'block';
     } else if (type === 'ban') {
         title.textContent = 'Забанить';
         document.getElementById('admin-input-fields').style.display = 'block';
-        document.getElementById('admin-grant-fields').style.display = 'none';
         document.getElementById('admin-ban-fields').style.display = 'block';
-        document.getElementById('admin-role-fields').style.display = 'none';
     } else if (type === 'role') {
         title.textContent = 'Выдать админку';
         document.getElementById('admin-input-fields').style.display = 'block';
-        document.getElementById('admin-grant-fields').style.display = 'none';
-        document.getElementById('admin-ban-fields').style.display = 'none';
         document.getElementById('admin-role-fields').style.display = 'block';
     } else if (type === 'broadcast') {
         title.textContent = 'Рассылка';
@@ -454,6 +607,13 @@ window.executeAdminAction = async function() {
             if (!target) throw new Error('Введите ID или @username');
             const res = await miniAppClient.post('/api/miniapp/admin/grant', { target, days });
             tg.showAlert(res.data.message);
+        } else if (adminActionType === 'giveaway') {
+            const stars = parseInt(document.getElementById('admin-giveaway-stars').value);
+            const winners = parseInt(document.getElementById('admin-giveaway-winners').value);
+            const hours = parseInt(document.getElementById('admin-giveaway-hours').value);
+            if (!stars || !winners || !hours) throw new Error('Заполните все поля розыгрыша');
+            const res = await miniAppClient.post('/api/miniapp/admin/giveaway', { stars, winners, hours });
+            tg.showAlert(res.data.message);
         } else if (adminActionType === 'ban') {
             const target = document.getElementById('admin-target').value.trim();
             const reason = document.getElementById('admin-reason').value || 'Без причины';
@@ -482,66 +642,3 @@ window.executeAdminAction = async function() {
         execBtn.disabled = false;
     }
 };
-
-// --- ЗАГРУЗКА СООБЩЕНИЙ (С УЧЕТОМ ФИЛЬТРА) ---
-async function loadMessages(chatId, chatLabel, filterType = 'all') {
-    switchTab('messages');
-    document.getElementById('chat-title').textContent = chatLabel || 'Сообщения';
-    const listEl = document.getElementById('messages-list');
-    listEl.innerHTML = '<div class="empty-state">Загрузка...</div>';
-    
-    try {
-        // Передаем фильтр в запрос
-        const res = await miniAppClient.get(`/api/miniapp/messages?chat_id=${chatId}&filter=${filterType}`);
-        const messages = res.data.messages || [];
-        listEl.innerHTML = '';
-        if (messages.length === 0) { 
-            listEl.innerHTML = '<div class="empty-state">Нет сообщений</div>'; 
-            return; 
-        }
-        
-        messages.forEach(msg => {
-            const div = document.createElement('div');
-            let classes = 'message-item';
-            if (msg.deleted) classes += ' deleted'; 
-            else if (msg.edited) classes += ' edited';
-            div.className = classes;
-            
-            let text = msg.text || '';
-            if (text) text = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-            
-            let statusIcons = '';
-            if (msg.deleted) statusIcons = '<svg class="text-svg" style="stroke: var(--accent-red);"><use href="#icon-trash"></use></svg>';
-            else if (msg.edited) statusIcons = '<svg class="text-svg" style="stroke: var(--accent-yellow);"><use href="#icon-edit"></use></svg>';
-            
-            let mediaHtml = '';
-            if (msg.has_media) {
-                const mediaUrl = `${miniAppClient.defaults.baseURL}/api/miniapp/media?chat_id=${chatId}&message_id=${msg.message_id}&initData=${encodedInitData}`;
-                const type = msg.content_type; const ext = msg.media_ext || '';
-                
-                if (type === 'sticker') {
-                    if (ext === '.tgs') mediaHtml = `<div class="sticker-placeholder"><svg class="icon" style="width:48px;height:48px;color:var(--text-muted);"><use href="#icon-star"></use></svg></div>`;
-                    else if (ext === '.webm') mediaHtml = `<video src="${mediaUrl}" autoplay loop muted playsinline class="msg-sticker-video"></video>`;
-                    else mediaHtml = `<img src="${mediaUrl}" class="msg-sticker" loading="lazy" onerror="this.style.display='none'" alt="Стикер">`;
-                } else if (type === 'photo') mediaHtml = `<img src="${mediaUrl}" class="msg-media" loading="lazy" onerror="this.style.display='none'" alt="Фото">`;
-                else if (type === 'video') mediaHtml = `<video src="${mediaUrl}" controls playsinline class="msg-media" preload="metadata"></video>`;
-                else if (type === 'video_note') mediaHtml = `<video src="${mediaUrl}" controls playsinline class="msg-video-note" preload="metadata"></video>`;
-                else if (type === 'voice' || type === 'audio') mediaHtml = `<audio src="${mediaUrl}" controls class="msg-audio" preload="metadata"></audio>`;
-                else if (type === 'animation') mediaHtml = `<video src="${mediaUrl}" autoplay loop muted playsinline class="msg-media"></video>`;
-                else if (type === 'document') mediaHtml = `<a href="${mediaUrl}" target="_blank" class="msg-doc"><svg class="text-svg"><use href="#icon-export"></use></svg> Скачать файл</a>`;
-            } else if (!text && msg.content_type !== 'text') {
-                text = `[${msg.content_type}]`;
-            }
-            
-            div.innerHTML = `
-                <div class="msg-author">${msg.sender_name || 'Пользователь'} ${statusIcons}</div>
-                ${text ? `<div class="msg-text">${text}</div>` : ''}
-                ${mediaHtml ? `<div class="media-container">${mediaHtml}</div>` : ''}
-                <div class="msg-time">${msg.updated_at}</div>
-            `;
-            listEl.appendChild(div);
-        });
-    } catch (err) { 
-        listEl.innerHTML = '<div class="empty-state">Ошибка загрузки сообщений</div>'; 
-    }
-}

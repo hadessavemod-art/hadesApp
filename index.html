@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>HadesSave</title>
-    <link rel="stylesheet" href="mini-app.css?v=210">
+    <link rel="stylesheet" href="mini-app.css?v=220">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body class="mini-app-body">
@@ -40,7 +40,6 @@
         <symbol id="icon-money" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></symbol>
         <symbol id="icon-ban" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></symbol>
         <symbol id="icon-megaphone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></symbol>
-        <symbol id="icon-ticket" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></symbol>
         <symbol id="icon-send" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></symbol>
     </svg>
 
@@ -195,25 +194,10 @@
                 <ul style="list-style: none; padding: 0; margin: 0; font-size: 13px; color: var(--text-muted); line-height: 1.6;">
                     <li style="margin-bottom: 10px;">1. Отправь ссылку другу.</li>
                     <li style="margin-bottom: 10px;">2. Друг запускает бота.</li>
-                    <li style="margin-bottom: 10px;">3. Друг <b>подключает бота</b> в настройках Telegram.</li>
+                    <li style="margin-bottom: 10px;">3. Друг <b>подключает бота</b> в настройках Telegram (Настройки → Чат-боты).</li>
                     <li>4. <b>Вы оба</b> получаете <b>+1 день Premium</b>!</li>
                 </ul>
             </div>
-        </main>
-
-        <main id="view-support" class="page">
-            <header class="page-header with-back">
-                <button class="back-btn" onclick="switchTab('profile')"><svg class="icon"><use href="#icon-back"></use></svg></button>
-                <h2>Поддержка</h2>
-            </header>
-            
-            <div class="menu-group" style="padding: 16px;">
-                <textarea id="support-text" class="admin-input" placeholder="Опишите вашу проблему..." rows="4" style="resize: none; margin-bottom: 12px;"></textarea>
-                <button class="request-btn" onclick="sendTicket()" style="max-width: 100%;">Отправить</button>
-            </div>
-
-            <div class="premium-section-title">МОИ ОБРАЩЕНИЯ</div>
-            <div id="my-tickets-list" class="chats-list"></div>
         </main>
 
         <main id="view-profile" class="page">
@@ -235,7 +219,8 @@
                     <div class="menu-text"><h3>Настройки</h3><p>Управление архивом и уведомлениями</p></div>
                     <svg class="icon chevron"><use href="#icon-chevron"></use></svg>
                 </div>
-                <div class="menu-item" onclick="switchTab('support')">
+                <!-- КНОПКА ПОДДЕРЖКИ ПЕРЕДЕЛАНА -->
+                <div class="menu-item" onclick="window.open('https://t.me/Hades_save_men', '_blank')">
                     <div class="menu-icon bg-green"><svg class="icon"><use href="#icon-headphones"></use></svg></div>
                     <div class="menu-text"><h3>Поддержка</h3><p>Связаться с администратором</p></div>
                     <svg class="icon chevron"><use href="#icon-chevron"></use></svg>
@@ -270,7 +255,6 @@
             <div class="premium-section-title">ИНСТРУМЕНТЫ</div>
             <div class="menu-group">
                 <div class="menu-item" onclick="openAdminModal('broadcast')"><div class="menu-icon bg-yellow"><svg class="icon"><use href="#icon-megaphone"></use></svg></div><div class="menu-text"><h3>Рассылка</h3><p>Отправить сообщение всем</p></div></div>
-                <div class="menu-item" onclick="openAdminModal('tickets')"><div class="menu-icon bg-cyan"><svg class="icon"><use href="#icon-ticket"></use></svg></div><div class="menu-text"><h3>Тикеты поддержки</h3><p>Список обращений</p></div></div>
                 <div class="menu-item" onclick="openAdminModal('bans')"><div class="menu-icon bg-red"><svg class="icon"><use href="#icon-ban"></use></svg></div><div class="menu-text"><h3>Бан-лист</h3><p>Список забаненных</p></div></div>
             </div>
         </main>

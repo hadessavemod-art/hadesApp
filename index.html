@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>HadesSave</title>
-    <link rel="stylesheet" href="mini-app.css?v=121">
+    <link rel="stylesheet" href="mini-app.css?v=122">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body class="mini-app-body">
@@ -138,8 +138,8 @@
             <div class="search-bar"><svg class="icon"><use href="#icon-search"></use></svg><input type="text" placeholder="Поиск по чатам..."></div>
             <div class="chat-tabs">
                 <button class="chat-tab active" onclick="filterChats('all', this)">Все</button>
-                <button class="chat-tab" onclick="filterChats('private', this)">Личные</button>
-                <button class="chat-tab" onclick="filterChats('groups', this)">Группы</button>
+                <button class="chat-tab" onclick="filterChats('deleted', this)">Удаленные</button>
+                <button class="chat-tab" onclick="filterChats('media', this)">Медиа</button>
             </div>
             <div id="chats-list" class="chats-list"><div class="empty-state">Загрузка...</div></div>
         </main>

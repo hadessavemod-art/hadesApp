@@ -20,6 +20,7 @@ let allChatsData = [];
 let currentRole = null;
 let adminActionType = '';
 let premiumTimerInterval = null;
+let currentChatFilter = 'all'; // Храним текущий фильтр для передачи в сообщения
 
 function hidePreloader() {
     const preloader = document.getElementById('preloader');
@@ -94,7 +95,14 @@ window.switchTab = function(tabName) {
     }
 
     if (tabName === 'home') loadStats();
-    if (tabName === 'chats') loadChats();
+    if (tabName === 'chats') {
+        // При переходе в чаты всегда сбрасываем на "Все"
+        document.querySelectorAll('.chat-tab').forEach(btn => btn.classList.remove('active'));
+        const allTab = document.querySelector('.chat-tab');
+        if (allTab) allTab.classList.add('active');
+        currentChatFilter = 'all';
+        loadChats();
+    }
     if (tabName === 'premium') loadPremiumStatus();
     if (tabName === 'referrals') loadReferrals();
     if (tabName === 'admin') loadAdminStats();
@@ -135,49 +143,80 @@ window.clearArchive = function() {
     });
 };
 
+// --- ФИЛЬТРАЦИЯ ЧАТОВ (НОВОЕ) ---
 window.filterChats = function(type, btnElement) {
     tg.HapticFeedback.impactOccurred('light');
     document.querySelectorAll('.chat-tab').forEach(btn => btn.classList.remove('active'));
     btnElement.classList.add('active');
+    currentChatFilter = type;
+
     let filtered = [];
-    if (type === 'all') filtered = allChatsData;
-    else if (type === 'private') filtered = allChatsData.filter(c => c.chat_id > 0);
-    else if (type === 'groups') filtered = allChatsData.filter(c => c.chat_id < 0);
-    renderChatsList(filtered);
+    if (type === 'all') {
+        filtered = allChatsData;
+    } else if (type === 'deleted') {
+        filtered = allChatsData.filter(c => c.deleted_count > 0);
+    } else if (type === 'media') {
+        filtered = allChatsData.filter(c => c.deleted_media_count > 0);
+    }
+    renderChatsList(filtered, type);
 };
 
-function renderChatsList(chats) {
+function renderChatsList(chats, filterType = 'all') {
     const listEl = document.getElementById('chats-list');
     listEl.innerHTML = '';
-    if (chats.length === 0) { listEl.innerHTML = '<div class="empty-state">В этой категории пока пусто</div>'; return; }
+    if (chats.length === 0) { 
+        listEl.innerHTML = '<div class="empty-state">В этой категории пока пусто</div>'; 
+        return; 
+    }
+    
     chats.forEach(chat => {
         const div = document.createElement('div');
         div.className = 'list-item';
         const initial = chat.label ? chat.label[0].toUpperCase() : '?';
+        
         let avatarHtml = `<div class="list-avatar">${initial}</div>`;
         if (chat.chat_username && chat.chat_username.trim() !== '') {
             const imgUrl = `https://t.me/i/userpic/320/${chat.chat_username}.jpg`;
             avatarHtml = `<img src="${imgUrl}" class="list-avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" alt=""><div class="list-avatar" style="display:none;">${initial}</div>`;
         }
-        div.innerHTML = `${avatarHtml}<div class="list-content"><div class="list-title">${chat.label || 'Чат ' + chat.chat_id}</div><div class="list-sub">${chat.total} сообщ. • ${chat.deleted_count} удал.</div></div><div class="list-meta">${chat.last_at ? chat.last_at.split(' ')[0] : ''}</div>`;
-        div.onclick = () => loadMessages(chat.chat_id, chat.label);
+
+        // Формируем подпись в зависимости от вкладки
+        let subtext = '';
+        if (filterType === 'all') {
+            subtext = `${chat.total} сообщ. • ${chat.deleted_count} удал.`;
+        } else if (filterType === 'deleted') {
+            subtext = `<span class="text-red">${chat.deleted_count} удаленных</span>`;
+        } else if (filterType === 'media') {
+            subtext = `<span class="text-orange">${chat.deleted_media_count} удаленных медиа</span>`;
+        }
+
+        div.innerHTML = `
+            ${avatarHtml}
+            <div class="list-content">
+                <div class="list-title">${chat.label || 'Чат ' + chat.chat_id}</div>
+                <div class="list-sub">${subtext}</div>
+            </div>
+            <div class="list-meta">${chat.last_at ? chat.last_at.split(' ')[0] : ''}</div>
+        `;
+        
+        div.onclick = () => loadMessages(chat.chat_id, chat.label, filterType);
         listEl.appendChild(div);
     });
 }
 
 async function loadChats() {
     const listEl = document.getElementById('chats-list');
-    if (allChatsData.length > 0) { renderChatsList(allChatsData); return; }
     listEl.innerHTML = '<div class="empty-state">Загрузка чатов...</div>';
     try {
-        const res = await miniAppClient.get('/api/miniapp/chats');
+        const res = await miniAppClient.get('/api/miniapp/chats?filter=all');
         allChatsData = res.data.chats || [];
-        const allTabBtn = document.querySelector('.chat-tab');
-        if(allTabBtn) { document.querySelectorAll('.chat-tab').forEach(btn => btn.classList.remove('active')); allTabBtn.classList.add('active'); }
-        renderChatsList(allChatsData);
-    } catch (err) { listEl.innerHTML = '<div class="empty-state">Ошибка загрузки</div>'; }
+        renderChatsList(allChatsData, 'all');
+    } catch (err) { 
+        listEl.innerHTML = '<div class="empty-state">Ошибка загрузки</div>'; 
+    }
 }
 
+// --- МОДАЛКА ПРЕМИУМА ---
 window.openFeatureModal = function(id) {
     const data = FEATURE_DATA[id];
     if(!data) return;
@@ -206,6 +245,7 @@ window.copyRefLink = function() {
     if(refLink) { navigator.clipboard.writeText(refLink); tg.HapticFeedback.notificationOccurred('success'); tg.showAlert("Ссылка скопирована!"); }
 };
 
+// --- ИНИЦИАЛИЗАЦИЯ ---
 async function initApp() {
     try {
         document.getElementById('user-name').textContent = 'Загрузка...';
@@ -281,6 +321,7 @@ async function loadStats() {
         document.getElementById('stat-media').textContent = res.data.media_count || 0;
     } catch(e) {}
 }
+
 async function loadPremiumStatus() {
     try {
         const res = await miniAppClient.get('/api/miniapp/stats');
@@ -300,7 +341,6 @@ async function loadPremiumStatus() {
 }
 
 // --- ЛОГИКА АДМИНКИ ---
-
 async function loadAdminStats() {
     if (!currentRole) return;
     try {
@@ -443,30 +483,42 @@ window.executeAdminAction = async function() {
     }
 };
 
-async function loadMessages(chatId, chatLabel) {
+// --- ЗАГРУЗКА СООБЩЕНИЙ (С УЧЕТОМ ФИЛЬТРА) ---
+async function loadMessages(chatId, chatLabel, filterType = 'all') {
     switchTab('messages');
     document.getElementById('chat-title').textContent = chatLabel || 'Сообщения';
     const listEl = document.getElementById('messages-list');
     listEl.innerHTML = '<div class="empty-state">Загрузка...</div>';
+    
     try {
-        const res = await miniAppClient.get(`/api/miniapp/messages?chat_id=${chatId}`);
+        // Передаем фильтр в запрос
+        const res = await miniAppClient.get(`/api/miniapp/messages?chat_id=${chatId}&filter=${filterType}`);
         const messages = res.data.messages || [];
         listEl.innerHTML = '';
-        if (messages.length === 0) { listEl.innerHTML = '<div class="empty-state">Нет сообщений</div>'; return; }
+        if (messages.length === 0) { 
+            listEl.innerHTML = '<div class="empty-state">Нет сообщений</div>'; 
+            return; 
+        }
+        
         messages.forEach(msg => {
             const div = document.createElement('div');
             let classes = 'message-item';
-            if (msg.deleted) classes += ' deleted'; else if (msg.edited) classes += ' edited';
+            if (msg.deleted) classes += ' deleted'; 
+            else if (msg.edited) classes += ' edited';
             div.className = classes;
+            
             let text = msg.text || '';
             if (text) text = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            
             let statusIcons = '';
             if (msg.deleted) statusIcons = '<svg class="text-svg" style="stroke: var(--accent-red);"><use href="#icon-trash"></use></svg>';
             else if (msg.edited) statusIcons = '<svg class="text-svg" style="stroke: var(--accent-yellow);"><use href="#icon-edit"></use></svg>';
+            
             let mediaHtml = '';
             if (msg.has_media) {
                 const mediaUrl = `${miniAppClient.defaults.baseURL}/api/miniapp/media?chat_id=${chatId}&message_id=${msg.message_id}&initData=${encodedInitData}`;
                 const type = msg.content_type; const ext = msg.media_ext || '';
+                
                 if (type === 'sticker') {
                     if (ext === '.tgs') mediaHtml = `<div class="sticker-placeholder"><svg class="icon" style="width:48px;height:48px;color:var(--text-muted);"><use href="#icon-star"></use></svg></div>`;
                     else if (ext === '.webm') mediaHtml = `<video src="${mediaUrl}" autoplay loop muted playsinline class="msg-sticker-video"></video>`;
@@ -477,9 +529,19 @@ async function loadMessages(chatId, chatLabel) {
                 else if (type === 'voice' || type === 'audio') mediaHtml = `<audio src="${mediaUrl}" controls class="msg-audio" preload="metadata"></audio>`;
                 else if (type === 'animation') mediaHtml = `<video src="${mediaUrl}" autoplay loop muted playsinline class="msg-media"></video>`;
                 else if (type === 'document') mediaHtml = `<a href="${mediaUrl}" target="_blank" class="msg-doc"><svg class="text-svg"><use href="#icon-export"></use></svg> Скачать файл</a>`;
-            } else if (!text && msg.content_type !== 'text') text = `[${msg.content_type}]`;
-            div.innerHTML = `<div class="msg-author">${msg.sender_name || 'Пользователь'} ${statusIcons}</div>${text ? `<div class="msg-text">${text}</div>` : ''}${mediaHtml ? `<div class="media-container">${mediaHtml}</div>` : ''}<div class="msg-time">${msg.updated_at}</div>`;
+            } else if (!text && msg.content_type !== 'text') {
+                text = `[${msg.content_type}]`;
+            }
+            
+            div.innerHTML = `
+                <div class="msg-author">${msg.sender_name || 'Пользователь'} ${statusIcons}</div>
+                ${text ? `<div class="msg-text">${text}</div>` : ''}
+                ${mediaHtml ? `<div class="media-container">${mediaHtml}</div>` : ''}
+                <div class="msg-time">${msg.updated_at}</div>
+            `;
             listEl.appendChild(div);
         });
-    } catch (err) { listEl.innerHTML = '<div class="empty-state">Ошибка загрузки сообщений</div>'; }
+    } catch (err) { 
+        listEl.innerHTML = '<div class="empty-state">Ошибка загрузки сообщений</div>'; 
+    }
 }

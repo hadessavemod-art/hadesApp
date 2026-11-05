@@ -1,321 +1,152 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>HadesSave</title>
-    <link rel="stylesheet" href="mini-app.css?v=220">
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#09090b">
+  <title>HadesSave</title>
+  <link rel="stylesheet" href="mini-app.css?v=301">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body class="mini-app-body">
-    <div id="preloader" class="preloader"><div class="spinner"></div><p>Загрузка данных...</p></div>
-
-    <svg style="display: none;">
-        <symbol id="icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></symbol>
-        <symbol id="icon-chat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></symbol>
-        <symbol id="icon-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></symbol>
-        <symbol id="icon-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></symbol>
-        <symbol id="icon-diamond" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 13L2 9z"></path></symbol>
-        <symbol id="icon-star" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></symbol>
-        <symbol id="icon-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></symbol>
-        <symbol id="icon-flame" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></symbol>
-        <symbol id="icon-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></symbol>
-        <symbol id="icon-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></symbol>
-        <symbol id="icon-back" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></symbol>
-        <symbol id="icon-crown" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M5 16L3 5L8.5 10L12 4L15.5 10L21 5L19 16H5Z"/><path d="M5 18H19V20H5V18Z"/></symbol>
-        <symbol id="icon-admin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M12 8v4"></path><path d="M12 16h.01"></path></symbol>
-        <symbol id="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></symbol>
-        <symbol id="icon-image" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></symbol>
-        <symbol id="icon-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></symbol>
-        <symbol id="icon-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></symbol>
-        <symbol id="icon-infinity" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.178 8c-2.865 0-5.178 2.314-5.178 5.172 0 2.859 2.313 5.172 5.178 5.172 2.866 0 5.179-2.313 5.179-5.172C23.357 10.314 21.044 8 18.178 8zM5.822 8C2.957 8 .644 10.314.644 13.172c0 2.859 2.313 5.172 5.178 5.172 2.866 0 5.179-2.313 5.179-5.172C11.001 10.314 8.688 8 5.822 8z"></path></symbol>
-        <symbol id="icon-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></symbol>
-        <symbol id="icon-bot" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"></rect><circle cx="12" cy="16" r="1"></circle><path d="M8 11V7a4 4 0 0 1 8 0v4"></path><path d="M9 16h.01"></path><path d="M15 16h.01"></path></symbol>
-        <symbol id="icon-zap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></symbol>
-        <symbol id="icon-headphones" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path></symbol>
-        <symbol id="icon-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></symbol>
-        <symbol id="icon-export" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></symbol>
-        <symbol id="icon-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></symbol>
-        <symbol id="icon-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></symbol>
-        <symbol id="icon-money" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></symbol>
-        <symbol id="icon-ban" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></symbol>
-        <symbol id="icon-megaphone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></symbol>
-        <symbol id="icon-send" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></symbol>
-    </svg>
-
-    <div id="app" class="hs-app">
-        <main id="view-home" class="page active">
-            <header class="user-header">
-                <div class="avatar" id="user-avatar-container"><span id="user-avatar-text">...</span><img id="user-avatar-img" style="display:none;" class="avatar-img" alt=""></div>
-                <div class="user-info">
-                    <div class="name-row">
-                        <h2 id="user-name">Загрузка...</h2>
-                        <div id="premium-badge" class="premium-badge hidden"><svg class="crown-icon"><use href="#icon-crown"></use></svg><span class="premium-text">PREMIUM</span></div>
-                        <div id="role-badge" class="role-badge hidden"></div>
-                    </div>
-                    <span id="user-id" class="user-id">ID: ...</span>
-                    
-                    <div id="premium-timer" class="premium-timer hidden">
-                        <svg class="icon" style="width: 14px; height: 14px; color: #FFD700; margin-right: 4px;"><use href="#icon-clock"></use></svg>
-                        <span id="premium-timer-text" style="color: #FFD700; font-family: monospace;">00:00:00</span>
-                    </div>
-                </div>
-            </header>
-
-            <div class="stats-grid">
-                <div class="stat-card"><svg class="icon text-red"><use href="#icon-trash"></use></svg><strong id="stat-deleted">0</strong><span>Удалено</span></div>
-                <div class="stat-card"><svg class="icon text-blue"><use href="#icon-chat"></use></svg><strong id="stat-chats">0</strong><span>Чатов</span></div>
-                <div class="stat-card"><svg class="icon text-green"><use href="#icon-image"></use></svg><strong id="stat-media">0</strong><span>Медиа</span></div>
-            </div>
-
-            <div class="menu-group">
-                <div class="menu-item" onclick="switchTab('chats')">
-                    <div class="menu-icon bg-blue"><svg class="icon"><use href="#icon-chat"></use></svg></div>
-                    <div class="menu-text"><h3>Мои чаты</h3><p>История переписок</p></div>
-                    <svg class="icon chevron"><use href="#icon-chevron"></use></svg>
-                </div>
-            </div>
-
-            <div class="menu-group">
-                <div class="menu-item" onclick="switchTab('premium')">
-                    <div class="menu-icon bg-purple"><svg class="icon"><use href="#icon-diamond"></use></svg></div>
-                    <div class="menu-text"><h3>Hades Premium</h3><p>Безлимитный архив и без рекламы</p></div>
-                    <svg class="icon chevron"><use href="#icon-chevron"></use></svg>
-                </div>
-                <div class="menu-item" onclick="switchTab('referrals')">
-                    <div class="menu-icon bg-green"><svg class="icon"><use href="#icon-users"></use></svg></div>
-                    <div class="menu-text"><h3>Рефералы</h3><p>Пригласи друга — получи Premium</p></div>
-                    <svg class="icon chevron"><use href="#icon-chevron"></use></svg>
-                </div>
-            </div>
-        </main>
-
-        <main id="view-settings" class="page">
-            <header class="page-header with-back">
-                <button class="back-btn" onclick="switchTab('profile')"><svg class="icon"><use href="#icon-back"></use></svg></button>
-                <h2>Настройки</h2>
-            </header>
-
-            <div class="premium-section-title">УВЕДОМЛЕНИЯ В БОТЕ</div>
-            <div class="menu-group" style="padding: 10px 16px;">
-                <div class="setting-row">
-                    <div class="setting-text"><h3>Изменения сообщений</h3><p>Присылать уведомления, когда кто-то редактирует текст</p></div>
-                    <label class="switch"><input type="checkbox" id="toggle-edits" onchange="updateSetting('edits', this.checked)"><span class="slider round"></span></label>
-                </div>
-                <div class="setting-row">
-                    <div class="setting-text"><h3>Удаления сообщений</h3><p>Присылать уведомления, когда собеседник удаляет сообщение</p></div>
-                    <label class="switch"><input type="checkbox" id="toggle-deletions" onchange="updateSetting('deletions', this.checked)"><span class="slider round"></span></label>
-                </div>
-                <div class="setting-row">
-                    <div class="setting-text"><h3>Сохранение медиа</h3><p>Автоматически скачивать фото, видео и голосовые в архив</p></div>
-                    <label class="switch"><input type="checkbox" id="toggle-media" onchange="updateSetting('deleted_media', this.checked)"><span class="slider round"></span></label>
-                </div>
-            </div>
-
-            <div class="premium-section-title">ОПАСНАЯ ЗОНА</div>
-            <div class="menu-group">
-                <div class="menu-item" onclick="clearArchive()" style="border-left: 3px solid var(--accent-red);">
-                    <div class="menu-icon bg-red"><svg class="icon"><use href="#icon-trash"></use></svg></div>
-                    <div class="menu-text"><h3 style="color: #ff4d4d;">Очистить весь архив</h3><p>Удалить все сообщения и медиа из базы навсегда</p></div>
-                </div>
-            </div>
-        </main>
-
-        <main id="view-chats" class="page">
-            <header class="page-header with-back">
-                <button class="back-btn" onclick="switchTab('home')"><svg class="icon"><use href="#icon-back"></use></svg></button>
-                <h2>Архив</h2>
-            </header>
-            <div class="search-bar"><svg class="icon"><use href="#icon-search"></use></svg><input type="text" placeholder="Поиск по чатам..."></div>
-            <div class="chat-tabs">
-                <button class="chat-tab active" onclick="filterChats('all', this)">Все</button>
-                <button class="chat-tab" onclick="filterChats('deleted', this)">Удаленные</button>
-                <button class="chat-tab" onclick="filterChats('media', this)">Медиа</button>
-            </div>
-            <div id="chats-list" class="chats-list"><div class="empty-state">Загрузка...</div></div>
-        </main>
-
-        <main id="view-messages" class="page">
-            <header class="page-header with-back">
-                <button class="back-btn" onclick="switchTab('chats')"><svg class="icon"><use href="#icon-back"></use></svg></button>
-                <h2 id="chat-title">Чат</h2>
-            </header>
-            <div id="messages-list" class="messages-list"></div>
-        </main>
-
-        <main id="view-premium" class="page">
-            <header class="page-header with-back">
-                <button class="back-btn" onclick="switchTab('home')"><svg class="icon"><use href="#icon-back"></use></svg></button>
-                <h2>Hades Premium</h2>
-            </header>
-            <div class="premium-hero">
-                <div class="premium-glow"></div>
-                <div class="premium-hero-content">
-                    <div class="premium-icon-wrapper"><svg class="icon premium-icon"><use href="#icon-crown"></use></svg></div>
-                    <div class="premium-text-wrap"><h3>Hades Premium</h3><div id="premium-status-text" class="premium-status">Проверка...</div></div>
-                </div>
-                <button id="premium-action-btn" class="premium-buy-btn" onclick="alert('Оплата скоро появится!')">Подключить</button>
-            </div>
-            <div class="premium-section-title">ЧТО ВХОДИТ В ПОДПИСКУ</div>
-            <div class="premium-features-list">
-                <div class="feature-row" onclick="openFeatureModal('archive')"><div class="feature-icon bg-blue"><svg class="icon"><use href="#icon-infinity"></use></svg></div><div class="feature-text"><h4>Безлимитный архив</h4><p>Срок хранения сообщений увеличивается с 3 до 30 дней.</p></div></div>
-                <div class="feature-row" onclick="openFeatureModal('priority')"><div class="feature-icon bg-purple"><svg class="icon"><use href="#icon-shield"></use></svg></div><div class="feature-text"><h4>Приоритетное сохранение</h4><p>Твои файлы и медиа удаляются последними при очистке.</p></div></div>
-                <div class="feature-row" onclick="openFeatureModal('mirrors')"><div class="feature-icon bg-cyan"><svg class="icon"><use href="#icon-bot"></use></svg></div><div class="feature-text"><h4>До 5 зеркал</h4><p>Возможность создать 5 своих ботов вместо 1 бесплатного.</p></div></div>
-                <div class="feature-row" onclick="openFeatureModal('spam')"><div class="feature-icon bg-green"><svg class="icon"><use href="#icon-zap"></use></svg></div><div class="feature-text"><h4>Увеличенный .spam</h4><p>Лимит рассылки повышается с 20 до 50 сообщений.</p></div></div>
-                <div class="feature-row" onclick="openFeatureModal('badge')"><div class="feature-icon bg-yellow"><svg class="icon"><use href="#icon-crown"></use></svg></div><div class="feature-text"><h4>Уникальный значок</h4><p>Красная корона рядом с именем в профиле Mini App.</p></div></div>
-                <div class="feature-row" onclick="openFeatureModal('support')"><div class="feature-icon bg-green"><svg class="icon"><use href="#icon-headphones"></use></svg></div><div class="feature-text"><h4>Приоритетная поддержка</h4><p>Ответ администратора в течение 15 минут.</p></div></div>
-                <div class="feature-row" onclick="openFeatureModal('media')"><div class="feature-icon bg-blue"><svg class="icon"><use href="#icon-upload"></use></svg></div><div class="feature-text"><h4>Увеличенный лимит медиа</h4><p>Загрузка файлов до 50 МБ вместо стандартных 20 МБ.</p></div></div>
-            </div>
-        </main>
-
-        <main id="view-referrals" class="page">
-            <header class="page-header with-back">
-                <button class="back-btn" onclick="switchTab('home')"><svg class="icon"><use href="#icon-back"></use></svg></button>
-                <h2>Рефералы</h2>
-            </header>
-            <div class="premium-hero" style="background: linear-gradient(135deg, #10b981 0%, #064e3b 100%); border: none;">
-                <div class="premium-hero-content">
-                    <svg class="icon premium-icon" style="color: #fff;"><use href="#icon-users"></use></svg>
-                    <div><h3>Приглашай друзей</h3><p><b>Вы оба</b> получаете 1 день Premium</p></div>
-                </div>
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <strong id="ref-count" style="font-size: 48px; line-height: 1; color: #fff;">0</strong>
-                    <span style="display:block; font-size: 13px; opacity: 0.9; margin-top: 5px; color: #fff;">друзей подключили бота</span>
-                </div>
-                <button class="premium-buy-btn" onclick="copyRefLink()" style="color: #10b981; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                    <svg class="icon" style="width: 18px; height: 18px;"><use href="#icon-copy"></use></svg> Скопировать ссылку
-                </button>
-            </div>
-            <div class="menu-group" style="padding: 20px;">
-                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
-                    <svg class="icon text-blue"><use href="#icon-info"></use></svg>
-                    <h4 style="color: #fff; font-size: 15px; margin: 0;">Как это работает?</h4>
-                </div>
-                <ul style="list-style: none; padding: 0; margin: 0; font-size: 13px; color: var(--text-muted); line-height: 1.6;">
-                    <li style="margin-bottom: 10px;">1. Отправь ссылку другу.</li>
-                    <li style="margin-bottom: 10px;">2. Друг запускает бота.</li>
-                    <li style="margin-bottom: 10px;">3. Друг <b>подключает бота</b> в настройках Telegram (Настройки → Чат-боты).</li>
-                    <li>4. <b>Вы оба</b> получаете <b>+1 день Premium</b>!</li>
-                </ul>
-            </div>
-        </main>
-
-        <main id="view-profile" class="page">
-            <header class="page-header"><h2>Профиль</h2></header>
-            <div class="user-header" style="padding: 0 16px 20px 16px;">
-                <div class="avatar" id="profile-avatar-container" style="width: 64px; height: 64px; font-size: 24px;"><span id="profile-avatar-text">...</span><img id="profile-avatar-img" style="display:none;" class="avatar-img" alt=""></div>
-                <div class="user-info">
-                    <div class="name-row">
-                        <h2 id="profile-name">Загрузка...</h2>
-                        <div id="profile-premium-badge" class="premium-badge hidden"><svg class="crown-icon"><use href="#icon-crown"></use></svg><span class="premium-text">PREMIUM</span></div>
-                        <div id="profile-role-badge" class="role-badge hidden"></div>
-                    </div>
-                    <span id="profile-id" class="user-id">ID: ...</span>
-                </div>
-            </div>
-            <div class="menu-group">
-                <div class="menu-item" onclick="switchTab('settings')">
-                    <div class="menu-icon bg-gray"><svg class="icon"><use href="#icon-settings"></use></svg></div>
-                    <div class="menu-text"><h3>Настройки</h3><p>Управление архивом и уведомлениями</p></div>
-                    <svg class="icon chevron"><use href="#icon-chevron"></use></svg>
-                </div>
-                <!-- КНОПКА ПОДДЕРЖКИ ПЕРЕДЕЛАНА -->
-                <div class="menu-item" onclick="window.open('https://t.me/Hades_save_men', '_blank')">
-                    <div class="menu-icon bg-green"><svg class="icon"><use href="#icon-headphones"></use></svg></div>
-                    <div class="menu-text"><h3>Поддержка</h3><p>Связаться с администратором</p></div>
-                    <svg class="icon chevron"><use href="#icon-chevron"></use></svg>
-                </div>
-                <div id="admin-tab-btn" class="menu-item hidden" onclick="switchTab('admin')">
-                    <div class="menu-icon bg-yellow"><svg class="icon"><use href="#icon-admin"></use></svg></div>
-                    <div class="menu-text"><h3>Админ-панель</h3><p>Управление ботом</p></div>
-                    <svg class="icon chevron"><use href="#icon-chevron"></use></svg>
-                </div>
-            </div>
-        </main>
-
-        <main id="view-admin" class="page">
-            <header class="page-header with-back">
-                <button class="back-btn" onclick="switchTab('profile')"><svg class="icon"><use href="#icon-back"></use></svg></button>
-                <h2>Админ-панель</h2>
-            </header>
-            <div class="premium-section-title">ОБЩАЯ СТАТИСТИКА</div>
-            <div class="stats-grid" style="grid-template-columns: repeat(2, 1fr);">
-                <div class="stat-card"><svg class="icon text-blue"><use href="#icon-users"></use></svg><strong id="adm-stat-users">0</strong><span>Юзеров</span></div>
-                <div class="stat-card"><svg class="icon text-green"><use href="#icon-money"></use></svg><strong id="adm-stat-stars">0</strong><span>Звёзд (всего)</span></div>
-                <div class="stat-card"><svg class="icon text-red"><use href="#icon-flame"></use></svg><strong id="adm-stat-prem">0</strong><span>Premium</span></div>
-                <div class="stat-card"><svg class="icon text-yellow"><use href="#icon-star"></use></svg><strong id="adm-stat-week">0</strong><span>Premium за нед.</span></div>
-            </div>
-            
-            <div class="premium-section-title">ДЕЙСТВИЯ</div>
-            <div class="menu-group">
-                <div class="menu-item" onclick="openAdminModal('grant')"><div class="menu-icon bg-purple"><svg class="icon"><use href="#icon-diamond"></use></svg></div><div class="menu-text"><h3>Выдать Premium</h3><p>По ID или юзернейму</p></div></div>
-                <div class="menu-item" onclick="openAdminModal('ban')"><div class="menu-icon bg-red"><svg class="icon"><use href="#icon-ban"></use></svg></div><div class="menu-text"><h3>Забанить</h3><p>По ID или юзернейму</p></div></div>
-                <div class="menu-item" onclick="openAdminModal('role')"><div class="menu-icon bg-blue"><svg class="icon"><use href="#icon-admin"></use></svg></div><div class="menu-text"><h3>Выдать админку</h3><p>Префиксы: owner, admin, aboba</p></div></div>
-            </div>
-            <div class="premium-section-title">ИНСТРУМЕНТЫ</div>
-            <div class="menu-group">
-                <div class="menu-item" onclick="openAdminModal('broadcast')"><div class="menu-icon bg-yellow"><svg class="icon"><use href="#icon-megaphone"></use></svg></div><div class="menu-text"><h3>Рассылка</h3><p>Отправить сообщение всем</p></div></div>
-                <div class="menu-item" onclick="openAdminModal('bans')"><div class="menu-icon bg-red"><svg class="icon"><use href="#icon-ban"></use></svg></div><div class="menu-text"><h3>Бан-лист</h3><p>Список забаненных</p></div></div>
-            </div>
-        </main>
-
-        <!-- ЛАЙТБОКС ДЛЯ МЕДИА -->
-        <div id="media-lightbox" class="lightbox" onclick="closeLightbox(event)">
-            <div class="lightbox-content" onclick="event.stopPropagation()">
-                <button class="lightbox-close" onclick="closeLightbox()"><svg class="icon"><use href="#icon-ban"></use></svg></button>
-                <div id="lightbox-media-container" class="lightbox-media-box"></div>
-                
-                <div class="lightbox-actions">
-                    <button class="request-btn" onclick="requestMedia()">
-                        <svg class="icon" style="width: 20px; height: 20px;"><use href="#icon-send"></use></svg> Запросить в бота
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div id="admin-modal" class="modal-overlay" onclick="closeAdminModal(event)">
-            <div class="modal-content" onclick="event.stopPropagation()">
-                <div class="modal-handle"></div>
-                <div class="modal-header"><h3 id="admin-modal-title">Действие</h3></div>
-                <div class="modal-body">
-                    <div id="admin-input-fields">
-                        <input type="text" id="admin-target" class="admin-input" placeholder="ID или @username">
-                        <div id="admin-grant-fields" style="display:none;"><input type="number" id="admin-days" class="admin-input" placeholder="Количество дней" value="30"></div>
-                        <div id="admin-ban-fields" style="display:none;"><input type="text" id="admin-reason" class="admin-input" placeholder="Причина бана"></div>
-                        <div id="admin-role-fields" style="display:none;">
-                            <select id="admin-role-select" class="admin-input">
-                                <option value="owner">Owner (Владелец)</option>
-                                <option value="admin">Admin (Админ)</option>
-                                <option value="aboba">Aboba</option>
-                                <option value="none">Снять админ-доступ</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div id="admin-broadcast-fields" style="display:none;"><textarea id="admin-broadcast-text" class="admin-input" placeholder="Введите текст рассылки..." rows="4"></textarea></div>
-                    <div id="admin-list-container" style="display:none; max-height: 300px; overflow-y: auto;"></div>
-                </div>
-                <div style="margin-top: 20px; display: flex; gap: 10px;">
-                    <button id="admin-execute-btn" class="premium-buy-btn" onclick="executeAdminAction()" style="background: var(--accent-blue); color: #fff;">Выполнить</button>
-                    <button class="premium-buy-btn" onclick="closeAdminModal(event)" style="background: rgba(255,255,255,0.1); color: #fff;">Закрыть</button>
-                </div>
-            </div>
-        </div>
-
-        <div id="feature-modal" class="modal-overlay" onclick="closeFeatureModal(event)">
-            <div class="modal-content" onclick="event.stopPropagation()">
-                <div class="modal-handle"></div>
-                <div class="modal-header"><div id="modal-icon-container" class="feature-icon"><svg class="icon" id="modal-icon"><use href=""></use></svg></div><h3 id="modal-title">Заголовок</h3></div>
-                <div class="modal-body"><p id="modal-desc">Описание...</p></div>
-                <div style="margin-top: 20px;"><button class="premium-buy-btn" onclick="closeFeatureModal(event)" style="background: rgba(255,255,255,0.1); color: #fff;">Понятно</button></div>
-            </div>
-        </div>
-
-        <nav class="bottom-nav">
-            <button class="nav-item active" onclick="switchTab('home')"><svg class="icon"><use href="#icon-home"></use></svg><span>Главная</span></button>
-            <button class="nav-item" onclick="switchTab('chats')"><svg class="icon"><use href="#icon-chat"></use></svg><span>Чаты</span></button>
-            <button class="nav-item" onclick="switchTab('profile')"><svg class="icon"><use href="#icon-user"></use></svg><span>Профиль</span></button>
-        </nav>
+<div id="preloader" class="preloader"><span class="spinner"></span><p>Загрузка HadesSave…</p></div>
+<svg class="svg-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <symbol id="icon-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></symbol>
+  <symbol id="icon-chat" viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8A8.5 8.5 0 0 1 8.7 4a8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8z"/></symbol>
+  <symbol id="icon-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+  <symbol id="icon-back" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+  <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
+  <symbol id="icon-chevron" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="icon-crown" viewBox="0 0 24 24"><path d="m3 8 5 4 4-8 4 8 5-4-2 12H5z"/></symbol>
+  <symbol id="icon-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.7a8 8 0 0 1-1.7 1l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.7-1l-1.7.7-1.4-2.4 1.4-1.1a8 8 0 0 1 0-2l-1.4-1.1 1.4-2.4 1.7.7a8 8 0 0 1 1.7-1l.3-1.8h2.8l.3 1.8a8 8 0 0 1 1.7 1l1.7-.7 1.4 2.4-1.4 1.1a8 8 0 0 1 0 2z"/></symbol>
+  <symbol id="icon-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6m4-6v6M6 7l1 14h10l1-14M9 7V4h6v3"/></symbol>
+  <symbol id="icon-edit" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></symbol>
+  <symbol id="icon-diamond" viewBox="0 0 24 24"><path d="m2 9 4-6h12l4 6-10 12zM2 9h20M6 3l3 6 3-6 3 6 3-6"/></symbol>
+  <symbol id="icon-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></symbol>
+  <symbol id="icon-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol>
+  <symbol id="icon-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4m0-4h.01"/></symbol>
+  <symbol id="icon-headphones" viewBox="0 0 24 24"><path d="M3 14v-3a9 9 0 0 1 18 0v3M3 14h4v7H5a2 2 0 0 1-2-2zM21 14h-4v7h2a2 2 0 0 0 2-2z"/></symbol>
+  <symbol id="icon-ban" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m5 5 14 14"/></symbol>
+  <symbol id="icon-send" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4zM22 2 11 13"/></symbol>
+  <symbol id="icon-money" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M6 9h.01M18 15h.01"/></symbol>
+  <symbol id="icon-star" viewBox="0 0 24 24"><path d="m12 2 3 6.5 7 1-5 4.8 1.2 6.8L12 17.8l-6.2 3.3L7 14.3 2 9.5l7-1z"/></symbol>
+  <symbol id="icon-zap" viewBox="0 0 24 24"><path d="m13 2-3 9h8L8 22l3-9H3z"/></symbol>
+  <symbol id="icon-infinity" viewBox="0 0 24 24"><path d="M6.5 16a4.5 4.5 0 1 1 0-9c2.5 0 4 2.5 5.5 5s3 5 5.5 5a4.5 4.5 0 1 0 0-9c-2.5 0-4 2.5-5.5 5s-3 5-5.5 5"/></symbol>
+  <symbol id="icon-bot" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="14" rx="3"/><path d="M12 3v4M8 13h.01M16 13h.01M8 17h8"/></symbol>
+  <symbol id="icon-upload" viewBox="0 0 24 24"><path d="M12 16V3m-5 5 5-5 5 5M4 17v4h16v-4"/></symbol>
+  <symbol id="icon-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></symbol>
+  <symbol id="icon-megaphone" viewBox="0 0 24 24"><path d="m3 11 18-7v16L3 13zM11 14l2 8H8l-2-9"/></symbol>
+  <symbol id="icon-admin" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10zM9 12l2 2 4-4"/></symbol>
+</svg>
+<div class="hs-app">
+  <main id="view-home" class="page active">
+    <header class="user-header">
+      <div class="avatar"><span id="user-avatar-text">H</span><img id="user-avatar-img" class="avatar-img" alt="" style="display:none"></div>
+      <div class="user-info"><div class="name-row"><h2 id="user-name">Загрузка…</h2><span id="premium-badge" class="premium-badge hidden">PREMIUM</span><span id="role-badge" class="role-badge hidden"></span></div><span id="user-id" class="user-id">ID: …</span><div id="premium-timer" class="premium-timer hidden"><span id="premium-timer-text"></span></div></div>
+    </header>
+    <div class="stats-grid">
+      <div class="stat-card"><strong id="stat-total">0</strong><span>Сообщений</span></div>
+      <div class="stat-card"><strong id="stat-deleted">0</strong><span>Удалено</span></div>
+      <div class="stat-card"><strong id="stat-chats">0</strong><span>Чатов</span></div>
+      <div class="stat-card"><strong id="stat-media">0</strong><span>Медиа</span></div>
     </div>
-    <script type="module" src="app.js"></script>
+    <div class="section-label">АРХИВ И ВОЗМОЖНОСТИ</div>
+    <div class="menu-group">
+      <button class="menu-item" onclick="switchTab('chats')"><span class="menu-icon blue"><svg class="icon"><use href="#icon-chat"/></svg></span><span class="menu-text"><b>Мои чаты</b><small>История переписок</small></span><svg class="icon chevron"><use href="#icon-chevron"/></svg></button>
+      <button class="menu-item" onclick="switchTab('premium')"><span class="menu-icon purple"><svg class="icon"><use href="#icon-diamond"/></svg></span><span class="menu-text"><b>Hades Premium</b><small>Расширенный архив и возможности</small></span><svg class="icon chevron"><use href="#icon-chevron"/></svg></button>
+      <button class="menu-item" onclick="switchTab('referrals')"><span class="menu-icon green"><svg class="icon"><use href="#icon-users"/></svg></span><span class="menu-text"><b>Рефералы</b><small>Приглашай друзей</small></span><svg class="icon chevron"><use href="#icon-chevron"/></svg></button>
+    </div>
+  </main>
+
+  <main id="view-chats" class="page">
+    <header class="page-header"><button class="back-btn" onclick="switchTab('home')"><svg class="icon"><use href="#icon-back"/></svg></button><div><h2>Архив переписок</h2><small>Все сохранённые диалоги</small></div></header>
+    <label class="search-bar"><svg class="icon"><use href="#icon-search"/></svg><input id="chat-search" type="search" placeholder="Поиск по чатам и сообщениям…" autocomplete="off"></label>
+    <div id="chat-filter-tabs" class="chat-tabs">
+      <button class="chat-tab active" data-filter="all" onclick="filterChats('all',this)">Все</button>
+      <button class="chat-tab" data-filter="deleted" onclick="filterChats('deleted',this)">Удалённые</button>
+      <button class="chat-tab" data-filter="media" onclick="filterChats('media',this)">Медиа</button>
+    </div>
+    <div id="chats-list" class="chats-list"><div class="empty-state">Загрузка…</div></div>
+  </main>
+
+  <main id="view-messages" class="page messages-page">
+    <header class="page-header"><button class="back-btn" onclick="switchTab('chats')"><svg class="icon"><use href="#icon-back"/></svg></button><div class="chat-heading"><h2 id="chat-title">Чат</h2><small id="chat-subtitle">Архив сообщений</small></div></header>
+    <label class="search-bar message-search"><svg class="icon"><use href="#icon-search"/></svg><input id="message-search" type="search" placeholder="Найти в переписке…" autocomplete="off"></label>
+    <div id="message-filter-tabs" class="chat-tabs compact-tabs">
+      <button class="chat-tab active" data-filter="all" onclick="setMessageFilter('all',this)">Все</button>
+      <button class="chat-tab" data-filter="deleted" onclick="setMessageFilter('deleted',this)">Удалённые</button>
+      <button class="chat-tab" data-filter="media" onclick="setMessageFilter('media',this)">Медиа</button>
+    </div>
+    <div id="messages-list" class="messages-list"><div class="empty-state">Выбери чат</div></div>
+  </main>
+
+  <main id="view-settings" class="page">
+    <header class="page-header"><button class="back-btn" onclick="switchTab('profile')"><svg class="icon"><use href="#icon-back"/></svg></button><h2>Настройки</h2></header>
+    <div class="section-label">УВЕДОМЛЕНИЯ В БОТЕ</div>
+    <div class="menu-group settings-group">
+      <label class="setting-row"><span><b>Изменения сообщений</b><small>Уведомлять о редактировании</small></span><input id="toggle-edits" type="checkbox" onchange="updateSetting('edits',this.checked)"></label>
+      <label class="setting-row"><span><b>Удаления сообщений</b><small>Уведомлять об удалениях</small></span><input id="toggle-deletions" type="checkbox" onchange="updateSetting('deletions',this.checked)"></label>
+      <label class="setting-row"><span><b>Сохранение медиа</b><small>Сохранять фото, видео и аудио</small></span><input id="toggle-media" type="checkbox" onchange="updateSetting('deleted_media',this.checked)"></label>
+    </div>
+    <div class="section-label">ОПАСНАЯ ЗОНА</div>
+    <div class="menu-group"><button class="menu-item danger-action" onclick="clearArchive()"><span class="menu-icon red"><svg class="icon"><use href="#icon-trash"/></svg></span><span class="menu-text"><b>Очистить весь архив</b><small>Удалить сообщения и медиа навсегда</small></span></button></div>
+  </main>
+
+  <main id="view-premium" class="page">
+    <header class="page-header"><button class="back-btn" onclick="switchTab('home')"><svg class="icon"><use href="#icon-back"/></svg></button><h2>Hades Premium</h2></header>
+    <section class="premium-hero"><div class="premium-logo"><svg class="icon"><use href="#icon-crown"/></svg></div><h2>HADES PREMIUM</h2><p id="premium-status-text">Проверка подписки…</p><button id="premium-action-btn" class="primary-button" onclick="window.Telegram?.WebApp?.showAlert?.('Оплата подключается через бота')">Подключить Premium</button></section>
+    <div class="section-label">ВОЗМОЖНОСТИ ПОДПИСКИ</div>
+    <div class="menu-group feature-list">
+      <button class="feature-row" onclick="openFeatureModal('archive')"><span class="menu-icon blue"><svg class="icon"><use href="#icon-infinity"/></svg></span><span><b>Безлимитный архив</b><small>Хранение сообщений до 30 дней</small></span></button>
+      <button class="feature-row" onclick="openFeatureModal('priority')"><span class="menu-icon purple"><svg class="icon"><use href="#icon-shield"/></svg></span><span><b>Приоритетное сохранение</b><small>Повышенный приоритет файлов</small></span></button>
+      <button class="feature-row" onclick="openFeatureModal('mirrors')"><span class="menu-icon cyan"><svg class="icon"><use href="#icon-bot"/></svg></span><span><b>Зеркала бота</b><small>Дополнительные копии бота</small></span></button>
+      <button class="feature-row" onclick="openFeatureModal('spam')"><span class="menu-icon green"><svg class="icon"><use href="#icon-zap"/></svg></span><span><b>Увеличенный .spam</b><small>Повышенные лимиты</small></span></button>
+      <button class="feature-row" onclick="openFeatureModal('badge')"><span class="menu-icon yellow"><svg class="icon"><use href="#icon-crown"/></svg></span><span><b>Уникальный значок</b><small>Значок Premium в профиле</small></span></button>
+      <button class="feature-row" onclick="openFeatureModal('support')"><span class="menu-icon green"><svg class="icon"><use href="#icon-headphones"/></svg></span><span><b>Приоритетная поддержка</b><small>Приоритет обработки вопросов</small></span></button>
+      <button class="feature-row" onclick="openFeatureModal('media')"><span class="menu-icon blue"><svg class="icon"><use href="#icon-upload"/></svg></span><span><b>Увеличенный лимит медиа</b><small>Больше места для файлов</small></span></button>
+    </div>
+  </main>
+
+  <main id="view-referrals" class="page">
+    <header class="page-header"><button class="back-btn" onclick="switchTab('home')"><svg class="icon"><use href="#icon-back"/></svg></button><h2>Рефералы</h2></header>
+    <section class="referral-card"><svg class="icon"><use href="#icon-users"/></svg><h2>Приглашай друзей</h2><p>Поделись ссылкой и получай бонусы за приглашённых пользователей.</p><strong id="ref-count">0</strong><small>приглашённых пользователей</small><button class="primary-button" onclick="copyRefLink()"><svg class="icon"><use href="#icon-copy"/></svg> Скопировать ссылку</button></section>
+  </main>
+
+  <main id="view-profile" class="page">
+    <header class="page-header"><h2>Профиль</h2></header>
+    <div class="user-header profile-header"><div class="avatar"><span id="profile-avatar-text">H</span><img id="profile-avatar-img" class="avatar-img" alt="" style="display:none"></div><div class="user-info"><div class="name-row"><h2 id="profile-name">Загрузка…</h2><span id="profile-premium-badge" class="premium-badge hidden">PREMIUM</span><span id="profile-role-badge" class="role-badge hidden"></span></div><span id="profile-id" class="user-id">ID: …</span></div></div>
+    <div class="menu-group">
+      <button class="menu-item" onclick="switchTab('settings')"><span class="menu-icon gray"><svg class="icon"><use href="#icon-settings"/></svg></span><span class="menu-text"><b>Настройки</b><small>Управление архивом и уведомлениями</small></span><svg class="icon chevron"><use href="#icon-chevron"/></svg></button>
+      <a class="menu-item" href="https://t.me/Hades_save_men" target="_blank" rel="noopener"><span class="menu-icon green"><svg class="icon"><use href="#icon-headphones"/></svg></span><span class="menu-text"><b>Поддержка</b><small>Связаться с администратором</small></span><svg class="icon chevron"><use href="#icon-chevron"/></svg></a>
+      <button id="admin-tab-btn" class="menu-item hidden" onclick="switchTab('admin')"><span class="menu-icon yellow"><svg class="icon"><use href="#icon-admin"/></svg></span><span class="menu-text"><b>Админ-панель</b><small>Управление ботом</small></span><svg class="icon chevron"><use href="#icon-chevron"/></svg></button>
+    </div>
+  </main>
+
+  <main id="view-admin" class="page">
+    <header class="page-header"><button class="back-btn" onclick="switchTab('profile')"><svg class="icon"><use href="#icon-back"/></svg></button><h2>Админ-панель</h2></header>
+    <div class="section-label">ОБЩАЯ СТАТИСТИКА</div>
+    <div class="stats-grid admin-stats"><div class="stat-card"><strong id="adm-stat-users">0</strong><span>Пользователи</span></div><div class="stat-card"><strong id="adm-stat-stars">0</strong><span>Звёзды</span></div><div class="stat-card"><strong id="adm-stat-prem">0</strong><span>Premium</span></div><div class="stat-card"><strong id="adm-stat-week">0</strong><span>За неделю</span></div></div>
+    <div class="section-label">ДЕЙСТВИЯ</div>
+    <div class="menu-group">
+      <button class="menu-item" onclick="openAdminModal('grant')"><span class="menu-icon purple"><svg class="icon"><use href="#icon-diamond"/></svg></span><span class="menu-text"><b>Выдать Premium</b><small>По ID или username</small></span></button>
+      <button class="menu-item" onclick="openAdminModal('ban')"><span class="menu-icon red"><svg class="icon"><use href="#icon-ban"/></svg></span><span class="menu-text"><b>Забанить</b><small>По ID или username</small></span></button>
+      <button class="menu-item" onclick="openAdminModal('role')"><span class="menu-icon blue"><svg class="icon"><use href="#icon-admin"/></svg></span><span class="menu-text"><b>Управление ролями</b><small>Выдать или снять права</small></span></button>
+      <button class="menu-item" onclick="openAdminModal('broadcast')"><span class="menu-icon yellow"><svg class="icon"><use href="#icon-megaphone"/></svg></span><span class="menu-text"><b>Рассылка</b><small>Сообщение всем пользователям</small></span></button>
+      <button class="menu-item" onclick="openAdminModal('bans')"><span class="menu-icon red"><svg class="icon"><use href="#icon-ban"/></svg></span><span class="menu-text"><b>Бан-лист</b><small>Просмотр и разблокировка</small></span></button>
+    </div>
+  </main>
+
+  <div id="media-lightbox" class="overlay" onclick="closeLightbox(event)"><div class="dialog media-dialog" onclick="event.stopPropagation()"><button class="dialog-close" onclick="closeLightbox()">×</button><div id="lightbox-media-container" class="lightbox-media-box"></div><button class="primary-button" onclick="requestMedia()"><svg class="icon"><use href="#icon-send"/></svg> Запросить файл в бота</button></div></div>
+  <div id="history-modal" class="overlay" onclick="closeHistory()"><div class="dialog" onclick="event.stopPropagation()"><button class="dialog-close" onclick="closeHistory()">×</button><h3>История изменений</h3><div id="history-body"></div></div></div>
+  <div id="admin-modal" class="overlay" onclick="closeAdminModal(event)"><div class="dialog" onclick="event.stopPropagation()"><button class="dialog-close" onclick="closeAdminModal()">×</button><h3 id="admin-modal-title">Действие</h3><div id="admin-input-fields"><input id="admin-target" class="admin-input" placeholder="ID или @username"><div id="admin-grant-fields"><input id="admin-days" class="admin-input" type="number" min="1" max="3650" value="30" placeholder="Дней"></div><div id="admin-ban-fields"><input id="admin-reason" class="admin-input" placeholder="Причина бана"></div><div id="admin-role-fields"><select id="admin-role-select" class="admin-input"><option value="owner">Owner</option><option value="admin">Admin</option><option value="aboba">Aboba</option><option value="none">Снять права</option></select></div></div><div id="admin-broadcast-fields"><textarea id="admin-broadcast-text" class="admin-input" rows="4" placeholder="Текст рассылки"></textarea></div><div id="admin-list-container"></div><button id="admin-execute-btn" class="primary-button" onclick="executeAdminAction()">Выполнить</button></div></div>
+  <div id="feature-modal" class="overlay" onclick="closeFeatureModal(event)"><div class="dialog" onclick="event.stopPropagation()"><button class="dialog-close" onclick="closeFeatureModal()">×</button><h3 id="feature-title"></h3><p id="feature-desc"></p><button class="primary-button" onclick="closeFeatureModal()">Понятно</button></div></div>
+
+  <nav class="bottom-nav">
+    <button class="nav-item active" data-tab="home" onclick="switchTab('home')"><svg class="icon"><use href="#icon-home"/></svg><span>Главная</span></button>
+    <button class="nav-item" data-tab="chats" onclick="switchTab('chats')"><svg class="icon"><use href="#icon-chat"/></svg><span>Чаты</span></button>
+    <button class="nav-item" data-tab="profile" onclick="switchTab('profile')"><svg class="icon"><use href="#icon-user"/></svg><span>Профиль</span></button>
+  </nav>
+</div>
+<script type="module" src="app.js"></script>
 </body>
 </html>

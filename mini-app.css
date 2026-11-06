@@ -1160,3 +1160,53 @@ to {
   .messages-list { scroll-behavior: auto; }
   .history-button, .message-media { transition: none; }
 }
+
+
+/* Telegram stickers: transparent artwork, no tiny broken-image placeholders. */
+.message-bubble.has-sticker {
+  width: fit-content;
+  min-width: 0;
+  max-width: min(78vw, 230px);
+  padding: 5px 7px 6px;
+  overflow: visible;
+}
+.message-bubble.has-sticker .message-attachment { margin-top: 0; }
+.message-bubble.has-sticker .message-footer { margin-top: 1px; padding: 0 2px; }
+.message-sticker-image,
+.message-sticker-video,
+.message-sticker-tgs {
+  display: block;
+  width: 176px;
+  height: 176px;
+  max-width: min(62vw, 210px);
+  max-height: min(62vw, 210px);
+  margin: 0 auto;
+  object-fit: contain;
+  border: 0 !important;
+  border-radius: 8px;
+  background: transparent !important;
+  box-shadow: none !important;
+  cursor: default;
+}
+.message-sticker-tgs { overflow: hidden; }
+.message-sticker-tgs svg {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  overflow: visible;
+}
+.sticker-unavailable {
+  display: grid;
+  place-items: center;
+  width: 176px;
+  height: 176px;
+  max-width: min(62vw, 210px);
+  max-height: min(62vw, 210px);
+  margin: 0 auto;
+  color: #a69aa0;
+  font-size: 12px;
+  text-align: center;
+  border: 1px dashed rgba(228, 67, 86, .22);
+  border-radius: 14px;
+  background: rgba(20, 14, 17, .38);
+}

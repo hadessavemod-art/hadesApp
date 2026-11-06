@@ -1625,3 +1625,88 @@ body.chat-open .bottom-nav {
   .messages-page.active .messages-list { scroll-behavior: auto; }
   .telegram-avatar img { transition: none; }
 }
+
+
+/* Final Telegram geometry: one shared rhythm for every message bubble. */
+.messages-page.active .messages-list {
+  align-items: stretch;
+  gap: 6px;
+  padding: 12px 10px max(18px, env(safe-area-inset-bottom));
+}
+.messages-page.active .message-bubble {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  width: fit-content;
+  min-width: 68px;
+  max-width: min(78%, 470px);
+  margin: 0;
+  padding: 7px 10px 5px;
+  box-sizing: border-box;
+  overflow-wrap: anywhere;
+  border-radius: 17px;
+}
+.messages-page.active .message-bubble.incoming {
+  align-self: flex-start;
+  margin-right: auto;
+  border-radius: 17px 17px 17px 5px;
+}
+.messages-page.active .message-bubble.outgoing {
+  align-self: flex-end;
+  margin-left: auto;
+  border-radius: 17px 17px 5px 17px;
+}
+.messages-page.active .message-text {
+  max-width: 100%;
+  line-height: 1.38;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+.messages-page.active .message-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  align-self: stretch;
+  width: 100%;
+  max-width: 100%;
+  min-height: 13px;
+  margin: 3px 0 0 auto;
+  gap: 4px;
+  white-space: nowrap;
+  line-height: 1;
+}
+.messages-page.active .message-bubble:has(.message-media) {
+  width: fit-content;
+  max-width: min(82%, 400px);
+  padding: 4px;
+}
+.messages-page.active .message-bubble:has(.message-media) .message-footer {
+  padding: 0 3px 1px;
+}
+.messages-page.active .message-bubble.has-sticker {
+  width: min(190px, 68vw);
+  min-width: 0;
+  max-width: min(78vw, 230px);
+  padding: 0;
+  margin-inline: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.messages-page.active .message-bubble.has-sticker .message-attachment {
+  width: 100%;
+  margin: 0;
+}
+.messages-page.active .message-bubble.has-sticker .message-footer {
+  width: 100%;
+  padding: 3px 6px;
+  border-radius: 10px;
+  background: rgba(0,0,0,.42);
+}
+.messages-page.active .telegram-ticks.is-sent { stroke: #aab9c8; }
+.messages-page.active .telegram-ticks.is-read { stroke: #65b7f7; }
+@media (max-width: 380px) {
+  .messages-page.active .message-bubble { max-width: 84%; }
+  .messages-page.active .message-bubble:has(.message-media) { max-width: 86%; }
+}

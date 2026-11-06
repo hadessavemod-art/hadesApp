@@ -28,11 +28,11 @@ const fmtDate = (value) => {
 const apiError = (error) => error?.response?.data?.error || error?.message || 'Ошибка сети';
 
 function setPage(name) {
-  if (name === 'chats' || name === 'messages') name = 'home';
-  document.body.classList.toggle('chat-open', false);
+  document.body.classList.toggle('chat-open', name === 'messages');
   document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === `view-${name}`));
-  document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.tab === name || (['settings','premium','referrals','admin'].includes(name) && b.dataset.tab === 'profile')));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.tab === name || (name === 'messages' && b.dataset.tab === 'chats') || (['settings','premium','referrals','admin'].includes(name) && b.dataset.tab === 'profile')));
   if (name === 'home') loadStats();
+  if (name === 'chats') { state.chatSearch = ''; loadChats(); }
   if (name === 'settings') loadSettings();
   if (name === 'premium') loadPremium();
   if (name === 'referrals') loadReferrals();
@@ -602,5 +602,5 @@ window.executeAdminAction = async () => {
 };
 
 // Global browser Back button in Telegram
-try { tg?.BackButton?.onClick(() => { if ($('history-modal').classList.contains('active')) closeHistory(); else if ($('media-lightbox').classList.contains('active')) closeLightbox(); else if ($('view-messages')?.classList.contains('active')) setPage('home'); else setPage('home'); }); } catch (_) {}
+try { tg?.BackButton?.onClick(() => { if ($('history-modal').classList.contains('active')) closeHistory(); else if ($('media-lightbox').classList.contains('active')) closeLightbox(); else if ($('view-messages')?.classList.contains('active')) setPage('chats'); else if ($('view-chats')?.classList.contains('active')) setPage('home'); else setPage('home'); }); } catch (_) {}
 initApp();

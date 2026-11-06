@@ -16,7 +16,9 @@ const alertUser = (message) => { try { tg?.showAlert?.(String(message)); } catch
 const esc = (value) => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 const fmtDate = (value) => {
   if (!value) return '';
-  const date = new Date(String(value).replace(' ', 'T') + (String(value).includes('Z') ? '' : 'Z'));
+  const raw = String(value).trim().replace(' ', 'T');
+  const hasTimezone = /(?:Z|[+-]\d{2}:?\d{2})$/i.test(raw);
+  const date = new Date(raw + (hasTimezone ? '' : 'Z'));
   if (Number.isNaN(date.getTime())) return String(value);
   const now = new Date();
   return date.toDateString() === now.toDateString()
@@ -126,7 +128,9 @@ function renderChats() {
   let rows = state.chats.filter(c => {
     if (state.chatFilter === 'deleted' && !Number(c.deleted_count)) return false;
     if (state.chatFilter === 'media' && !Number(c.media_count)) return false;
-    return !q || `${c.label || ''} ${c.last_message || ''} ${c.chat_username || ''}`.toLocaleLowerCase('ru').includes(q);
+    // The API can match any historical message, not only the latest preview.
+    const matchedByServer = Boolean(q && c.match_query === state.chatSearch.trim());
+    return !q || matchedByServer || `${c.label || ''} ${c.last_message || ''} ${c.chat_username || ''}`.toLocaleLowerCase('ru').includes(q);
   });
   list.innerHTML = '';
   if (!rows.length) { list.innerHTML = '<div class="empty-state">Чатов по этому запросу нет</div>'; return; }
@@ -135,19 +139,32 @@ function renderChats() {
     const item = document.createElement('button'); item.type = 'button'; item.className = 'chat-row';
     const title = chat.label || `Чат ${chat.chat_id}`;
     const initials = esc(title.trim().slice(0,1).toUpperCase() || '?');
-    const preview = chat.last_message || (chat.media_count ? 'Медиафайл' : 'Нет текста');
-    const avatar = chat.chat_username
-      ? `<img class="chat-avatar" src="https://t.me/i/userpic/320/${encodeURIComponent(chat.chat_username)}.jpg" alt="" onerror="this.remove()"><span class="chat-avatar fallback">${initials}</span>`
-      : `<span class="chat-avatar fallback">${initials}</span>`;
-    item.innerHTML = `${avatar}<span class="chat-main"><strong>${esc(title)}</strong><small>${esc(preview)}</small></span><span class="chat-side"><time>${esc(fmtDate(chat.last_at))}</time><small>${Number(chat.total || 0)} сообщ.</small></span>`;
+    const preview = chat.last_message || (chat.last_content_type ? `📎 ${chat.last_content_type}` : 'Нет сообщений');
+    item.innerHTML = `<span class="chat-avatar-wrap"><span class="chat-avatar-fallback">${initials}</span><img class="chat-avatar-image" alt="" loading="lazy"></span><span class="chat-main"><strong>${esc(title)}</strong><small>${esc(preview)}</small></span><span class="chat-side"><time>${esc(fmtDate(chat.last_at))}</time><small>${Number(chat.total || 0)} сообщ.</small></span>`;
+    const img = item.querySelector('.chat-avatar-image');
+    const avatarParams = new URLSearchParams({chat_id:String(chat.chat_id), connection_id:String(chat.connection_id), initData});
+    const apiBase = miniAppClient.defaults?.baseURL || '';
+    img.addEventListener('load', () => item.querySelector('.chat-avatar-wrap')?.classList.add('has-image'), {once:true});
+    img.addEventListener('error', () => {
+      if (chat.chat_username && !img.dataset.fallbackTried) {
+        img.dataset.fallbackTried = '1';
+        img.src = `https://t.me/i/userpic/320/${encodeURIComponent(String(chat.chat_username).replace(/^@/,''))}.jpg`;
+      } else {
+        img.remove();
+      }
+    });
+    img.src = `${apiBase}/api/miniapp/avatar?${avatarParams.toString()}`;
     item.addEventListener('click', () => openChat(chat)); fragment.appendChild(item);
   });
   list.appendChild(fragment);
 }
+
 async function loadChats() {
   $('chats-list').innerHTML = '<div class="empty-state">Загружаю переписки…</div>';
   try {
-    const {data} = await miniAppClient.get('/api/miniapp/chats', {params:{filter:'all'}});
+    const params = {filter:'all'};
+    if (state.chatSearch.trim()) params.q = state.chatSearch.trim();
+    const {data} = await miniAppClient.get('/api/miniapp/chats', {params});
     state.chats = data.chats || []; renderChats();
   } catch (error) { $('chats-list').innerHTML = `<div class="empty-state">${esc(apiError(error))}</div>`; }
 }
@@ -170,24 +187,41 @@ async function openChat(chat) {
 function messageHtml(msg) {
   const outgoing = Boolean(msg.is_outgoing || msg.direction === 'outgoing');
   const cls = ['message-bubble', outgoing ? 'outgoing' : 'incoming', msg.deleted ? 'is-deleted' : '', msg.edited ? 'is-edited' : ''].filter(Boolean).join(' ');
+  const replyId = Number(msg.reply_to_message_id || 0);
+  const replyHtml = replyId ? `<button class="reply-preview" type="button" data-reply-to="${replyId}"><strong>${esc(msg.reply_to_sender_name || 'Ответ на сообщение')}</strong><span>${esc(msg.reply_to_text || `Сообщение #${replyId}`)}</span></button>` : '';
+  // Keep the actual archived content visible. Status is only a small icon
+  // in the footer, never a separate 'deleted/edited' placeholder bubble.
   let body = esc(msg.text || '');
-  if (!body && msg.content_type && msg.content_type !== 'text') body = `<span class="media-caption">${esc(msg.content_type)}</span>`;
   let media = '';
+  let mediaUrl = '';
   if (msg.has_media) {
     const params = new URLSearchParams({chat_id: state.activeChat.chat_id, connection_id: state.activeChat.connection_id, message_id: msg.message_id, initData});
-    const url = `${miniAppClient.defaults.baseURL}/api/miniapp/media?${params.toString()}`;
+    const apiBase = miniAppClient.defaults?.baseURL || '';
+    const url = `${apiBase}/api/miniapp/media?${params.toString()}`;
+    mediaUrl = url;
     const type = msg.content_type;
-    if (type === 'photo') media = `<img class="message-media" src="${url}" alt="Фото" loading="lazy" data-media-url="${url}" data-media-type="photo" data-mid="${msg.message_id}">`;
-    else if (['video','video_note','animation'].includes(type)) media = `<video class="message-media" src="${url}" controls playsinline preload="metadata"></video>`;
-    else if (['voice','audio'].includes(type)) media = `<audio class="message-audio" src="${url}" controls preload="metadata"></audio>`;
-    else media = `<a class="document-link" href="${url}" target="_blank" rel="noopener">📎 Открыть документ</a>`;
+    if (type === 'photo' || type === 'sticker') {
+      media = `<img class="message-media" src="${url}" alt="${type === 'sticker' ? 'Стикер' : 'Фото'}" loading="lazy" data-media-url="${url}" data-media-type="${type}" data-mid="${msg.message_id}">`;
+    } else if (type === 'video_note') {
+      media = `<video class="message-media message-video-note" src="${url}" controls playsinline preload="metadata"></video>`;
+    } else if (['video','animation'].includes(type)) {
+      media = `<video class="message-media" src="${url}" controls playsinline preload="metadata"></video>`;
+    } else if (['voice','audio'].includes(type)) {
+      media = `<audio class="message-audio" src="${url}" controls preload="metadata"></audio>`;
+    } else {
+      media = `<div class="document-preview"><span class="document-preview-icon">▤</span><span class="document-preview-name">${esc(msg.file_name || 'Документ')}</span><span class="document-preview-type">${esc((msg.media_ext || '').replace('.', '').toUpperCase() || 'ФАЙЛ')}</span></div>`;
+    }
+  } else if (!body && msg.content_type && msg.content_type !== 'text') {
+    const missingMediaLabels = {photo:'📷 Фото не сохранилось',video:'🎬 Видео не сохранилось',video_note:'⭕ Видеокружок не сохранился',voice:'🎤 Голосовое не сохранилось',audio:'🎵 Аудио не сохранилось',animation:'🎞 GIF не сохранился',document:'📎 Файл не сохранился',sticker:'🎭 Стикер не сохранился'};
+    body = esc(missingMediaLabels[msg.content_type] || 'Вложение недоступно');
   }
   const icon = msg.deleted
-    ? `<svg class="msg-state deleted-icon" viewBox="0 0 24 24" aria-label="Удалено"><path d="M4 7h16M10 11v6m4-6v6M6 7l1 14h10l1-14M9 7V4h6v3"/></svg>`
+    ? `<svg class="msg-state deleted-icon" viewBox="0 0 24 24" role="img" aria-label="Удалено"><path d="M4 7h16M10 11v6m4-6v6M6 7l1 14h10l1-14M9 7V4h6v3"/></svg>`
     : msg.edited
-      ? `<button class="history-button" type="button" title="История изменений" data-history="${Number(msg.message_id)}"><svg class="msg-state edit-icon" viewBox="0 0 24 24" aria-label="Изменено"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg></button>` : '';
-  return `<article class="${cls}" data-message-id="${Number(msg.message_id)}"><div class="message-author">${esc(msg.sender_name || (outgoing ? 'Вы' : 'Собеседник'))}</div>${body ? `<div class="message-text">${body.replace(/\n/g,'<br>')}</div>` : ''}${media ? `<div class="message-attachment">${media}</div>` : ''}<footer class="message-footer"><time>${esc(fmtDate(msg.updated_at))}</time>${icon}</footer></article>`;
+      ? `<button class="history-button" type="button" title="Показать историю изменений" aria-label="История изменений" data-history="${Number(msg.message_id)}"><svg class="msg-state edit-icon" viewBox="0 0 24 24" role="img" aria-label="Изменено"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg></button>` : '';
+  return `<article class="${cls}" data-message-id="${Number(msg.message_id)}"><div class="message-author">${esc(msg.sender_name || (outgoing ? 'Вы' : 'Собеседник'))}</div>${replyHtml}${body ? `<div class="message-text">${body.replace(/\n/g,'<br>')}</div>` : ''}${media ? `<div class="message-attachment">${media}</div>` : ''}<footer class="message-footer"><time>${esc(fmtDate(msg.sent_at || msg.updated_at))}</time>${icon}</footer></article>`;
 }
+
 async function loadMessages(append = false) {
   if (!state.activeChat || state.loadingMessages) return;
   state.loadingMessages = true;
@@ -233,16 +267,46 @@ window.closeHistory = () => $('history-modal').classList.remove('active');
 $('messages-list')?.addEventListener('scroll', () => {
   if ($('messages-list').scrollTop < 70 && state.hasMoreMessages && !state.loadingMessages) loadMessages(true);
 });
-$('chat-search')?.addEventListener('input', (e) => { state.chatSearch = e.target.value; renderChats(); });
+let chatSearchTimer;
+$('chat-search')?.addEventListener('input', (e) => {
+  state.chatSearch = e.target.value;
+  clearTimeout(chatSearchTimer);
+  chatSearchTimer = setTimeout(loadChats, 300);
+});
 let messageSearchTimer;
 $('message-search')?.addEventListener('input', () => {
   clearTimeout(messageSearchTimer); messageSearchTimer = setTimeout(() => { state.messageSearch = $('message-search').value; loadMessages(false); }, 350);
 });
-$('messages-list')?.addEventListener('click', (event) => {
+$('messages-list')?.addEventListener('click', async (event) => {
+  const reply = event.target.closest('[data-reply-to]');
+  if (reply) {
+    const targetId = Number(reply.dataset.replyTo);
+    const target = $('messages-list').querySelector(`[data-message-id="${targetId}"]`);
+    if (target) {
+      target.scrollIntoView({behavior:'smooth', block:'center'});
+      target.classList.add('reply-highlight');
+      setTimeout(() => target.classList.remove('reply-highlight'), 1300);
+    } else if (state.activeChat) {
+      try {
+        const params = {chat_id:state.activeChat.chat_id, connection_id:state.activeChat.connection_id,
+          filter:'all', offset:0, limit:50, around_message_id:targetId};
+        const {data} = await miniAppClient.get('/api/miniapp/messages', {params});
+        const rows = (data.messages || []).slice().reverse();
+        $('messages-list').innerHTML = rows.map(messageHtml).join('') || '<div class="empty-state">Сообщение не найдено</div>';
+        state.messageOffset = data.next_offset ?? rows.length;
+        state.hasMoreMessages = data.next_offset !== null && data.next_offset !== undefined;
+        requestAnimationFrame(() => {
+          const found = $('messages-list').querySelector(`[data-message-id="${targetId}"]`);
+          if (found) { found.scrollIntoView({behavior:'smooth',block:'center'}); found.classList.add('reply-highlight'); setTimeout(() => found.classList.remove('reply-highlight'),1300); }
+        });
+      } catch (error) { alertUser(`Не удалось открыть сообщение: ${apiError(error)}`); }
+    }
+    return;
+  }
   const history = event.target.closest('[data-history]');
   if (history) { showEditHistory(Number(history.dataset.history)); return; }
-  const img = event.target.closest('[data-media-url]');
-  if (img) openLightbox(img.dataset.mediaUrl, img.dataset.mediaType, Number(img.dataset.mid));
+  const mediaTarget = event.target.closest('[data-media-url]');
+  if (mediaTarget && !event.target.closest('audio')) openLightbox(mediaTarget.dataset.mediaUrl, mediaTarget.dataset.mediaType, Number(mediaTarget.dataset.mid));
 });
 
 // MEDIA VIEWER ------------------------------------------------------------
@@ -251,7 +315,8 @@ function openLightbox(url, type, messageId) {
   const box = $('lightbox-media-container'); box.innerHTML = '';
   let node;
   if (type === 'photo') { node = document.createElement('img'); node.src = url; node.className = 'lightbox-photo'; }
-  else if (['video','video_note','animation'].includes(type)) { node = document.createElement('video'); node.src = url; node.controls = true; node.autoplay = true; node.playsInline = true; }
+  else if (['video','video_note','animation'].includes(type)) { node = document.createElement('video'); node.src = url; node.controls = true; node.autoplay = true; node.playsInline = true; if (type === 'video_note') node.className = 'lightbox-video-note'; }
+  else if (['voice','audio'].includes(type)) { node = document.createElement('audio'); node.src = url; node.controls = true; node.autoplay = true; }
   else { node = document.createElement('div'); node.textContent = 'Предпросмотр недоступен'; }
   box.appendChild(node); $('media-lightbox').classList.add('active'); haptic();
 }
@@ -260,17 +325,6 @@ window.closeLightbox = (event) => {
   $('lightbox-media-container').querySelectorAll('video,audio').forEach(m => {m.pause();m.removeAttribute('src');m.load();});
   $('lightbox-media-container').innerHTML = ''; $('media-lightbox').classList.remove('active'); state.currentMedia = null;
 };
-window.requestMedia = async () => {
-  if (!state.currentMedia) return;
-  try {
-    const {data} = await miniAppClient.post('/api/miniapp/request_media', {
-      chat_id:state.currentMedia.chat.chat_id, connection_id:state.currentMedia.chat.connection_id,
-      message_id:state.currentMedia.messageId
-    });
-    alertUser(data.message || 'Файл отправлен в бота. Проверь личные сообщения.'); closeLightbox();
-  } catch (error) { alertUser(apiError(error)); }
-};
-
 // SETTINGS / ARCHIVE ------------------------------------------------------
 async function loadSettings() {
   try {

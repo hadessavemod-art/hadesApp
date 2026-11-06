@@ -186,12 +186,15 @@ async function openChat(chat) {
 }
 function messageHtml(msg) {
   const outgoing = Boolean(msg.is_outgoing || msg.direction === 'outgoing');
-  const cls = ['message-bubble', outgoing ? 'outgoing' : 'incoming', msg.deleted ? 'is-deleted' : '', msg.edited ? 'is-edited' : ''].filter(Boolean).join(' ');
+  const isSticker = msg.content_type === 'sticker';
+  const cls = ['message-bubble', outgoing ? 'outgoing' : 'incoming', isSticker ? 'has-sticker' : '', msg.deleted ? 'is-deleted' : '', msg.edited ? 'is-edited' : ''].filter(Boolean).join(' ');
   const replyId = Number(msg.reply_to_message_id || 0);
   const replyHtml = replyId ? `<button class="reply-preview" type="button" data-reply-to="${replyId}"><strong>${esc(msg.reply_to_sender_name || 'Ответ на сообщение')}</strong><span>${esc(msg.reply_to_text || `Сообщение #${replyId}`)}</span></button>` : '';
   // Keep the actual archived content visible. Status is only a small icon
   // in the footer, never a separate 'deleted/edited' placeholder bubble.
-  let body = esc(msg.text || '');
+  // Sticker messages are stored with a descriptive text fallback in SQLite.
+  // Do not show that label on top of the actual sticker artwork.
+  let body = isSticker ? '' : esc(msg.text || '');
   let media = '';
   let mediaUrl = '';
   if (msg.has_media) {
@@ -200,8 +203,18 @@ function messageHtml(msg) {
     const url = `${apiBase}/api/miniapp/media?${params.toString()}`;
     mediaUrl = url;
     const type = msg.content_type;
-    if (type === 'photo' || type === 'sticker') {
-      media = `<img class="message-media" src="${url}" alt="${type === 'sticker' ? 'Стикер' : 'Фото'}" loading="lazy" data-media-url="${url}" data-media-type="${type}" data-mid="${msg.message_id}">`;
+    if (type === 'sticker') {
+      const ext = String(msg.media_ext || '').toLowerCase();
+      const format = ext === '.tgs' ? 'tgs' : (ext === '.webm' ? 'webm' : 'webp');
+      if (format === 'tgs') {
+        media = `<div class="message-sticker-tgs" data-sticker-url="${url}" role="img" aria-label="Анимированный стикер"></div>`;
+      } else if (format === 'webm') {
+        media = `<video class="message-sticker-video" src="${url}" autoplay loop muted playsinline preload="auto" aria-label="Анимированный стикер"></video>`;
+      } else {
+        media = `<img class="message-sticker-image" src="${url}" alt="Стикер" loading="lazy" decoding="async" draggable="false">`;
+      }
+    } else if (type === 'photo') {
+      media = `<img class="message-media" src="${url}" alt="Фото" loading="lazy" data-media-url="${url}" data-media-type="${type}" data-mid="${msg.message_id}">`;
     } else if (type === 'video_note') {
       media = `<video class="message-media message-video-note" src="${url}" controls playsinline preload="metadata"></video>`;
     } else if (['video','animation'].includes(type)) {
@@ -220,6 +233,86 @@ function messageHtml(msg) {
     : msg.edited
       ? `<button class="history-button" type="button" title="Показать историю изменений" aria-label="История изменений" data-history="${Number(msg.message_id)}"><svg class="msg-state edit-icon" viewBox="0 0 24 24" role="img" aria-label="Изменено"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg></button>` : '';
   return `<article class="${cls}" data-message-id="${Number(msg.message_id)}"><div class="message-author">${esc(msg.sender_name || (outgoing ? 'Вы' : 'Собеседник'))}</div>${replyHtml}${body ? `<div class="message-text">${body.replace(/\n/g,'<br>')}</div>` : ''}${media ? `<div class="message-attachment">${media}</div>` : ''}<footer class="message-footer"><time>${esc(fmtDate(msg.sent_at || msg.updated_at))}</time>${icon}</footer></article>`;
+}
+
+// Telegram animated stickers use .tgs (gzip-compressed Lottie JSON).
+// Load the lightweight renderer only when a TGS sticker is actually present.
+let lottieLoaderPromise;
+let pakoLoaderPromise;
+function loadExternalScript(src, globalName) {
+  if (window[globalName]) return Promise.resolve(window[globalName]);
+  return new Promise((resolve, reject) => {
+    // Always create a new tag: the second CDN is a real retry, not another
+    // listener attached to the first failed script element.
+    const script = document.createElement('script');
+    script.src = src;
+    script.async = true;
+    script.dataset.hsLibrary = globalName;
+    script.onload = () => {
+      script.dataset.loaded = '1';
+      window[globalName] ? resolve(window[globalName]) : reject(new Error(`${globalName} did not initialize`));
+    };
+    script.onerror = () => reject(new Error(`Unable to load ${globalName}`));
+    document.head.appendChild(script);
+  });
+}
+async function ensureLottie() {
+  if (window.lottie) return window.lottie;
+  if (!lottieLoaderPromise) {
+    lottieLoaderPromise = loadExternalScript(
+      'https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js', 'lottie'
+    ).catch(() => loadExternalScript(
+      'https://cdn.jsdelivr.net/npm/lottie-web@5.12.2/build/player/lottie.min.js', 'lottie'
+    ));
+  }
+  return lottieLoaderPromise;
+}
+async function gunzipTgs(buffer) {
+  if ('DecompressionStream' in window) {
+    try {
+      const stream = new Blob([buffer]).stream().pipeThrough(new DecompressionStream('gzip'));
+      return await new Response(stream).text();
+    } catch (error) {
+      console.warn('[HadesSave] Native TGS decompression failed, trying pako:', error);
+    }
+  }
+  if (!pakoLoaderPromise) {
+    pakoLoaderPromise = loadExternalScript(
+      'https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js', 'pako'
+    ).catch(() => loadExternalScript(
+      'https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js', 'pako'
+    ));
+  }
+  const pako = await pakoLoaderPromise;
+  return new TextDecoder().decode(pako.ungzip(new Uint8Array(buffer)));
+}
+async function hydrateTgsStickers(root = document) {
+  const players = root.querySelectorAll('.message-sticker-tgs:not([data-player-state])');
+  if (!players.length) return;
+  for (const host of players) {
+    host.dataset.playerState = 'loading';
+    try {
+      const lottie = await ensureLottie();
+      const response = await fetch(host.dataset.stickerUrl, {cache: 'force-cache'});
+      if (!response.ok) throw new Error(`Sticker request failed: HTTP ${response.status}`);
+      const text = await gunzipTgs(await response.arrayBuffer());
+      const animationData = JSON.parse(text);
+      lottie.loadAnimation({
+        container: host,
+        renderer: 'svg',
+        loop: true,
+        autoplay: true,
+        animationData,
+        rendererSettings: {preserveAspectRatio: 'xMidYMid meet', progressiveLoad: true}
+      });
+      host.dataset.playerState = 'ready';
+    } catch (error) {
+      console.warn('[HadesSave] Could not render animated sticker:', error);
+      host.dataset.playerState = 'error';
+      host.innerHTML = '<span class="sticker-unavailable">Стикер недоступен</span>';
+      host.setAttribute('aria-label', 'Стикер недоступен');
+    }
+  }
 }
 
 async function loadMessages(append = false) {
@@ -242,6 +335,7 @@ async function loadMessages(append = false) {
     const html = rows.map(messageHtml).join('');
     if (!append) list.innerHTML = html || '<div class="empty-state">Сообщений не найдено</div>';
     else if (html) list.insertAdjacentHTML('afterbegin', html);
+    hydrateTgsStickers(list);
     state.messageOffset = data.next_offset ?? (state.messageOffset + (data.messages || []).length);
     state.hasMoreMessages = data.next_offset !== null && data.next_offset !== undefined;
     if (!append) list.scrollTop = list.scrollHeight;
@@ -263,6 +357,21 @@ async function showEditHistory(messageId) {
   } catch (error) { alertUser(`Не удалось загрузить историю: ${apiError(error)}`); }
 }
 window.closeHistory = () => $('history-modal').classList.remove('active');
+
+$('messages-list')?.addEventListener('error', (event) => {
+  const target = event.target;
+  if (target instanceof HTMLImageElement && target.classList.contains('message-sticker-image')) {
+    const fallback = document.createElement('div');
+    fallback.className = 'sticker-unavailable';
+    fallback.textContent = 'Стикер недоступен';
+    target.replaceWith(fallback);
+  } else if (target instanceof HTMLVideoElement && target.classList.contains('message-sticker-video')) {
+    const fallback = document.createElement('div');
+    fallback.className = 'sticker-unavailable';
+    fallback.textContent = 'Стикер недоступен';
+    target.replaceWith(fallback);
+  }
+}, true);
 
 $('messages-list')?.addEventListener('scroll', () => {
   if ($('messages-list').scrollTop < 70 && state.hasMoreMessages && !state.loadingMessages) loadMessages(true);
@@ -293,6 +402,7 @@ $('messages-list')?.addEventListener('click', async (event) => {
         const {data} = await miniAppClient.get('/api/miniapp/messages', {params});
         const rows = (data.messages || []).slice().reverse();
         $('messages-list').innerHTML = rows.map(messageHtml).join('') || '<div class="empty-state">Сообщение не найдено</div>';
+        hydrateTgsStickers($('messages-list'));
         state.messageOffset = data.next_offset ?? rows.length;
         state.hasMoreMessages = data.next_offset !== null && data.next_offset !== undefined;
         requestAnimationFrame(() => {

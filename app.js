@@ -3,7 +3,7 @@ import { setTelegramInitData, miniAppClient } from './miniAppClient.js';
 const tg = window.Telegram?.WebApp;
 const initData = tg?.initData || '';
 const state = {
-  userId: 0, role: null, username: '', refLink: '',
+  userId: 0, role: null, username: '', refLink: '', isOwner: false,
   chats: [], chatFilter: 'all', chatSearch: '',
   activeChat: null, messageFilter: 'all', messageSearch: '',
   messageOffset: 0, loadingMessages: false, hasMoreMessages: false,
@@ -28,11 +28,11 @@ const fmtDate = (value) => {
 const apiError = (error) => error?.response?.data?.error || error?.message || 'Ошибка сети';
 
 function setPage(name) {
-  document.body.classList.toggle('chat-open', name === 'messages');
+  if (name === 'chats' || name === 'messages') name = 'home';
+  document.body.classList.toggle('chat-open', false);
   document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === `view-${name}`));
-  document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.tab === name || (['messages'].includes(name) && b.dataset.tab === 'chats') || (['settings','premium','referrals','admin'].includes(name) && b.dataset.tab === 'profile')));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.tab === name || (['settings','premium','referrals','admin'].includes(name) && b.dataset.tab === 'profile')));
   if (name === 'home') loadStats();
-  if (name === 'chats') loadChats();
   if (name === 'settings') loadSettings();
   if (name === 'premium') loadPremium();
   if (name === 'referrals') loadReferrals();
@@ -57,6 +57,13 @@ async function initApp() {
     state.userId = Number(data.user_id || 0);
     state.username = data.username || '';
     state.role = data.role || null;
+    state.isOwner = Boolean(data.is_owner);
+    if (state.isOwner) {
+      const theme = ['crimson','obsidian','inferno'].includes(data.owner_theme) ? data.owner_theme : 'crimson';
+      document.body.dataset.ownerTheme = theme;
+    } else {
+      delete document.body.dataset.ownerTheme;
+    }
     const name = data.user || 'Пользователь';
     $('user-name').textContent = name;
     $('user-id').textContent = `ID: ${state.userId}`;
@@ -74,11 +81,24 @@ async function initApp() {
       });
     }
     if (data.is_premium) {
-      $('premium-badge')?.classList.remove('hidden');
-      $('profile-premium-badge')?.classList.remove('hidden');
-      $('premium-status-text').textContent = 'Подписка активна';
-      $('premium-action-btn').textContent = 'Продлить подписку';
-      if (data.premium_expires_at) startPremiumTimer(data.premium_expires_at);
+      for (const id of ['premium-badge','profile-premium-badge']) {
+        const badge = $(id);
+        if (!badge) continue;
+        badge.textContent = state.isOwner ? 'OWNER' : 'PREMIUM';
+        badge.classList.toggle('owner-badge', state.isOwner);
+        badge.classList.remove('hidden');
+      }
+      $('premium-status-text').textContent = state.isOwner ? 'OWNER · бессрочно' : 'Подписка активна';
+      $('premium-action-btn').textContent = state.isOwner ? 'Все Premium-функции открыты' : 'Продлить подписку';
+      if (state.isOwner && $('premium-action-btn')) $('premium-action-btn').disabled = true;
+      if (state.isOwner) {
+        $('premium-timer')?.classList.add('hidden');
+        const status = $('profile-owner-status');
+        if (status) {
+          status.textContent = data.owner_status || 'Бессрочный доступ ко всем Premium-возможностям';
+          status.classList.remove('hidden');
+        }
+      } else if (data.premium_expires_at) startPremiumTimer(data.premium_expires_at);
     } else {
       $('premium-status-text').textContent = 'Подписка не активна';
     }
@@ -161,7 +181,7 @@ function renderChats() {
 }
 
 async function loadChats() {
-  $('chats-list').innerHTML = '<div class="empty-state">Загружаю переписки…</div>';
+  if (!$('chats-list')) return;
   try {
     const params = {filter:'all'};
     if (state.chatSearch.trim()) params.q = state.chatSearch.trim();
@@ -504,7 +524,7 @@ window.updateSetting = async (key, value) => {
 };
 window.clearArchive = () => {
   const confirmClear = async () => {
-    try { const {data} = await miniAppClient.post('/api/miniapp/clear_archive'); alertUser(data.message || 'Архив очищен'); await loadStats(); await loadChats(); }
+    try { const {data} = await miniAppClient.post('/api/miniapp/clear_archive'); alertUser(data.message || 'Архив очищен'); await loadStats(); }
     catch (error) { alertUser(apiError(error)); }
   };
   if (tg?.showPopup) tg.showPopup({title:'Очистить архив?',message:'Все сообщения и сохранённые медиа будут удалены без возможности восстановления.',buttons:[{id:'cancel',type:'cancel'},{id:'delete',type:'destructive',text:'Удалить'}]}, id => {if(id==='delete') confirmClear();});
@@ -513,7 +533,7 @@ window.clearArchive = () => {
 
 // PREMIUM / REFERRALS -----------------------------------------------------
 async function loadPremium() {
-  try { const {data} = await miniAppClient.get('/api/miniapp/stats'); $('premium-status-text').textContent = data.is_premium ? 'Подписка активна' : 'Подписка не активна'; }
+  try { const {data} = await miniAppClient.get('/api/miniapp/stats'); $('premium-status-text').textContent = data.is_owner ? 'OWNER · бессрочно' : data.is_premium ? 'Подписка активна' : 'Подписка не активна'; }
   catch (_) {}
 }
 async function loadReferrals() {
@@ -526,12 +546,12 @@ window.copyRefLink = async () => {
   catch (_) { alertUser(state.refLink); }
 };
 const FEATURE_INFO = {
-  archive:['Безлимитный архив','Срок хранения сообщений увеличивается с 3 до 30 дней.'],
+  archive:['Безлимитный архив','Premium: 30 дней хранения. OWNER: 365 дней хранения и ежедневные резервные копии базы.'],
   priority:['Приоритетное сохранение','Твои файлы и медиа удаляются последними при очистке сервера.'],
-  mirrors:['До 5 зеркал','Возможность создать несколько зеркал бота.'],
+  mirrors:['Несколько подключений','Архив ведёт все активные Business-подключения аккаунта; отдельный лимит в текущей сборке не задан.'],
   spam:['Увеличенный .spam','Повышенный лимит команды рассылки.'],
   badge:['Уникальный значок','Эксклюзивная корона в профиле Mini App.'],
-  support:['Приоритетная поддержка','Приоритетная обработка обращения.'],
+  support:['OWNER Priority','В профиле OWNER отображается специальная отметка для обращения в поддержку.'],
   media:['Увеличенный лимит медиа','Увеличенный лимит сохранения файлов.']
 };
 window.openFeatureModal = (key) => { const row=FEATURE_INFO[key]; if(!row)return; $('feature-title').textContent=row[0]; $('feature-desc').textContent=row[1]; $('feature-modal').classList.add('active'); };
@@ -582,5 +602,5 @@ window.executeAdminAction = async () => {
 };
 
 // Global browser Back button in Telegram
-try { tg?.BackButton?.onClick(() => { if ($('history-modal').classList.contains('active')) closeHistory(); else if ($('media-lightbox').classList.contains('active')) closeLightbox(); else if ($('view-messages').classList.contains('active')) setPage('chats'); else setPage('home'); }); } catch (_) {}
+try { tg?.BackButton?.onClick(() => { if ($('history-modal').classList.contains('active')) closeHistory(); else if ($('media-lightbox').classList.contains('active')) closeLightbox(); else if ($('view-messages')?.classList.contains('active')) setPage('home'); else setPage('home'); }); } catch (_) {}
 initApp();

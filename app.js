@@ -250,7 +250,13 @@ function messageHtml(msg) {
     ? `<svg class="msg-state deleted-icon" viewBox="0 0 24 24" role="img" aria-label="Удалено"><path d="M4 7h16M10 11v6m4-6v6M6 7l1 14h10l1-14M9 7V4h6v3"/></svg>`
     : msg.edited
       ? `<button class="history-button" type="button" title="Показать историю изменений" aria-label="История изменений" data-history="${Number(msg.message_id)}"><svg class="msg-state edit-icon" viewBox="0 0 24 24" role="img" aria-label="Изменено"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg></button>` : '';
-  const sentTicks = outgoing ? `<svg class="telegram-ticks" viewBox="0 0 18 14" aria-label="Отправлено"><path d="m1 7 4 4L14 2M7 7l4 4 6-7"/></svg>` : '';
+  // Telegram semantics: one tick = sent, two ticks = read by the recipient.
+  // The read flag is supplied by the archive API from the owner's MTProto session.
+  const isRead = outgoing && (msg.is_read === true || msg.is_read === 1 || msg.is_read === '1');
+  const sentTicks = outgoing ? (isRead
+    ? `<svg class="telegram-ticks is-read" viewBox="0 0 18 14" role="img" aria-label="Прочитано"><path d="m1 7 4 4L14 2M7 7l4 4 6-7"/></svg>`
+    : `<svg class="telegram-ticks is-sent" viewBox="0 0 18 14" role="img" aria-label="Отправлено"><path d="m2 7 4 4L16 1.5"/></svg>`
+  ) : '';
   return `<article class="${cls}" data-message-id="${Number(msg.message_id)}">${replyHtml}${body ? `<div class="message-text">${body.replace(/\n/g,'<br>')}</div>` : ''}${media ? `<div class="message-attachment">${media}</div>` : ''}<footer class="message-footer"><time>${esc(fmtDate(msg.sent_at || msg.updated_at))}</time>${archiveMarker}${sentTicks}</footer></article>`;
 }
 

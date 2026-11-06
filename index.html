@@ -5,39 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#09090b">
   <title>HadesSave</title>
-  <link rel="stylesheet" href="mini-app.css?v=301">
+  <link rel="stylesheet" href="mini-app.css?v=304">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body class="mini-app-body">
 <div id="preloader" class="preloader"><span class="spinner"></span><p>Загрузка HadesSave…</p></div>
-<svg class="svg-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-  <symbol id="icon-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></symbol>
-  <symbol id="icon-chat" viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8A8.5 8.5 0 0 1 8.7 4a8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8z"/></symbol>
-  <symbol id="icon-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
-  <symbol id="icon-back" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
-  <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
-  <symbol id="icon-chevron" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
-  <symbol id="icon-crown" viewBox="0 0 24 24"><path d="m3 8 5 4 4-8 4 8 5-4-2 12H5z"/></symbol>
-  <symbol id="icon-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.7a8 8 0 0 1-1.7 1l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.7-1l-1.7.7-1.4-2.4 1.4-1.1a8 8 0 0 1 0-2l-1.4-1.1 1.4-2.4 1.7.7a8 8 0 0 1 1.7-1l.3-1.8h2.8l.3 1.8a8 8 0 0 1 1.7 1l1.7-.7 1.4 2.4-1.4 1.1a8 8 0 0 1 0 2z"/></symbol>
-  <symbol id="icon-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6m4-6v6M6 7l1 14h10l1-14M9 7V4h6v3"/></symbol>
-  <symbol id="icon-edit" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></symbol>
-  <symbol id="icon-diamond" viewBox="0 0 24 24"><path d="m2 9 4-6h12l4 6-10 12zM2 9h20M6 3l3 6 3-6 3 6 3-6"/></symbol>
-  <symbol id="icon-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></symbol>
-  <symbol id="icon-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol>
-  <symbol id="icon-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4m0-4h.01"/></symbol>
-  <symbol id="icon-headphones" viewBox="0 0 24 24"><path d="M3 14v-3a9 9 0 0 1 18 0v3M3 14h4v7H5a2 2 0 0 1-2-2zM21 14h-4v7h2a2 2 0 0 0 2-2z"/></symbol>
-  <symbol id="icon-ban" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m5 5 14 14"/></symbol>
-  <symbol id="icon-send" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4zM22 2 11 13"/></symbol>
-  <symbol id="icon-money" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M6 9h.01M18 15h.01"/></symbol>
-  <symbol id="icon-star" viewBox="0 0 24 24"><path d="m12 2 3 6.5 7 1-5 4.8 1.2 6.8L12 17.8l-6.2 3.3L7 14.3 2 9.5l7-1z"/></symbol>
-  <symbol id="icon-zap" viewBox="0 0 24 24"><path d="m13 2-3 9h8L8 22l3-9H3z"/></symbol>
-  <symbol id="icon-infinity" viewBox="0 0 24 24"><path d="M6.5 16a4.5 4.5 0 1 1 0-9c2.5 0 4 2.5 5.5 5s3 5 5.5 5a4.5 4.5 0 1 0 0-9c-2.5 0-4 2.5-5.5 5s-3 5-5.5 5"/></symbol>
-  <symbol id="icon-bot" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="14" rx="3"/><path d="M12 3v4M8 13h.01M16 13h.01M8 17h8"/></symbol>
-  <symbol id="icon-upload" viewBox="0 0 24 24"><path d="M12 16V3m-5 5 5-5 5 5M4 17v4h16v-4"/></symbol>
-  <symbol id="icon-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></symbol>
-  <symbol id="icon-megaphone" viewBox="0 0 24 24"><path d="m3 11 18-7v16L3 13zM11 14l2 8H8l-2-9"/></symbol>
-  <symbol id="icon-admin" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10zM9 12l2 2 4-4"/></symbol>
-</svg>
+
 <div class="hs-app">
   <main id="view-home" class="page active">
     <header class="user-header">
@@ -52,15 +25,15 @@
     </div>
     <div class="section-label">АРХИВ И ВОЗМОЖНОСТИ</div>
     <div class="menu-group">
-      <button class="menu-item" onclick="switchTab('chats')"><span class="menu-icon blue"><svg class="icon"><use href="#icon-chat"/></svg></span><span class="menu-text"><b>Мои чаты</b><small>История переписок</small></span><svg class="icon chevron"><use href="#icon-chevron"/></svg></button>
-      <button class="menu-item" onclick="switchTab('premium')"><span class="menu-icon purple"><svg class="icon"><use href="#icon-diamond"/></svg></span><span class="menu-text"><b>Hades Premium</b><small>Расширенный архив и возможности</small></span><svg class="icon chevron"><use href="#icon-chevron"/></svg></button>
-      <button class="menu-item" onclick="switchTab('referrals')"><span class="menu-icon green"><svg class="icon"><use href="#icon-users"/></svg></span><span class="menu-text"><b>Рефералы</b><small>Приглашай друзей</small></span><svg class="icon chevron"><use href="#icon-chevron"/></svg></button>
+      <button class="menu-item" onclick="switchTab('chats')"><span class="menu-icon blue"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8A8.5 8.5 0 0 1 8.7 4a8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8z"/></svg></span><span class="menu-text"><b>Мои чаты</b><small>История переписок</small></span><svg class="icon chevron" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9 18 6-6-6-6"/></svg></button>
+      <button class="menu-item" onclick="switchTab('premium')"><span class="menu-icon purple"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m2 9 4-6h12l4 6-10 12zM2 9h20M6 3l3 6 3-6 3 6 3-6"/></svg></span><span class="menu-text"><b>Hades Premium</b><small>Расширенный архив и возможности</small></span><svg class="icon chevron" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9 18 6-6-6-6"/></svg></button>
+      <button class="menu-item" onclick="switchTab('referrals')"><span class="menu-icon green"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg></span><span class="menu-text"><b>Рефералы</b><small>Приглашай друзей</small></span><svg class="icon chevron" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9 18 6-6-6-6"/></svg></button>
     </div>
   </main>
 
   <main id="view-chats" class="page">
-    <header class="page-header"><button class="back-btn" onclick="switchTab('home')"><svg class="icon"><use href="#icon-back"/></svg></button><div><h2>Архив переписок</h2><small>Все сохранённые диалоги</small></div></header>
-    <label class="search-bar"><svg class="icon"><use href="#icon-search"/></svg><input id="chat-search" type="search" placeholder="Поиск по чатам и сообщениям…" autocomplete="off"></label>
+    <header class="page-header"><button class="back-btn" onclick="switchTab('home')"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m15 18-6-6 6-6"/></svg></button><div><h2>Архив переписок</h2><small>Все сохранённые диалоги</small></div></header>
+    <label class="search-bar"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="chat-search" type="search" placeholder="Поиск по чатам и сообщениям…" autocomplete="off"></label>
     <div id="chat-filter-tabs" class="chat-tabs">
       <button class="chat-tab active" data-filter="all" onclick="filterChats('all',this)">Все</button>
       <button class="chat-tab" data-filter="deleted" onclick="filterChats('deleted',this)">Удалённые</button>
@@ -70,8 +43,8 @@
   </main>
 
   <main id="view-messages" class="page messages-page">
-    <header class="page-header"><button class="back-btn" onclick="switchTab('chats')"><svg class="icon"><use href="#icon-back"/></svg></button><div class="chat-heading"><h2 id="chat-title">Чат</h2><small id="chat-subtitle">Архив сообщений</small></div></header>
-    <label class="search-bar message-search"><svg class="icon"><use href="#icon-search"/></svg><input id="message-search" type="search" placeholder="Найти в переписке…" autocomplete="off"></label>
+    <header class="page-header"><button class="back-btn" onclick="switchTab('chats')"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m15 18-6-6 6-6"/></svg></button><div class="chat-heading"><h2 id="chat-title">Чат</h2><small id="chat-subtitle">Архив сообщений</small></div></header>
+    <label class="search-bar message-search"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="message-search" type="search" placeholder="Найти в переписке…" autocomplete="off"></label>
     <div id="message-filter-tabs" class="chat-tabs compact-tabs">
       <button class="chat-tab active" data-filter="all" onclick="setMessageFilter('all',this)">Все</button>
       <button class="chat-tab" data-filter="deleted" onclick="setMessageFilter('deleted',this)">Удалённые</button>
@@ -81,7 +54,7 @@
   </main>
 
   <main id="view-settings" class="page">
-    <header class="page-header"><button class="back-btn" onclick="switchTab('profile')"><svg class="icon"><use href="#icon-back"/></svg></button><h2>Настройки</h2></header>
+    <header class="page-header"><button class="back-btn" onclick="switchTab('profile')"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m15 18-6-6 6-6"/></svg></button><h2>Настройки</h2></header>
     <div class="section-label">УВЕДОМЛЕНИЯ В БОТЕ</div>
     <div class="menu-group settings-group">
       <label class="setting-row"><span><b>Изменения сообщений</b><small>Уведомлять о редактировании</small></span><input id="toggle-edits" type="checkbox" onchange="updateSetting('edits',this.checked)"></label>
@@ -89,64 +62,64 @@
       <label class="setting-row"><span><b>Сохранение медиа</b><small>Сохранять фото, видео и аудио</small></span><input id="toggle-media" type="checkbox" onchange="updateSetting('deleted_media',this.checked)"></label>
     </div>
     <div class="section-label">ОПАСНАЯ ЗОНА</div>
-    <div class="menu-group"><button class="menu-item danger-action" onclick="clearArchive()"><span class="menu-icon red"><svg class="icon"><use href="#icon-trash"/></svg></span><span class="menu-text"><b>Очистить весь архив</b><small>Удалить сообщения и медиа навсегда</small></span></button></div>
+    <div class="menu-group"><button class="menu-item danger-action" onclick="clearArchive()"><span class="menu-icon red"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h16M10 11v6m4-6v6M6 7l1 14h10l1-14M9 7V4h6v3"/></svg></span><span class="menu-text"><b>Очистить весь архив</b><small>Удалить сообщения и медиа навсегда</small></span></button></div>
   </main>
 
   <main id="view-premium" class="page">
-    <header class="page-header"><button class="back-btn" onclick="switchTab('home')"><svg class="icon"><use href="#icon-back"/></svg></button><h2>Hades Premium</h2></header>
-    <section class="premium-hero"><div class="premium-logo"><svg class="icon"><use href="#icon-crown"/></svg></div><h2>HADES PREMIUM</h2><p id="premium-status-text">Проверка подписки…</p><button id="premium-action-btn" class="primary-button" onclick="window.Telegram?.WebApp?.showAlert?.('Оплата подключается через бота')">Подключить Premium</button></section>
+    <header class="page-header"><button class="back-btn" onclick="switchTab('home')"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m15 18-6-6 6-6"/></svg></button><h2>Hades Premium</h2></header>
+    <section class="premium-hero"><div class="premium-logo"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m3 8 5 4 4-8 4 8 5-4-2 12H5z"/></svg></div><h2>HADES PREMIUM</h2><p id="premium-status-text">Проверка подписки…</p><button id="premium-action-btn" class="primary-button" onclick="window.Telegram?.WebApp?.showAlert?.('Оплата подключается через бота')">Подключить Premium</button></section>
     <div class="section-label">ВОЗМОЖНОСТИ ПОДПИСКИ</div>
     <div class="menu-group feature-list">
-      <button class="feature-row" onclick="openFeatureModal('archive')"><span class="menu-icon blue"><svg class="icon"><use href="#icon-infinity"/></svg></span><span><b>Безлимитный архив</b><small>Хранение сообщений до 30 дней</small></span></button>
-      <button class="feature-row" onclick="openFeatureModal('priority')"><span class="menu-icon purple"><svg class="icon"><use href="#icon-shield"/></svg></span><span><b>Приоритетное сохранение</b><small>Повышенный приоритет файлов</small></span></button>
-      <button class="feature-row" onclick="openFeatureModal('mirrors')"><span class="menu-icon cyan"><svg class="icon"><use href="#icon-bot"/></svg></span><span><b>Зеркала бота</b><small>Дополнительные копии бота</small></span></button>
-      <button class="feature-row" onclick="openFeatureModal('spam')"><span class="menu-icon green"><svg class="icon"><use href="#icon-zap"/></svg></span><span><b>Увеличенный .spam</b><small>Повышенные лимиты</small></span></button>
-      <button class="feature-row" onclick="openFeatureModal('badge')"><span class="menu-icon yellow"><svg class="icon"><use href="#icon-crown"/></svg></span><span><b>Уникальный значок</b><small>Значок Premium в профиле</small></span></button>
-      <button class="feature-row" onclick="openFeatureModal('support')"><span class="menu-icon green"><svg class="icon"><use href="#icon-headphones"/></svg></span><span><b>Приоритетная поддержка</b><small>Приоритет обработки вопросов</small></span></button>
-      <button class="feature-row" onclick="openFeatureModal('media')"><span class="menu-icon blue"><svg class="icon"><use href="#icon-upload"/></svg></span><span><b>Увеличенный лимит медиа</b><small>Больше места для файлов</small></span></button>
+      <button class="feature-row" onclick="openFeatureModal('archive')"><span class="menu-icon blue"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6.5 16a4.5 4.5 0 1 1 0-9c2.5 0 4 2.5 5.5 5s3 5 5.5 5a4.5 4.5 0 1 0 0-9c-2.5 0-4 2.5-5.5 5s-3 5-5.5 5"/></svg></span><span><b>Безлимитный архив</b><small>Хранение сообщений до 30 дней</small></span></button>
+      <button class="feature-row" onclick="openFeatureModal('priority')"><span class="menu-icon purple"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span><span><b>Приоритетное сохранение</b><small>Повышенный приоритет файлов</small></span></button>
+      <button class="feature-row" onclick="openFeatureModal('mirrors')"><span class="menu-icon cyan"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="7" width="18" height="14" rx="3"/><path d="M12 3v4M8 13h.01M16 13h.01M8 17h8"/></svg></span><span><b>Зеркала бота</b><small>Дополнительные копии бота</small></span></button>
+      <button class="feature-row" onclick="openFeatureModal('spam')"><span class="menu-icon green"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m13 2-3 9h8L8 22l3-9H3z"/></svg></span><span><b>Увеличенный .spam</b><small>Повышенные лимиты</small></span></button>
+      <button class="feature-row" onclick="openFeatureModal('badge')"><span class="menu-icon yellow"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m3 8 5 4 4-8 4 8 5-4-2 12H5z"/></svg></span><span><b>Уникальный значок</b><small>Значок Premium в профиле</small></span></button>
+      <button class="feature-row" onclick="openFeatureModal('support')"><span class="menu-icon green"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 14v-3a9 9 0 0 1 18 0v3M3 14h4v7H5a2 2 0 0 1-2-2zM21 14h-4v7h2a2 2 0 0 0 2-2z"/></svg></span><span><b>Приоритетная поддержка</b><small>Приоритет обработки вопросов</small></span></button>
+      <button class="feature-row" onclick="openFeatureModal('media')"><span class="menu-icon blue"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 16V3m-5 5 5-5 5 5M4 17v4h16v-4"/></svg></span><span><b>Увеличенный лимит медиа</b><small>Больше места для файлов</small></span></button>
     </div>
   </main>
 
   <main id="view-referrals" class="page">
-    <header class="page-header"><button class="back-btn" onclick="switchTab('home')"><svg class="icon"><use href="#icon-back"/></svg></button><h2>Рефералы</h2></header>
-    <section class="referral-card"><svg class="icon"><use href="#icon-users"/></svg><h2>Приглашай друзей</h2><p>Поделись ссылкой и получай бонусы за приглашённых пользователей.</p><strong id="ref-count">0</strong><small>приглашённых пользователей</small><button class="primary-button" onclick="copyRefLink()"><svg class="icon"><use href="#icon-copy"/></svg> Скопировать ссылку</button></section>
+    <header class="page-header"><button class="back-btn" onclick="switchTab('home')"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m15 18-6-6 6-6"/></svg></button><h2>Рефералы</h2></header>
+    <section class="referral-card"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg><h2>Приглашай друзей</h2><p>Поделись ссылкой и получай бонусы за приглашённых пользователей.</p><strong id="ref-count">0</strong><small>приглашённых пользователей</small><button class="primary-button" onclick="copyRefLink()"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg> Скопировать ссылку</button></section>
   </main>
 
   <main id="view-profile" class="page">
     <header class="page-header"><h2>Профиль</h2></header>
     <div class="user-header profile-header"><div class="avatar"><span id="profile-avatar-text">H</span><img id="profile-avatar-img" class="avatar-img" alt="" style="display:none"></div><div class="user-info"><div class="name-row"><h2 id="profile-name">Загрузка…</h2><span id="profile-premium-badge" class="premium-badge hidden">PREMIUM</span><span id="profile-role-badge" class="role-badge hidden"></span></div><span id="profile-id" class="user-id">ID: …</span></div></div>
     <div class="menu-group">
-      <button class="menu-item" onclick="switchTab('settings')"><span class="menu-icon gray"><svg class="icon"><use href="#icon-settings"/></svg></span><span class="menu-text"><b>Настройки</b><small>Управление архивом и уведомлениями</small></span><svg class="icon chevron"><use href="#icon-chevron"/></svg></button>
-      <a class="menu-item" href="https://t.me/Hades_save_men" target="_blank" rel="noopener"><span class="menu-icon green"><svg class="icon"><use href="#icon-headphones"/></svg></span><span class="menu-text"><b>Поддержка</b><small>Связаться с администратором</small></span><svg class="icon chevron"><use href="#icon-chevron"/></svg></a>
-      <button id="admin-tab-btn" class="menu-item hidden" onclick="switchTab('admin')"><span class="menu-icon yellow"><svg class="icon"><use href="#icon-admin"/></svg></span><span class="menu-text"><b>Админ-панель</b><small>Управление ботом</small></span><svg class="icon chevron"><use href="#icon-chevron"/></svg></button>
+      <button class="menu-item" onclick="switchTab('settings')"><span class="menu-icon gray"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.7a8 8 0 0 1-1.7 1l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.7-1l-1.7.7-1.4-2.4 1.4-1.1a8 8 0 0 1 0-2l-1.4-1.1 1.4-2.4 1.7.7a8 8 0 0 1 1.7-1l.3-1.8h2.8l.3 1.8a8 8 0 0 1 1.7 1l1.7-.7 1.4 2.4-1.4 1.1a8 8 0 0 1 0 2z"/></svg></span><span class="menu-text"><b>Настройки</b><small>Управление архивом и уведомлениями</small></span><svg class="icon chevron" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9 18 6-6-6-6"/></svg></button>
+      <a class="menu-item" href="https://t.me/Hades_save_men" target="_blank" rel="noopener"><span class="menu-icon green"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 14v-3a9 9 0 0 1 18 0v3M3 14h4v7H5a2 2 0 0 1-2-2zM21 14h-4v7h2a2 2 0 0 0 2-2z"/></svg></span><span class="menu-text"><b>Поддержка</b><small>Связаться с администратором</small></span><svg class="icon chevron" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9 18 6-6-6-6"/></svg></a>
+      <button id="admin-tab-btn" class="menu-item hidden" onclick="switchTab('admin')"><span class="menu-icon yellow"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10zM9 12l2 2 4-4"/></svg></span><span class="menu-text"><b>Админ-панель</b><small>Управление ботом</small></span><svg class="icon chevron" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9 18 6-6-6-6"/></svg></button>
     </div>
   </main>
 
   <main id="view-admin" class="page">
-    <header class="page-header"><button class="back-btn" onclick="switchTab('profile')"><svg class="icon"><use href="#icon-back"/></svg></button><h2>Админ-панель</h2></header>
+    <header class="page-header"><button class="back-btn" onclick="switchTab('profile')"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m15 18-6-6 6-6"/></svg></button><h2>Админ-панель</h2></header>
     <div class="section-label">ОБЩАЯ СТАТИСТИКА</div>
     <div class="stats-grid admin-stats"><div class="stat-card"><strong id="adm-stat-users">0</strong><span>Пользователи</span></div><div class="stat-card"><strong id="adm-stat-stars">0</strong><span>Звёзды</span></div><div class="stat-card"><strong id="adm-stat-prem">0</strong><span>Premium</span></div><div class="stat-card"><strong id="adm-stat-week">0</strong><span>За неделю</span></div></div>
     <div class="section-label">ДЕЙСТВИЯ</div>
     <div class="menu-group">
-      <button class="menu-item" onclick="openAdminModal('grant')"><span class="menu-icon purple"><svg class="icon"><use href="#icon-diamond"/></svg></span><span class="menu-text"><b>Выдать Premium</b><small>По ID или username</small></span></button>
-      <button class="menu-item" onclick="openAdminModal('ban')"><span class="menu-icon red"><svg class="icon"><use href="#icon-ban"/></svg></span><span class="menu-text"><b>Забанить</b><small>По ID или username</small></span></button>
-      <button class="menu-item" onclick="openAdminModal('role')"><span class="menu-icon blue"><svg class="icon"><use href="#icon-admin"/></svg></span><span class="menu-text"><b>Управление ролями</b><small>Выдать или снять права</small></span></button>
-      <button class="menu-item" onclick="openAdminModal('broadcast')"><span class="menu-icon yellow"><svg class="icon"><use href="#icon-megaphone"/></svg></span><span class="menu-text"><b>Рассылка</b><small>Сообщение всем пользователям</small></span></button>
-      <button class="menu-item" onclick="openAdminModal('bans')"><span class="menu-icon red"><svg class="icon"><use href="#icon-ban"/></svg></span><span class="menu-text"><b>Бан-лист</b><small>Просмотр и разблокировка</small></span></button>
+      <button class="menu-item" onclick="openAdminModal('grant')"><span class="menu-icon purple"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m2 9 4-6h12l4 6-10 12zM2 9h20M6 3l3 6 3-6 3 6 3-6"/></svg></span><span class="menu-text"><b>Выдать Premium</b><small>По ID или username</small></span></button>
+      <button class="menu-item" onclick="openAdminModal('ban')"><span class="menu-icon red"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10"/><path d="m5 5 14 14"/></svg></span><span class="menu-text"><b>Забанить</b><small>По ID или username</small></span></button>
+      <button class="menu-item" onclick="openAdminModal('role')"><span class="menu-icon blue"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10zM9 12l2 2 4-4"/></svg></span><span class="menu-text"><b>Управление ролями</b><small>Выдать или снять права</small></span></button>
+      <button class="menu-item" onclick="openAdminModal('broadcast')"><span class="menu-icon yellow"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m3 11 18-7v16L3 13zM11 14l2 8H8l-2-9"/></svg></span><span class="menu-text"><b>Рассылка</b><small>Сообщение всем пользователям</small></span></button>
+      <button class="menu-item" onclick="openAdminModal('bans')"><span class="menu-icon red"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10"/><path d="m5 5 14 14"/></svg></span><span class="menu-text"><b>Бан-лист</b><small>Просмотр и разблокировка</small></span></button>
     </div>
   </main>
 
-  <div id="media-lightbox" class="overlay" onclick="closeLightbox(event)"><div class="dialog media-dialog" onclick="event.stopPropagation()"><button class="dialog-close" onclick="closeLightbox()">×</button><div id="lightbox-media-container" class="lightbox-media-box"></div><button class="primary-button" onclick="requestMedia()"><svg class="icon"><use href="#icon-send"/></svg> Запросить файл в бота</button></div></div>
+  <div id="media-lightbox" class="overlay" onclick="closeLightbox(event)"><div class="dialog media-dialog" onclick="event.stopPropagation()"><button class="dialog-close" onclick="closeLightbox()">×</button><div id="lightbox-media-container" class="lightbox-media-box"></div></div></div>
   <div id="history-modal" class="overlay" onclick="closeHistory()"><div class="dialog" onclick="event.stopPropagation()"><button class="dialog-close" onclick="closeHistory()">×</button><h3>История изменений</h3><div id="history-body"></div></div></div>
   <div id="admin-modal" class="overlay" onclick="closeAdminModal(event)"><div class="dialog" onclick="event.stopPropagation()"><button class="dialog-close" onclick="closeAdminModal()">×</button><h3 id="admin-modal-title">Действие</h3><div id="admin-input-fields"><input id="admin-target" class="admin-input" placeholder="ID или @username"><div id="admin-grant-fields"><input id="admin-days" class="admin-input" type="number" min="1" max="3650" value="30" placeholder="Дней"></div><div id="admin-ban-fields"><input id="admin-reason" class="admin-input" placeholder="Причина бана"></div><div id="admin-role-fields"><select id="admin-role-select" class="admin-input"><option value="owner">Owner</option><option value="admin">Admin</option><option value="aboba">Aboba</option><option value="none">Снять права</option></select></div></div><div id="admin-broadcast-fields"><textarea id="admin-broadcast-text" class="admin-input" rows="4" placeholder="Текст рассылки"></textarea></div><div id="admin-list-container"></div><button id="admin-execute-btn" class="primary-button" onclick="executeAdminAction()">Выполнить</button></div></div>
   <div id="feature-modal" class="overlay" onclick="closeFeatureModal(event)"><div class="dialog" onclick="event.stopPropagation()"><button class="dialog-close" onclick="closeFeatureModal()">×</button><h3 id="feature-title"></h3><p id="feature-desc"></p><button class="primary-button" onclick="closeFeatureModal()">Понятно</button></div></div>
 
   <nav class="bottom-nav">
-    <button class="nav-item active" data-tab="home" onclick="switchTab('home')"><svg class="icon"><use href="#icon-home"/></svg><span>Главная</span></button>
-    <button class="nav-item" data-tab="chats" onclick="switchTab('chats')"><svg class="icon"><use href="#icon-chat"/></svg><span>Чаты</span></button>
-    <button class="nav-item" data-tab="profile" onclick="switchTab('profile')"><svg class="icon"><use href="#icon-user"/></svg><span>Профиль</span></button>
+    <button class="nav-item active" data-tab="home" onclick="switchTab('home')"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg><span>Главная</span></button>
+    <button class="nav-item" data-tab="chats" onclick="switchTab('chats')"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8A8.5 8.5 0 0 1 8.7 4a8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8z"/></svg><span>Чаты</span></button>
+    <button class="nav-item" data-tab="profile" onclick="switchTab('profile')"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>Профиль</span></button>
   </nav>
 </div>
-<script type="module" src="app.js"></script>
+<script type="module" src="app.js?v=304"></script>
 </body>
 </html>

@@ -28,6 +28,7 @@ const fmtDate = (value) => {
 const apiError = (error) => error?.response?.data?.error || error?.message || 'Ошибка сети';
 
 function setPage(name) {
+  document.body.classList.toggle('chat-open', name === 'messages');
   document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === `view-${name}`));
   document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.tab === name || (['messages'].includes(name) && b.dataset.tab === 'chats') || (['settings','premium','referrals','admin'].includes(name) && b.dataset.tab === 'profile')));
   if (name === 'home') loadStats();
@@ -170,19 +171,36 @@ async function loadChats() {
 }
 
 // MESSAGES ----------------------------------------------------------------
-function setMessageFilter(filter, button) {
+function setMessageFilter(filter) {
   state.messageFilter = filter;
-  document.querySelectorAll('#message-filter-tabs .chat-tab').forEach(el => el.classList.toggle('active', el === button || el.dataset.filter === filter));
+  const menu = $('message-filter-menu');
+  menu?.querySelectorAll('[data-message-filter]').forEach(el => el.classList.toggle('selected', el.dataset.messageFilter === filter));
+  menu?.classList.add('hidden');
   loadMessages(false);
 }
 window.setMessageFilter = setMessageFilter;
 async function openChat(chat) {
   state.activeChat = chat; state.messageOffset = 0; state.hasMoreMessages = false; state.messageFilter = 'all'; state.messageSearch = '';
-  $('chat-title').textContent = chat.label || `Чат ${chat.chat_id}`;
-  $('chat-subtitle').textContent = `${chat.total || 0} сохранённых сообщений`;
+  const title = chat.label || `Чат ${chat.chat_id}`;
+  $('chat-title').textContent = title;
+  $('chat-subtitle').textContent = `${chat.total || 0} сообщений в архиве`;
+  $('chat-header-initial').textContent = title.trim().slice(0, 1).toUpperCase() || '?';
+  const avatar = $('chat-header-avatar-image');
+  const avatarWrap = $('chat-header-avatar');
+  if (avatar && avatarWrap) {
+    avatarWrap.classList.remove('has-image');
+    avatar.onerror = () => avatarWrap.classList.remove('has-image');
+    avatar.onload = () => avatarWrap.classList.add('has-image');
+    const avatarParams = new URLSearchParams({chat_id:String(chat.chat_id), connection_id:String(chat.connection_id), initData});
+    const apiBase = miniAppClient.defaults?.baseURL || '';
+    avatar.src = `${apiBase}/api/miniapp/avatar?${avatarParams.toString()}`;
+  }
   $('message-search').value = '';
-  document.querySelectorAll('#message-filter-tabs .chat-tab').forEach(el => el.classList.toggle('active', el.dataset.filter === 'all'));
-  setPage('messages'); await loadMessages(false);
+  $('message-search-wrap')?.classList.add('hidden');
+  $('message-filter-menu')?.classList.add('hidden');
+  $('message-filter-menu')?.querySelectorAll('[data-message-filter]').forEach(el => el.classList.toggle('selected', el.dataset.messageFilter === 'all'));
+  setPage('messages');
+  await loadMessages(false);
 }
 function messageHtml(msg) {
   const outgoing = Boolean(msg.is_outgoing || msg.direction === 'outgoing');
@@ -228,11 +246,12 @@ function messageHtml(msg) {
     const missingMediaLabels = {photo:'📷 Фото не сохранилось',video:'🎬 Видео не сохранилось',video_note:'⭕ Видеокружок не сохранился',voice:'🎤 Голосовое не сохранилось',audio:'🎵 Аудио не сохранилось',animation:'🎞 GIF не сохранился',document:'📎 Файл не сохранился',sticker:'🎭 Стикер не сохранился'};
     body = esc(missingMediaLabels[msg.content_type] || 'Вложение недоступно');
   }
-  const icon = msg.deleted
+  const archiveMarker = msg.deleted
     ? `<svg class="msg-state deleted-icon" viewBox="0 0 24 24" role="img" aria-label="Удалено"><path d="M4 7h16M10 11v6m4-6v6M6 7l1 14h10l1-14M9 7V4h6v3"/></svg>`
     : msg.edited
       ? `<button class="history-button" type="button" title="Показать историю изменений" aria-label="История изменений" data-history="${Number(msg.message_id)}"><svg class="msg-state edit-icon" viewBox="0 0 24 24" role="img" aria-label="Изменено"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg></button>` : '';
-  return `<article class="${cls}" data-message-id="${Number(msg.message_id)}"><div class="message-author">${esc(msg.sender_name || (outgoing ? 'Вы' : 'Собеседник'))}</div>${replyHtml}${body ? `<div class="message-text">${body.replace(/\n/g,'<br>')}</div>` : ''}${media ? `<div class="message-attachment">${media}</div>` : ''}<footer class="message-footer"><time>${esc(fmtDate(msg.sent_at || msg.updated_at))}</time>${icon}</footer></article>`;
+  const sentTicks = outgoing ? `<svg class="telegram-ticks" viewBox="0 0 18 14" aria-label="Отправлено"><path d="m1 7 4 4L14 2M7 7l4 4 6-7"/></svg>` : '';
+  return `<article class="${cls}" data-message-id="${Number(msg.message_id)}">${replyHtml}${body ? `<div class="message-text">${body.replace(/\n/g,'<br>')}</div>` : ''}${media ? `<div class="message-attachment">${media}</div>` : ''}<footer class="message-footer"><time>${esc(fmtDate(msg.sent_at || msg.updated_at))}</time>${archiveMarker}${sentTicks}</footer></article>`;
 }
 
 // Telegram animated stickers use .tgs (gzip-compressed Lottie JSON).
@@ -382,6 +401,37 @@ $('chat-search')?.addEventListener('input', (e) => {
   clearTimeout(chatSearchTimer);
   chatSearchTimer = setTimeout(loadChats, 300);
 });
+$('toggle-message-search')?.addEventListener('click', () => {
+  const wrap = $('message-search-wrap');
+  if (!wrap) return;
+  $('message-filter-menu')?.classList.add('hidden');
+  wrap.classList.toggle('hidden');
+  if (!wrap.classList.contains('hidden')) $('message-search')?.focus();
+  else {
+    $('message-search').value = '';
+    state.messageSearch = '';
+    loadMessages(false);
+  }
+});
+$('close-message-search')?.addEventListener('click', () => {
+  $('message-search-wrap')?.classList.add('hidden');
+  $('message-search').value = '';
+  state.messageSearch = '';
+  loadMessages(false);
+});
+$('toggle-message-menu')?.addEventListener('click', (event) => {
+  event.stopPropagation();
+  $('message-filter-menu')?.classList.toggle('hidden');
+  $('message-search-wrap')?.classList.add('hidden');
+});
+$('message-filter-menu')?.addEventListener('click', (event) => {
+  const option = event.target.closest('[data-message-filter]');
+  if (option) setMessageFilter(option.dataset.messageFilter);
+});
+document.addEventListener('click', (event) => {
+  if (!event.target.closest('.telegram-chat-header')) $('message-filter-menu')?.classList.add('hidden');
+});
+
 let messageSearchTimer;
 $('message-search')?.addEventListener('input', () => {
   clearTimeout(messageSearchTimer); messageSearchTimer = setTimeout(() => { state.messageSearch = $('message-search').value; loadMessages(false); }, 350);

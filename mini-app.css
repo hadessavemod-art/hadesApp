@@ -1671,43 +1671,168 @@ body.chat-open .bottom-nav {
 }
 
 
-/* HadesSave OWNER membership theme and badge */
-.owner-badge {
-  border-color: rgba(255, 205, 92, .72) !important;
-  color: #ffe2a0 !important;
-  background: linear-gradient(135deg, rgba(126, 78, 20, .34), rgba(70, 24, 30, .5));
-  box-shadow: 0 0 12px rgba(255, 190, 75, .16);
+/* HadesSave crimson identity: global theme stays vivid; custom prefix color is badge-only. */
+:root {
+  --bg-main: #090609;
+  --bg-card: #171116;
+  --bg-card-hover: #24151c;
+  --text-main: #fff7f8;
+  --text-muted: #aaa0a8;
+  --accent-red: #ff304f;
+  --accent-purple: #a63c68;
+  --accent-yellow: #ffc45c;
+  --border-color: rgba(255, 61, 91, .16);
 }
-.owner-profile-status {
+body.mini-app-body {
+  background-color: #090609;
+  background-image:
+    radial-gradient(ellipse at 50% -12%, rgba(255, 30, 68, .23), transparent 48%),
+    radial-gradient(ellipse at 0% 42%, rgba(115, 13, 38, .13), transparent 42%);
+}
+.preloader { background: #090609; }
+.spinner { border-color: rgba(255,255,255,.13); border-top-color: #ff304f; }
+.primary-button,
+.subscription-gate-button {
+  color: #fff;
+  background: linear-gradient(135deg, #ff304f 0%, #ba1236 58%, #790d2a 100%);
+  border: 1px solid rgba(255, 98, 121, .35);
+  box-shadow: 0 8px 22px rgba(190, 18, 54, .22);
+}
+.bottom-nav {
+  background: rgba(13, 7, 11, .97);
+  border-top: 1px solid rgba(255, 48, 79, .18);
+  box-shadow: 0 -8px 30px rgba(0,0,0,.24);
+}
+.nav-item.active { color: #ff536d; }
+.nav-item.active .icon { color: #ff536d; filter: drop-shadow(0 0 8px rgba(255,48,79,.4)); }
+.menu-group, .stat-card, .premium-hero, .prefix-admin-card {
+  border-color: rgba(255, 68, 95, .15);
+}
+.menu-icon.gray { background:rgba(255,48,79,.13); color:#ff7186; }
+.menu-item:active, .feature-row:active { background:rgba(255,48,79,.10); }
+.section-label { color:#ff7186; }
+.stat-card { background:linear-gradient(150deg,rgba(48,13,26,.86),rgba(22,14,19,.96)); }
+.menu-group { background:linear-gradient(145deg,rgba(30,14,20,.98),rgba(18,13,17,.98)); }
+.premium-hero { background:radial-gradient(ellipse at 50% 0,rgba(255,48,79,.22),transparent 58%),linear-gradient(150deg,#251019,#130d12); }
+.page-header .back-btn { border-color:rgba(255,67,94,.25); color:#ff657d; }
+.secondary-button { border-color:rgba(255,68,95,.24); color:#ffb3bf; background:rgba(255,48,79,.07); }
+.premium-badge {
+  border-color: rgba(255, 72, 101, .65);
+  color: #ff7387;
+  background: rgba(153, 15, 48, .18);
+}
+
+.prefix-badge {
+  --prefix-color: #ff344f;
   display: inline-flex;
-  align-self: flex-start;
-  margin-top: 5px;
-  padding: 4px 9px;
-  border: 1px solid rgba(255, 205, 92, .28);
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  min-height: 23px;
+  padding: 3px 9px 2px;
+  border: 1px solid var(--prefix-color);
   border-radius: 8px;
-  background: rgba(111, 72, 28, .16);
-  color: #e9c98a;
-  font-size: 11px;
+  color: var(--prefix-color);
+  background: rgba(82, 10, 26, .28);
+  box-shadow: 0 0 13px rgba(255, 48, 79, .16);
+  border-color: color-mix(in srgb, var(--prefix-color) 76%, white 12%);
+  background: color-mix(in srgb, var(--prefix-color) 15%, #160b10);
+  box-shadow: 0 0 13px color-mix(in srgb, var(--prefix-color) 22%, transparent);
+  font-size: 10px;
+  line-height: 1.15;
+  font-weight: 900;
+  letter-spacing: .75px;
+  text-transform: none;
+  white-space: nowrap;
 }
-body[data-owner-theme="obsidian"] {
-  --accent-red: #a9a9b8;
-  --accent-purple: #9096ad;
-  --accent-yellow: #c4b98d;
-  --border-color: rgba(195, 198, 215, .13);
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  position: relative;
+  padding-right: 2px;
 }
-body[data-owner-theme="inferno"] {
-  --accent-red: #ff5c35;
-  --accent-purple: #b34b2c;
-  --accent-yellow: #ffba62;
-  --border-color: rgba(255, 95, 52, .17);
+.profile-header .user-info { flex: 1 1 auto; min-width: 0; }
+.profile-header .name-row { gap: 8px; }
+.profile-header .user-info h2 { max-width: 100%; }
+.profile-meta-row { display:flex; align-items:center; flex-wrap:wrap; gap:7px; margin-top:5px; }
+.profile-custom-status {
+  display:inline-flex;
+  align-items:center;
+  max-width:180px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  padding:3px 9px;
+  border:1px solid rgba(255,190,82,.35);
+  border-radius:9px;
+  color:#ffe0a3;
+  background:rgba(91,48,12,.18);
+  font-size:11px;
+  line-height:1.25;
 }
-body[data-owner-theme="crimson"] {
-  --accent-red: #d00000;
-  --accent-purple: #8b5cf6;
-  --accent-yellow: #f59e0b;
+.profile-admin-pencil {
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  border: 1px solid rgba(255, 67, 94, .42);
+  border-radius: 12px;
+  color: #ff647b;
+  background: linear-gradient(145deg, rgba(116,14,39,.34), rgba(30,12,19,.92));
+  box-shadow: 0 0 15px rgba(255, 48, 79, .12);
+  cursor: pointer;
 }
+.profile-admin-pencil svg { width:19px; height:19px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.profile-admin-pencil:active { transform: scale(.95); }
 
+.admin-page .page-header { display:flex; align-items:center; gap:12px; }
+.admin-page .section-label { color:#ff7186; }
+.admin-stats .stat-card { background:linear-gradient(145deg,rgba(56,15,30,.8),rgba(23,15,20,.96)); }
+.prefix-admin-card {
+  margin: 10px 0 20px;
+  padding: 16px;
+  border: 1px solid rgba(255, 66, 94, .22);
+  border-radius: 20px;
+  background: linear-gradient(155deg, rgba(49,14,27,.78), rgba(19,13,17,.96) 72%);
+  box-shadow: 0 12px 28px rgba(0,0,0,.18);
+}
+.prefix-admin-hint { color:#bfb0b7; font-size:12px; line-height:1.5; margin:0 0 14px; }
+.admin-field-label { display:block; color:#e8d8de; font-size:12px; font-weight:750; margin:11px 0 6px; }
+.admin-input {
+  width:100%; min-height:44px; padding:10px 12px;
+  border:1px solid rgba(255,76,105,.22); border-radius:12px;
+  outline:none; color:#fff; background:#160e13; font:inherit; font-size:14px;
+}
+.admin-input:focus { border-color:#ff536f; box-shadow:0 0 0 3px rgba(255,48,79,.13); }
+.admin-input::placeholder { color:#796a72; }
+.prefix-color-row { display:flex; align-items:center; gap:12px; margin:4px 0 14px; }
+.prefix-color-row .admin-field-label { margin:0; }
+#prefix-color {
+  width:46px; height:38px; padding:3px; border:1px solid rgba(255,75,103,.35);
+  border-radius:10px; background:#1b0e14; cursor:pointer;
+}
+.prefix-preview { margin-left:auto; min-height:28px; font-size:10px; }
+.prefix-admin-divider { height:1px; background:rgba(255,71,100,.16); margin:17px 0; }
+.prefix-action-row { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+.prefix-action-row > * { flex:1 1 28%; min-width:82px; }
+.prefix-action-row .danger-outline { border-color:rgba(255,76,95,.35); color:#ff8595; }
+.prefix-list { display:grid; gap:7px; margin-top:14px; }
+.prefix-list-row {
+  display:flex; align-items:center; gap:9px; width:100%; min-height:44px; padding:8px 10px;
+  border:1px solid rgba(255,69,99,.13); border-radius:12px; color:#f7edf0; background:rgba(255,255,255,.035); text-align:left;
+}
+.prefix-color-dot { width:12px; height:12px; border-radius:50%; flex:0 0 auto; background:var(--prefix-color); box-shadow:0 0 9px var(--prefix-color); }
+.prefix-list-name { font-size:13px; font-weight:800; flex:1; }
+.prefix-list-row small, .prefix-edit-label { color:#a999a2; font-size:10px; }
+.prefix-edit-label { color:#ff778b; font-weight:800; }
+.admin-actions { border-color:rgba(255,66,94,.16); }
+.admin-page .back-btn { color:#ff6a80; }
 
+/* Prefix color is scoped to .prefix-badge only; the app shell always remains crimson. */
 /* Mandatory Telegram channel/group subscription gate */
 .subscription-gate{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:22px 16px calc(22px + env(safe-area-inset-bottom));background:radial-gradient(circle at 50% 0,rgba(208,0,0,.2),transparent 42%),#09090b;overflow:auto}
 .subscription-gate.hidden{display:none!important}

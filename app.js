@@ -3,11 +3,11 @@ import { setTelegramInitData, miniAppClient } from './miniAppClient.js';
 const tg = window.Telegram?.WebApp;
 const initData = tg?.initData || '';
 const state = {
-  userId: 0, role: null, username: '', refLink: '', isOwner: false,
+  userId: 0, username: '', refLink: '', isOwner: false,
   chats: [], chatFilter: 'all', chatSearch: '',
   activeChat: null, messageFilter: 'all', messageSearch: '',
   messageOffset: 0, loadingMessages: false, hasMoreMessages: false,
-  currentMedia: null, adminAction: ''
+  currentMedia: null
 };
 
 const $ = (id) => document.getElementById(id);
@@ -28,20 +28,16 @@ const fmtDate = (value) => {
 const apiError = (error) => error?.response?.data?.error || error?.message || 'Ошибка сети';
 
 function setPage(name) {
-  document.body.classList.toggle('chat-open', name === 'messages');
+  if (name === 'chats' || name === 'messages') name = 'home';
+  document.body.classList.toggle('chat-open', false);
   document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === `view-${name}`));
-  document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.tab === name || (name === 'messages' && b.dataset.tab === 'chats') || (['settings','premium','referrals','admin'].includes(name) && b.dataset.tab === 'profile')));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.tab === name || (['settings','premium','referrals'].includes(name) && b.dataset.tab === 'profile')));
   if (name === 'home') loadStats();
-  if (name === 'chats') { state.chatSearch = ''; loadChats(); }
   if (name === 'settings') loadSettings();
   if (name === 'premium') loadPremium();
   if (name === 'referrals') loadReferrals();
-  if (name === 'admin') loadAdminStats();
 }
-window.switchTab = (name) => {
-  if (name === 'admin' && !state.role) return alertUser('У вас нет доступа к админ-панели');
-  haptic(); setPage(name);
-};
+window.switchTab = (name) => { haptic(); setPage(name); };
 
 function showPreloader(show) { $('preloader')?.classList.toggle('hidden', !show); }
 
@@ -56,7 +52,6 @@ async function initApp() {
     const {data} = await miniAppClient.get('/api/miniapp/stats');
     state.userId = Number(data.user_id || 0);
     state.username = data.username || '';
-    state.role = data.role || null;
     state.isOwner = Boolean(data.is_owner);
     if (state.isOwner) {
       const theme = ['crimson','obsidian','inferno'].includes(data.owner_theme) ? data.owner_theme : 'crimson';
@@ -102,18 +97,99 @@ async function initApp() {
     } else {
       $('premium-status-text').textContent = 'Подписка не активна';
     }
-    if (state.role) {
-      for (const id of ['role-badge','profile-role-badge']) {
-        const el = $(id); el.textContent = state.role.toUpperCase(); el.className = `role-badge role-${state.role}`; el.classList.remove('hidden');
-      }
-      $('admin-tab-btn')?.classList.remove('hidden');
-    }
     await loadStats();
     setPage('home');
+    startSubscriptionPolling();
   } catch (error) {
-    console.error(error); alertUser(`Не удалось загрузить Mini App: ${apiError(error)}`);
+    console.error(error);
+    const payload = error?.response?.data || {};
+    if (payload.subscription_required) {
+      renderSubscriptionGate(payload);
+    } else {
+      alertUser(`Не удалось загрузить Mini App: ${apiError(error)}`);
+    }
   } finally { showPreloader(false); }
 }
+
+let subscriptionGateBusy = false;
+let subscriptionPollTimer = null;
+async function pollSubscriptionStatus() {
+  if (!initData || document.hidden || subscriptionGateBusy) return;
+  try {
+    const {data} = await miniAppClient.get('/api/miniapp/subscriptions', {params:{refresh:1}});
+    if (!data.ok) {
+      renderSubscriptionGate(data);
+    } else if (!$('subscription-gate')?.classList.contains('hidden')) {
+      $('subscription-gate')?.classList.add('hidden');
+      document.querySelector('.hs-app')?.classList.remove('hidden');
+      await initApp();
+    }
+  } catch (error) {
+    const payload = error?.response?.data || {};
+    if (payload.subscription_required) renderSubscriptionGate(payload);
+  }
+}
+function startSubscriptionPolling() {
+  if (subscriptionPollTimer) clearInterval(subscriptionPollTimer);
+  subscriptionPollTimer = setInterval(pollSubscriptionStatus, 20000);
+}
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) pollSubscriptionStatus();
+});
+function renderSubscriptionGate(data = {}) {
+  const gate = $('subscription-gate');
+  const app = document.querySelector('.hs-app');
+  if (!gate) {
+    alertUser('Для доступа к HadesSave необходимо подписаться на обязательные сообщества.');
+    return;
+  }
+  const list = $('subscription-gate-list');
+  const channels = Array.isArray(data.channels) ? data.channels : [];
+  list.innerHTML = channels.map(channel => {
+    const title = esc(channel.title || 'Сообщество');
+    const member = Boolean(channel.member);
+    const error = Boolean(channel.error);
+    const label = member ? 'Подписка подтверждена' : error ? 'Проверка недоступна' : 'Нужно подписаться';
+    const action = channel.join_url
+      ? `<a class="subscription-join-link" href="${esc(channel.join_url)}" target="_blank" rel="noopener noreferrer">${member ? 'Открыть' : 'Подписаться'}</a>`
+      : '<span class="subscription-no-link">Ссылка не настроена</span>';
+    return `<article class="subscription-channel ${member ? 'is-member' : error ? 'is-error' : 'is-missing'}"><div class="subscription-channel-copy"><b>${member ? '✓' : error ? '!' : '○'} ${title}</b><small>${label}</small></div>${action}</article>`;
+  }).join('') || '<p class="subscription-empty">Список обязательных сообществ пока не получен. Нажми «Проверить» ещё раз.</p>';
+  const unavailable = Number(data.unavailable?.length || 0);
+  $('subscription-gate-status').textContent = unavailable
+    ? `Не удалось проверить ${unavailable} сообществ. Доступ закрыт до восстановления проверки.`
+    : `Подтверждено: ${channels.filter(x => x.member).length} из ${channels.length}.`;
+  gate.classList.remove('hidden');
+  app?.classList.add('hidden');
+  tg?.BackButton?.hide?.();
+}
+
+async function refreshRequiredSubscriptions() {
+  if (subscriptionGateBusy) return;
+  subscriptionGateBusy = true;
+  const button = $('subscription-gate-refresh');
+  const status = $('subscription-gate-status');
+  if (button) { button.disabled = true; button.textContent = 'Проверяем…'; }
+  if (status) status.textContent = 'Запрашиваем актуальный статус у Telegram…';
+  try {
+    const {data} = await miniAppClient.get('/api/miniapp/subscriptions', {params:{refresh:1}});
+    if (data.ok) {
+      $('subscription-gate')?.classList.add('hidden');
+      document.querySelector('.hs-app')?.classList.remove('hidden');
+      await initApp();
+      return;
+    }
+    renderSubscriptionGate(data);
+  } catch (error) {
+    const payload = error?.response?.data || {};
+    renderSubscriptionGate(payload);
+    if (status && !payload.channels) status.textContent = 'Не удалось связаться с сервером проверки. Попробуй ещё раз позже.';
+  } finally {
+    subscriptionGateBusy = false;
+    if (button) { button.disabled = false; button.textContent = 'Я подписался · Проверить'; }
+  }
+}
+$('subscription-gate-refresh')?.addEventListener('click', refreshRequiredSubscriptions);
 
 let premiumTimer = null;
 function startPremiumTimer(expiresAt) {
@@ -548,7 +624,7 @@ window.copyRefLink = async () => {
 const FEATURE_INFO = {
   archive:['Безлимитный архив','Premium: 30 дней хранения. OWNER: 365 дней хранения и ежедневные резервные копии базы.'],
   priority:['Приоритетное сохранение','Твои файлы и медиа удаляются последними при очистке сервера.'],
-  mirrors:['Несколько подключений','Архив ведёт все активные Business-подключения аккаунта; отдельный лимит в текущей сборке не задан.'],
+  mirrors:['Несколько подключений','Архив ведёт все активные подключения аккаунта; отдельный лимит в текущей сборке не задан.'],
   spam:['Увеличенный .spam','Повышенный лимит команды рассылки.'],
   badge:['Уникальный значок','Эксклюзивная корона в профиле Mini App.'],
   support:['OWNER Priority','В профиле OWNER отображается специальная отметка для обращения в поддержку.'],
@@ -557,50 +633,6 @@ const FEATURE_INFO = {
 window.openFeatureModal = (key) => { const row=FEATURE_INFO[key]; if(!row)return; $('feature-title').textContent=row[0]; $('feature-desc').textContent=row[1]; $('feature-modal').classList.add('active'); };
 window.closeFeatureModal = (event) => { if(event && event.target!==$('feature-modal') && !event.target.closest('button')) return; $('feature-modal').classList.remove('active'); };
 
-// ADMIN -------------------------------------------------------------------
-async function loadAdminStats() {
-  if (!state.role) return;
-  try {
-    const {data} = await miniAppClient.get('/api/miniapp/admin/stats');
-    $('adm-stat-users').textContent=data.users||0; $('adm-stat-stars').textContent=data.total_stars||0;
-    $('adm-stat-prem').textContent=data.premium||0; $('adm-stat-week').textContent=data.week_premium||0;
-  } catch(error) { alertUser(apiError(error)); }
-}
-window.openAdminModal = async (action) => {
-  if (!state.role) return;
-  state.adminAction=action; $('admin-modal').classList.add('active');
-  ['admin-input-fields','admin-broadcast-fields','admin-list-container','admin-grant-fields','admin-ban-fields','admin-role-fields'].forEach(id => { const el=$(id); if(el)el.style.display='none'; });
-  $('admin-execute-btn').style.display='block';
-  const titles={grant:'Выдать Premium',ban:'Забанить',role:'Управление ролью',broadcast:'Рассылка',bans:'Бан-лист'};
-  $('admin-modal-title').textContent=titles[action]||'Администрирование';
-  if (['grant','ban','role'].includes(action)) $('admin-input-fields').style.display='block';
-  if (action==='grant') $('admin-grant-fields').style.display='block';
-  if (action==='ban') $('admin-ban-fields').style.display='block';
-  if (action==='role') $('admin-role-fields').style.display='block';
-  if (action==='broadcast') $('admin-broadcast-fields').style.display='block';
-  if (action==='bans') {
-    $('admin-list-container').style.display='block'; $('admin-execute-btn').style.display='none';
-    try {
-      const {data}=await miniAppClient.get('/api/miniapp/admin/bans');
-      $('admin-list-container').innerHTML=(data.bans||[]).map(b=>`<div class="ban-row"><b>${esc(b.user_id)} ${b.username?'@'+esc(b.username):''}</b><p>${esc(b.reason)}</p><small>${esc(b.banned_at||'')}</small></div>`).join('')||'<p class="empty-state">Бан-лист пуст</p>';
-    } catch(error) { $('admin-list-container').textContent=apiError(error); }
-  }
-};
-window.closeAdminModal = (event) => { if(event && event.target!==$('admin-modal') && !event.target.closest('button'))return; $('admin-modal').classList.remove('active'); };
-window.executeAdminAction = async () => {
-  if (!state.role) return;
-  const btn=$('admin-execute-btn'), old=btn.textContent; btn.disabled=true; btn.textContent='Выполняется…';
-  try {
-    let result;
-    if (state.adminAction==='grant') result=await miniAppClient.post('/api/miniapp/admin/grant',{target:$('admin-target').value.trim(),days:Number($('admin-days').value||30)});
-    else if(state.adminAction==='ban') result=await miniAppClient.post('/api/miniapp/admin/ban',{target:$('admin-target').value.trim(),reason:$('admin-reason').value.trim()||'Без причины'});
-    else if(state.adminAction==='role') result=await miniAppClient.post('/api/miniapp/admin/roles',{target:$('admin-target').value.trim(),role:$('admin-role-select').value});
-    else if(state.adminAction==='broadcast') result=await miniAppClient.post('/api/miniapp/admin/broadcast',{text:$('admin-broadcast-text').value.trim()});
-    if(result) alertUser(result.data.message||'Готово'); closeAdminModal(); loadAdminStats();
-  } catch(error) { alertUser(apiError(error)); }
-  finally {btn.disabled=false;btn.textContent=old;}
-};
-
 // Global browser Back button in Telegram
-try { tg?.BackButton?.onClick(() => { if ($('history-modal').classList.contains('active')) closeHistory(); else if ($('media-lightbox').classList.contains('active')) closeLightbox(); else if ($('view-messages')?.classList.contains('active')) setPage('chats'); else if ($('view-chats')?.classList.contains('active')) setPage('home'); else setPage('home'); }); } catch (_) {}
+try { tg?.BackButton?.onClick(() => { if ($('history-modal').classList.contains('active')) closeHistory(); else if ($('media-lightbox').classList.contains('active')) closeLightbox(); else if ($('view-messages')?.classList.contains('active')) setPage('home'); else setPage('home'); }); } catch (_) {}
 initApp();

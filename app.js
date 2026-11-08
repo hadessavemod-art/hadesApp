@@ -3,7 +3,7 @@ import { setTelegramInitData, miniAppClient } from './miniAppClient.js';
 const tg = window.Telegram?.WebApp;
 const initData = tg?.initData || '';
 const state = {
-  userId: 0, username: '', refLink: '', isOwner: false,
+  userId: 0, username: '', refLink: '', hasPermanentAccess: false, role: null, isAdmin: false, profilePrefix: null, prefixes: [], adminAction: '', editingPrefixId: 0,
   chats: [], chatFilter: 'all', chatSearch: '',
   activeChat: null, messageFilter: 'all', messageSearch: '',
   messageOffset: 0, loadingMessages: false, hasMoreMessages: false,
@@ -28,14 +28,17 @@ const fmtDate = (value) => {
 const apiError = (error) => error?.response?.data?.error || error?.message || 'Ошибка сети';
 
 function setPage(name) {
-  if (name === 'chats' || name === 'messages') name = 'home';
-  document.body.classList.toggle('chat-open', false);
+  if (name === 'admin' && !state.isAdmin) return alertUser('Недостаточно прав для этого раздела.');
+  document.body.classList.toggle('chat-open', name === 'messages');
   document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === `view-${name}`));
-  document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.tab === name || (['settings','premium','referrals'].includes(name) && b.dataset.tab === 'profile')));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.tab === name || (name === 'messages' && b.dataset.tab === 'chats') || (['settings','premium','referrals','admin'].includes(name) && b.dataset.tab === 'profile')));
   if (name === 'home') loadStats();
+  if (name === 'chats') loadChats();
   if (name === 'settings') loadSettings();
   if (name === 'premium') loadPremium();
   if (name === 'referrals') loadReferrals();
+  if (name === 'admin') { loadAdminStats(); loadPrefixes(); }
+  try { if (name === 'messages') tg?.BackButton?.show?.(); else tg?.BackButton?.hide?.(); } catch (_) {}
 }
 window.switchTab = (name) => { haptic(); setPage(name); };
 
@@ -52,18 +55,23 @@ async function initApp() {
     const {data} = await miniAppClient.get('/api/miniapp/stats');
     state.userId = Number(data.user_id || 0);
     state.username = data.username || '';
-    state.isOwner = Boolean(data.is_owner);
-    if (state.isOwner) {
-      const theme = ['crimson','obsidian','inferno'].includes(data.owner_theme) ? data.owner_theme : 'crimson';
-      document.body.dataset.ownerTheme = theme;
-    } else {
-      delete document.body.dataset.ownerTheme;
-    }
+    state.hasPermanentAccess = Boolean(data.has_permanent_access);
+    state.role = data.role || null;
+    state.isAdmin = Boolean(data.is_admin || data.role);
+    state.profilePrefix = data.profile_prefix || null;
+    document.body.dataset.theme = 'crimson';
+    $('profile-admin-pencil')?.classList.toggle('hidden', !state.isAdmin);
     const name = data.user || 'Пользователь';
     $('user-name').textContent = name;
     $('user-id').textContent = `ID: ${state.userId}`;
     $('profile-name').textContent = name;
     $('profile-id').textContent = `ID: ${state.userId}`;
+    const profileStatus = $('profile-custom-status');
+    if (profileStatus) {
+      const statusText = String(data.profile_status || '').trim();
+      profileStatus.textContent = statusText;
+      profileStatus.classList.toggle('hidden', !statusText);
+    }
     $('user-avatar-text').textContent = name.slice(0,1).toUpperCase();
     $('profile-avatar-text').textContent = name.slice(0,1).toUpperCase();
     if (state.username) {
@@ -75,28 +83,33 @@ async function initApp() {
         img.src = url;
       });
     }
-    if (data.is_premium) {
-      for (const id of ['premium-badge','profile-premium-badge']) {
-        const badge = $(id);
-        if (!badge) continue;
-        badge.textContent = state.isOwner ? 'OWNER' : 'PREMIUM';
-        badge.classList.toggle('owner-badge', state.isOwner);
-        badge.classList.remove('hidden');
+    const prefixBadge = $('profile-prefix-badge');
+    const premiumProfileBadge = $('profile-premium-badge');
+    if (prefixBadge) {
+      if (state.profilePrefix && state.profilePrefix.name) {
+        prefixBadge.textContent = state.profilePrefix.name;
+        prefixBadge.style.setProperty('--prefix-color', state.profilePrefix.color || '#ff344f');
+        prefixBadge.classList.remove('hidden');
+      } else {
+        prefixBadge.classList.add('hidden');
+        prefixBadge.textContent = '';
       }
-      $('premium-status-text').textContent = state.isOwner ? 'OWNER · бессрочно' : 'Подписка активна';
-      $('premium-action-btn').textContent = state.isOwner ? 'Все Premium-функции открыты' : 'Продлить подписку';
-      if (state.isOwner && $('premium-action-btn')) $('premium-action-btn').disabled = true;
-      if (state.isOwner) {
-        $('premium-timer')?.classList.add('hidden');
-        const status = $('profile-owner-status');
-        if (status) {
-          status.textContent = data.owner_status || 'Бессрочный доступ ко всем Premium-возможностям';
-          status.classList.remove('hidden');
-        }
-      } else if (data.premium_expires_at) startPremiumTimer(data.premium_expires_at);
+    }
+    if (premiumProfileBadge) {
+      premiumProfileBadge.classList.toggle('hidden', !data.is_premium || state.hasPermanentAccess || Boolean(state.profilePrefix));
+      premiumProfileBadge.textContent = 'PREMIUM';
+    }
+    $('premium-badge')?.classList.toggle('hidden', !data.is_premium);
+    if (data.is_premium) {
+      $('premium-status-text').textContent = state.hasPermanentAccess ? 'Расширенный доступ активен' : 'Подписка активна';
+      $('premium-action-btn').textContent = state.hasPermanentAccess ? 'Все возможности открыты' : 'Продлить подписку';
+      if (state.hasPermanentAccess && $('premium-action-btn')) $('premium-action-btn').disabled = true;
+      if (state.hasPermanentAccess) $('premium-timer')?.classList.add('hidden');
+      else if (data.premium_expires_at) startPremiumTimer(data.premium_expires_at);
     } else {
       $('premium-status-text').textContent = 'Подписка не активна';
     }
+    $('admin-tab-btn')?.classList.toggle('hidden', !state.isAdmin);
     await loadStats();
     setPage('home');
     startSubscriptionPolling();
@@ -122,7 +135,7 @@ async function pollSubscriptionStatus() {
     } else if (!$('subscription-gate')?.classList.contains('hidden')) {
       $('subscription-gate')?.classList.add('hidden');
       document.querySelector('.hs-app')?.classList.remove('hidden');
-      await initApp();
+      // The app has already been initialized; only dismiss the subscription gate.
     }
   } catch (error) {
     const payload = error?.response?.data || {};
@@ -176,7 +189,7 @@ async function refreshRequiredSubscriptions() {
     if (data.ok) {
       $('subscription-gate')?.classList.add('hidden');
       document.querySelector('.hs-app')?.classList.remove('hidden');
-      await initApp();
+      // The app has already been initialized; only dismiss the subscription gate.
       return;
     }
     renderSubscriptionGate(data);
@@ -347,7 +360,7 @@ function messageHtml(msg) {
     : msg.edited
       ? `<button class="history-button" type="button" title="Показать историю изменений" aria-label="История изменений" data-history="${Number(msg.message_id)}"><svg class="msg-state edit-icon" viewBox="0 0 24 24" role="img" aria-label="Изменено"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg></button>` : '';
   // Telegram semantics: one tick = sent, two ticks = read by the recipient.
-  // The read flag is supplied by the archive API from the owner's MTProto session.
+  // The read flag is supplied by the archive API from the connected account's MTProto session.
   const isRead = outgoing && (msg.is_read === true || msg.is_read === 1 || msg.is_read === '1');
   const sentTicks = outgoing ? (isRead
     ? `<svg class="telegram-ticks is-read" viewBox="0 0 18 14" role="img" aria-label="Прочитано"><path d="m1 7 4 4L14 2M7 7l4 4 6-7"/></svg>`
@@ -609,7 +622,7 @@ window.clearArchive = () => {
 
 // PREMIUM / REFERRALS -----------------------------------------------------
 async function loadPremium() {
-  try { const {data} = await miniAppClient.get('/api/miniapp/stats'); $('premium-status-text').textContent = data.is_owner ? 'OWNER · бессрочно' : data.is_premium ? 'Подписка активна' : 'Подписка не активна'; }
+  try { const {data} = await miniAppClient.get('/api/miniapp/stats'); $('premium-status-text').textContent = Boolean(data.has_permanent_access) ? 'Расширенный доступ активен' : data.is_premium ? 'Подписка активна' : 'Подписка не активна'; }
   catch (_) {}
 }
 async function loadReferrals() {
@@ -622,17 +635,149 @@ window.copyRefLink = async () => {
   catch (_) { alertUser(state.refLink); }
 };
 const FEATURE_INFO = {
-  archive:['Безлимитный архив','Premium: 30 дней хранения. OWNER: 365 дней хранения и ежедневные резервные копии базы.'],
+  archive:['Расширенный архив','Premium: 30 дней хранения. Расширенный доступ: до 365 дней и ежедневные резервные копии базы.'],
   priority:['Приоритетное сохранение','Твои файлы и медиа удаляются последними при очистке сервера.'],
   mirrors:['Несколько подключений','Архив ведёт все активные подключения аккаунта; отдельный лимит в текущей сборке не задан.'],
   spam:['Увеличенный .spam','Повышенный лимит команды рассылки.'],
-  badge:['Уникальный значок','Эксклюзивная корона в профиле Mini App.'],
-  support:['OWNER Priority','В профиле OWNER отображается специальная отметка для обращения в поддержку.'],
+  badge:['Префикс профиля','Цветная отметка, которую назначает администратор в панели управления.'],
+  support:['Приоритетная поддержка','В профиле отображается назначенный администратором префикс для быстрой идентификации обращения.'],
   media:['Увеличенный лимит медиа','Увеличенный лимит сохранения файлов.']
 };
 window.openFeatureModal = (key) => { const row=FEATURE_INFO[key]; if(!row)return; $('feature-title').textContent=row[0]; $('feature-desc').textContent=row[1]; $('feature-modal').classList.add('active'); };
 window.closeFeatureModal = (event) => { if(event && event.target!==$('feature-modal') && !event.target.closest('button')) return; $('feature-modal').classList.remove('active'); };
 
+
+// ADMIN PANEL -------------------------------------------------------------
+async function loadAdminStats() {
+  if (!state.isAdmin) return;
+  try {
+    const {data} = await miniAppClient.get('/api/miniapp/admin/stats');
+    $('adm-stat-users').textContent = data.users || 0;
+    $('adm-stat-stars').textContent = data.total_stars || 0;
+    $('adm-stat-prem').textContent = data.premium || 0;
+    $('adm-stat-week').textContent = data.week_premium || 0;
+  } catch (error) { alertUser(apiError(error)); }
+}
+window.openAdminModal = async (action) => {
+  if (!state.isAdmin) return;
+  state.adminAction = action;
+  $('admin-modal')?.classList.add('active');
+  ['admin-input-fields','admin-broadcast-fields','admin-list-container','admin-grant-fields','admin-ban-fields','admin-role-fields'].forEach(id => { const el=$(id); if(el)el.style.display='none'; });
+  $('admin-execute-btn').style.display='block';
+  const titles={grant:'Выдать Premium',ban:'Заблокировать пользователя',role:'Управление ролями',broadcast:'Рассылка',bans:'Список блокировок'};
+  $('admin-modal-title').textContent=titles[action]||'Действие';
+  if (['grant','ban','role'].includes(action)) $('admin-input-fields').style.display='block';
+  if (action==='grant') $('admin-grant-fields').style.display='block';
+  if (action==='ban') $('admin-ban-fields').style.display='block';
+  if (action==='role') $('admin-role-fields').style.display='block';
+  if (action==='broadcast') $('admin-broadcast-fields').style.display='block';
+  if (action==='bans') {
+    $('admin-list-container').style.display='block'; $('admin-execute-btn').style.display='none';
+    try {
+      const {data}=await miniAppClient.get('/api/miniapp/admin/bans');
+      $('admin-list-container').innerHTML=(data.bans||[]).map(b=>`<div class="ban-row"><b>${esc(b.user_id)} ${b.username?'@'+esc(b.username):''}</b><p>${esc(b.reason)}</p><small>${esc(b.banned_at||'')}</small></div>`).join('')||'<p class="empty-state">Список пуст</p>';
+    } catch(error) { $('admin-list-container').textContent=apiError(error); }
+  }
+};
+window.closeAdminModal = (event) => { if(event && event.target!==$('admin-modal') && !event.target.closest('button'))return; $('admin-modal')?.classList.remove('active'); };
+window.executeAdminAction = async () => {
+  if (!state.isAdmin) return;
+  const btn=$('admin-execute-btn'), old=btn.textContent; btn.disabled=true; btn.textContent='Выполняется…';
+  try {
+    let result;
+    if (state.adminAction==='grant') result=await miniAppClient.post('/api/miniapp/admin/grant',{target:$('admin-target').value.trim(),days:Number($('admin-days').value||30)});
+    else if(state.adminAction==='ban') result=await miniAppClient.post('/api/miniapp/admin/ban',{target:$('admin-target').value.trim(),reason:$('admin-reason').value.trim()||'Без причины'});
+    else if(state.adminAction==='role') result=await miniAppClient.post('/api/miniapp/admin/roles',{target:$('admin-target').value.trim(),role:$('admin-role-select').value});
+    else if(state.adminAction==='broadcast') result=await miniAppClient.post('/api/miniapp/admin/broadcast',{text:$('admin-broadcast-text').value.trim()});
+    if(result) alertUser(result.data.message||'Готово');
+    closeAdminModal(); loadAdminStats();
+  } catch(error) { alertUser(apiError(error)); }
+  finally {btn.disabled=false;btn.textContent=old;}
+};
+
+// PROFILE PREFIX MANAGEMENT ------------------------------------------------
+async function loadPrefixes() {
+  if (!state.isAdmin) return;
+  try {
+    const {data} = await miniAppClient.get('/api/miniapp/admin/prefixes');
+    state.prefixes = Array.isArray(data.prefixes) ? data.prefixes : [];
+    const select = $('prefix-select');
+    if (select) {
+      select.innerHTML = '<option value="">Выбери префикс</option>' + state.prefixes.map(p=>`<option value="${Number(p.id)}">${esc(p.name)} · ${Number(p.assigned_count||0)} пользователей</option>`).join('');
+    }
+    const list = $('prefix-list');
+    if (list) {
+      list.innerHTML = state.prefixes.length ? state.prefixes.map(p=>`<button type="button" class="prefix-list-row" data-prefix-edit="${Number(p.id)}"><span class="prefix-color-dot" style="--prefix-color:${esc(p.color)}"></span><span class="prefix-list-name">${esc(p.name)}</span><small>${Number(p.assigned_count||0)} назнач.</small><span class="prefix-edit-label">Изменить</span></button>`).join('') : '<div class="empty-state">Префиксов пока нет. Создай первый выше.</div>';
+    }
+  } catch (error) { if ($('prefix-list')) $('prefix-list').textContent = apiError(error); }
+}
+function updatePrefixPreview() {
+  const name = ($('prefix-name')?.value || 'ПРЕФИКС').trim() || 'ПРЕФИКС';
+  const color = $('prefix-color')?.value || '#ff344f';
+  const preview = $('prefix-preview');
+  if (preview) { preview.textContent = name; preview.style.setProperty('--prefix-color', color); }
+}
+window.editPrefix = (id) => {
+  if (!state.isAdmin) return;
+  const p = state.prefixes.find(x => Number(x.id) === Number(id));
+  if (!p) return;
+  state.editingPrefixId = Number(p.id);
+  $('prefix-name').value = p.name;
+  $('prefix-color').value = /^#[0-9a-f]{6}$/i.test(p.color) ? p.color : '#ff344f';
+  $('prefix-save-btn').textContent = 'Сохранить изменения';
+  updatePrefixPreview();
+  $('prefix-name')?.focus();
+};
+$('prefix-name')?.addEventListener('input', updatePrefixPreview);
+$('prefix-color')?.addEventListener('input', updatePrefixPreview);
+$('prefix-list')?.addEventListener('click', (event) => {
+  const row = event.target.closest('[data-prefix-edit]');
+  if (row) editPrefix(row.dataset.prefixEdit);
+});
+window.savePrefix = async () => {
+  if (!state.isAdmin) return;
+  const name = $('prefix-name').value.trim();
+  const color = $('prefix-color').value;
+  if (!name) return alertUser('Введи название префикса.');
+  try {
+    const {data} = await miniAppClient.post('/api/miniapp/admin/prefixes',{action:'save',id:state.editingPrefixId||0,name,color});
+    alertUser(data.message || 'Префикс сохранён.');
+    state.editingPrefixId = 0; $('prefix-name').value=''; $('prefix-save-btn').textContent='Создать префикс'; updatePrefixPreview(); await loadPrefixes();
+  } catch(error) { alertUser(apiError(error)); }
+};
+window.deletePrefix = async () => {
+  if (!state.isAdmin) return;
+  const id = Number($('prefix-select').value || state.editingPrefixId || 0);
+  if (!id) return alertUser('Сначала выбери префикс.');
+  const yes = window.confirm('Удалить этот префикс? У всех пользователей он будет снят.');
+  if (!yes) return;
+  try {
+    const {data} = await miniAppClient.post('/api/miniapp/admin/prefixes',{action:'delete',id});
+    alertUser(data.message || 'Префикс удалён.'); state.editingPrefixId=0; $('prefix-name').value=''; $('prefix-save-btn').textContent='Создать префикс'; await loadPrefixes();
+  } catch(error) { alertUser(apiError(error)); }
+};
+window.assignPrefix = async () => {
+  if (!state.isAdmin) return;
+  const userId = Number($('prefix-target').value.trim());
+  const prefixId = Number($('prefix-select').value || 0);
+  if (!Number.isSafeInteger(userId) || userId < 1) return alertUser('Введи корректный Telegram ID пользователя.');
+  if (!prefixId) return alertUser('Выбери префикс из списка.');
+  try {
+    const {data} = await miniAppClient.post('/api/miniapp/admin/prefixes',{action:'assign',user_id:userId,prefix_id:prefixId});
+    alertUser(data.message || 'Префикс назначен.'); await loadPrefixes();
+  } catch(error) { alertUser(apiError(error)); }
+};
+window.removeUserPrefix = async () => {
+  if (!state.isAdmin) return;
+  const userId = Number($('prefix-target').value.trim());
+  if (!Number.isSafeInteger(userId) || userId < 1) return alertUser('Введи корректный Telegram ID пользователя.');
+  try {
+    const {data} = await miniAppClient.post('/api/miniapp/admin/prefixes',{action:'assign',user_id:userId,prefix_id:0});
+    alertUser(data.message || 'Префикс снят.'); await loadPrefixes();
+  } catch(error) { alertUser(apiError(error)); }
+};
+
 // Global browser Back button in Telegram
-try { tg?.BackButton?.onClick(() => { if ($('history-modal').classList.contains('active')) closeHistory(); else if ($('media-lightbox').classList.contains('active')) closeLightbox(); else if ($('view-messages')?.classList.contains('active')) setPage('home'); else setPage('home'); }); } catch (_) {}
+try { tg?.BackButton?.onClick(() => { if ($('history-modal').classList.contains('active')) closeHistory(); else if ($('media-lightbox').classList.contains('active')) closeLightbox(); else if ($('view-messages')?.classList.contains('active')) setPage('chats'); else if ($('view-chats')?.classList.contains('active')) setPage('home'); else if ($('view-admin')?.classList.contains('active')) setPage('profile'); else setPage('home'); }); } catch (_) {}
+updatePrefixPreview();
 initApp();

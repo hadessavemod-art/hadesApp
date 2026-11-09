@@ -2411,3 +2411,12 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 .message-footer{color:#a58f98!important}
 .message-bubble.outgoing .message-footer{color:#f0b3c0!important}
 .subscription-no-link{color:#a8919b!important}
+
+
+/* Local inline SVG sprite: independent of external files and CDN. */
+.hs-icon-sprite{position:absolute!important;width:0!important;height:0!important;overflow:hidden!important;left:-9999px!important;top:-9999px!important;pointer-events:none!important}
+/* Telegram-like chat date separators and compact timestamp typography. */
+.messages-page.active .message-date-divider{align-self:center;display:flex;justify-content:center;flex:0 0 auto;width:auto;max-width:90%;margin:10px auto 5px;padding:5px 12px;border:1px solid rgba(255,105,133,.16);border-radius:999px;background:rgba(36,17,26,.88);color:#e8bac5;box-shadow:0 3px 12px rgba(0,0,0,.16);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);font-size:11px;font-weight:800;line-height:1.2;letter-spacing:.01em}
+.messages-page.active .message-date-divider span{display:block;white-space:nowrap}
+.messages-page.active .message-footer{font-size:10px!important;font-variant-numeric:tabular-nums;font-weight:500;}
+.messages-page.active .message-footer time{font-size:10px!important;line-height:1;letter-spacing:.01em}

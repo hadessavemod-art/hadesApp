@@ -3,9 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-  <meta name="theme-color" content="#17090d">
+  <meta name="theme-color" content="#090609">
   <title>HadesSave</title>
-  <link rel="stylesheet" href="mini-app.css?v=hades-profile-prefix-20261109-36">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="mini-app.css?v=hades-crimson-redesign-20261110-1">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body class="mini-app-body">
@@ -25,6 +28,26 @@
 
 <div class="hs-app">
   <main id="view-home" class="page active">
+    <div class="home-brandbar">
+      <span class="home-brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="m2 9 4-6h12l4 6-10 12zM2 9h20M6 3l3 6 3-6 3 6 3-6"/></svg>
+      </span>
+      <span class="home-brand-copy"><b>HadesSave</b><small>Твой архив. Всегда с тобой.</small></span>
+      <span class="home-brand-status"><i></i> ONLINE</span>
+    </div>
+    <section class="home-hero">
+      <div class="home-hero-copy">
+        <span class="home-hero-kicker">ЛИЧНЫЙ АРХИВ</span>
+        <h1>Твоя история<br><em>сохранена.</em></h1>
+        <p>Сообщения, фотографии и видео из подключённых чатов — в одном месте.</p>
+        <button class="home-hero-button" type="button" onclick="switchTab('chats')">Открыть архив <span aria-hidden="true">›</span></button>
+      </div>
+      <div class="home-hero-art" aria-hidden="true">
+        <span class="hero-orbit hero-orbit-one"></span><span class="hero-orbit hero-orbit-two"></span>
+        <span class="hero-crown"><svg viewBox="0 0 24 24"><path d="m2 8 5 4 5-8 5 8 5-4-2 13H4zM4 18h16"/></svg></span>
+        <span class="hero-art-glow"></span>
+      </div>
+    </section>
     <header class="user-header">
       <div class="avatar"><span id="user-avatar-text">H</span><img id="user-avatar-img" class="avatar-img" alt="" style="display:none"></div>
       <div class="user-info"><div class="name-row"><h2 id="user-name">Загрузка…</h2><span id="premium-badge" class="premium-badge hidden">PREMIUM</span></div><span id="user-id" class="user-id">ID: …</span><div id="premium-timer" class="premium-timer hidden"><span id="premium-timer-text"></span></div></div>
@@ -43,7 +66,13 @@
   </main>
 
   <main id="view-chats" class="page chats-page">
-    <header class="page-header"><div><h2>Чаты</h2><small>Сохранённые диалоги</small></div></header>
+    <header class="page-header chats-titlebar"><div><span class="screen-kicker">ТВОЙ АРХИВ</span><h2>Чаты</h2><small>Все сохранённые диалоги в одном месте</small></div><span class="chats-title-icon" aria-hidden="true">✦</span></header>
+    <label class="search-bar chats-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></svg><input id="chat-search" type="search" placeholder="Поиск по чатам и сообщениям…" autocomplete="off"></label>
+    <div id="chat-filter-tabs" class="chat-tabs archive-filter-tabs" role="group" aria-label="Фильтр архива">
+      <button class="chat-tab active" type="button" data-filter="all" onclick="filterChats('all',this)">Все</button>
+      <button class="chat-tab" type="button" data-filter="deleted" onclick="filterChats('deleted',this)">Удалённые</button>
+      <button class="chat-tab" type="button" data-filter="media" onclick="filterChats('media',this)">Медиа</button>
+    </div>
     <div id="chats-list" class="chats-list"><div class="empty-state">Загрузка чатов…</div></div>
   </main>
 
@@ -143,6 +172,6 @@
 <button class="nav-item" data-tab="profile" onclick="switchTab('profile')"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>Профиль</span></button>
   </nav>
 </div>
-<script type="module" src="app.js?v=hades-profile-prefix-20261109-36"></script>
+<script type="module" src="app.js?v=hades-crimson-redesign-20261110-1"></script>
 </body>
 </html>

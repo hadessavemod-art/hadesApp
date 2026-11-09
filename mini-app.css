@@ -1851,3 +1851,24 @@ body.mini-app-body {
 .subscription-gate-status{font-size:12px;color:#d4d4d8;margin:8px 0 13px}
 .subscription-gate-button{width:100%;border:0;border-radius:14px;padding:15px 18px;color:#fff;background:linear-gradient(135deg,#dc2626,#991b1b);font-size:15px;font-weight:800;box-shadow:0 9px 24px rgba(153,27,27,.28);margin-bottom:12px}
 .subscription-gate-button:disabled{opacity:.6}.subscription-gate-card>small{display:block;text-align:center;color:#777780;font-size:11px;line-height:1.4}
+
+
+/* Stable, polished avatars: fallback stays mounted beneath the image. */
+.chat-avatar-image, .telegram-avatar img, .avatar-img {
+  backface-visibility: hidden; transform: translateZ(0);
+  transition: opacity .28s ease; will-change: opacity;
+}
+.chat-avatar-wrap, .telegram-avatar, .avatar {
+  flex-shrink: 0; isolation: isolate;
+}
+.chat-avatar-wrap.has-image .chat-avatar-fallback { opacity: 0; }
+.chat-avatar-fallback { transition: opacity .22s ease; }
+.home-section-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.home-prefix-pencil { width:34px; height:34px; border-radius:11px; display:grid; place-items:center; color:#ff7b88; background:rgba(105,14,30,.42); border:1px solid rgba(255,91,112,.34); }
+.home-prefix-pencil svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round; }
+/* Deep crimson HadesSave palette, keeping surfaces readable. */
+:root, body[data-theme="crimson"] { --accent:#a91e36; --accent-strong:#d52d49; --accent-soft:rgba(169,30,54,.20); --bg:#10090c; --surface:#191014; --surface-2:#211318; }
+body[data-theme="crimson"] { background:#10090c; }
+body[data-theme="crimson"] .page { background:linear-gradient(160deg,#1b0b10 0%,#10090c 55%,#0d090b 100%); }
+body[data-theme="crimson"] .nav-item.active { color:#ff6679; }
+body[data-theme="crimson"] .nav-item.active svg { stroke:#ff6679; }

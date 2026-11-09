@@ -61,6 +61,7 @@ async function initApp() {
     state.profilePrefix = data.profile_prefix || null;
     document.body.dataset.theme = 'crimson';
     $('profile-admin-pencil')?.classList.toggle('hidden', !state.isAdmin);
+    $('home-prefix-pencil')?.classList.toggle('hidden', !state.isAdmin);
     const name = data.user || 'Пользователь';
     $('user-name').textContent = name;
     $('user-id').textContent = `ID: ${state.userId}`;
@@ -74,12 +75,14 @@ async function initApp() {
     }
     $('user-avatar-text').textContent = name.slice(0,1).toUpperCase();
     $('profile-avatar-text').textContent = name.slice(0,1).toUpperCase();
-    if (state.username) {
-      const url = `https://t.me/i/userpic/320/${encodeURIComponent(state.username)}.jpg`;
+    {
+      const telegramUser = tg?.initDataUnsafe?.user || {};
+      const url = telegramUser.photo_url || (state.username ? `https://t.me/i/userpic/320/${encodeURIComponent(state.username)}.jpg` : '');
       ['user-avatar-img','profile-avatar-img'].forEach(id => {
-        const img = $(id); if (!img) return;
+        const img = $(id); if (!img || !url) return;
+        img.loading = 'eager'; img.decoding = 'async';
         img.onload = () => { img.style.display = 'block'; $(id.replace('-img','-text')).style.display = 'none'; };
-        img.onerror = () => { img.style.display = 'none'; };
+        img.onerror = () => { img.style.display = 'none'; $(id.replace('-img','-text')).style.display = 'grid'; };
         img.src = url;
       });
     }
@@ -254,13 +257,15 @@ function renderChats() {
     const img = item.querySelector('.chat-avatar-image');
     const avatarParams = new URLSearchParams({chat_id:String(chat.chat_id), connection_id:String(chat.connection_id), initData});
     const apiBase = miniAppClient.defaults?.baseURL || '';
-    img.addEventListener('load', () => item.querySelector('.chat-avatar-wrap')?.classList.add('has-image'), {once:true});
+    img.loading = 'eager'; img.decoding = 'async';
+    img.addEventListener('load', () => item.querySelector('.chat-avatar-wrap')?.classList.add('has-image'));
     img.addEventListener('error', () => {
       if (chat.chat_username && !img.dataset.fallbackTried) {
         img.dataset.fallbackTried = '1';
         img.src = `https://t.me/i/userpic/320/${encodeURIComponent(String(chat.chat_username).replace(/^@/,''))}.jpg`;
       } else {
-        img.remove();
+        img.style.opacity = '0';
+        item.querySelector('.chat-avatar-wrap')?.classList.remove('has-image');
       }
     });
     img.src = `${apiBase}/api/miniapp/avatar?${avatarParams.toString()}`;
@@ -297,9 +302,8 @@ async function openChat(chat) {
   const avatar = $('chat-header-avatar-image');
   const avatarWrap = $('chat-header-avatar');
   if (avatar && avatarWrap) {
-    avatarWrap.classList.remove('has-image');
-    avatar.onerror = () => avatarWrap.classList.remove('has-image');
-    avatar.onload = () => avatarWrap.classList.add('has-image');
+    avatar.onerror = () => { avatar.style.opacity = '0'; avatarWrap.classList.remove('has-image'); };
+    avatar.onload = () => { avatar.style.opacity = '1'; avatarWrap.classList.add('has-image'); };
     const avatarParams = new URLSearchParams({chat_id:String(chat.chat_id), connection_id:String(chat.connection_id), initData});
     const apiBase = miniAppClient.defaults?.baseURL || '';
     avatar.src = `${apiBase}/api/miniapp/avatar?${avatarParams.toString()}`;

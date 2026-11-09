@@ -4,8 +4,8 @@ const tg = window.Telegram?.WebApp;
 const initData = tg?.initData || '';
 const state = {
   userId: 0, username: '', refLink: '', hasPermanentAccess: false, role: null, isAdmin: false, profilePrefix: null, prefixes: [], adminAction: '', editingPrefixId: 0,
-  chats: [], chatFilter: 'all', chatSearch: '',
-  activeChat: null, messageFilter: 'all', messageSearch: '',
+  chats: [], chatSearch: '',
+  activeChat: null, messageSearch: '',
   messageOffset: 0, loadingMessages: false, hasMoreMessages: false,
   currentMedia: null
 };
@@ -28,16 +28,17 @@ const fmtDate = (value) => {
 const apiError = (error) => error?.response?.data?.error || error?.message || 'Ошибка сети';
 
 function setPage(name) {
-  if (name === 'admin' && !state.isAdmin) return alertUser('Недостаточно прав для этого раздела.');
+  if (['admin','statistics'].includes(name) && !state.isAdmin) return alertUser('Раздел недоступен.');
   document.body.classList.toggle('chat-open', name === 'messages');
   document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === `view-${name}`));
-  document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.tab === name || (name === 'messages' && b.dataset.tab === 'chats') || (['settings','premium','referrals','admin'].includes(name) && b.dataset.tab === 'profile')));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.tab === name || (name === 'messages' && b.dataset.tab === 'chats') || (['settings','premium','referrals','admin','statistics'].includes(name) && b.dataset.tab === 'profile')));
   if (name === 'home') loadStats();
   if (name === 'chats') loadChats();
   if (name === 'settings') loadSettings();
   if (name === 'premium') loadPremium();
   if (name === 'referrals') loadReferrals();
   if (name === 'admin') { loadAdminStats(); loadPrefixes(); }
+  if (name === 'statistics') loadAdminStatistics();
   try { if (name === 'messages') tg?.BackButton?.show?.(); else tg?.BackButton?.hide?.(); } catch (_) {}
 }
 window.switchTab = (name) => { haptic(); setPage(name); };
@@ -80,10 +81,11 @@ async function initApp() {
       const url = telegramUser.photo_url || (state.username ? `https://t.me/i/userpic/320/${encodeURIComponent(state.username)}.jpg` : '');
       ['user-avatar-img','profile-avatar-img'].forEach(id => {
         const img = $(id); if (!img || !url) return;
-        img.loading = 'eager'; img.decoding = 'async';
-        img.onload = () => { img.style.display = 'block'; $(id.replace('-img','-text')).style.display = 'none'; };
-        img.onerror = () => { img.style.display = 'none'; $(id.replace('-img','-text')).style.display = 'grid'; };
-        img.src = url;
+        img.loading = 'eager'; img.decoding = 'async'; img.fetchPriority = 'high';
+        const fallback = $(id.replace('-img','-text'));
+        img.onload = () => { img.style.display = 'block'; if (fallback) fallback.style.display = 'none'; };
+        img.onerror = () => { img.style.display = 'none'; if (fallback) fallback.style.display = 'grid'; };
+        if (img.dataset.sourceUrl !== url) { img.dataset.sourceUrl = url; img.src = url; }
       });
     }
     const prefixBadge = $('profile-prefix-badge');
@@ -229,72 +231,114 @@ async function loadStats() {
   } catch (error) { console.warn('stats', error); }
 }
 
-// CHAT LIST ---------------------------------------------------------------
-window.filterChats = (filter, button) => {
-  state.chatFilter = filter;
-  document.querySelectorAll('#chat-filter-tabs .chat-tab').forEach(el => el.classList.toggle('active', el === button || el.dataset.filter === filter));
-  renderChats();
-};
+// CHAT LIST -----------------------------------------------------------------
+const chatAvatarCache = new Map();
+const chatAvatarPromises = new Map();
+const chatAvatarReady = new Set();
+const chatAvatarTargets = new WeakMap();
+const chatAvatarObserver = ('IntersectionObserver' in window) ? new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (!entry.isIntersecting) return;
+    const target = chatAvatarTargets.get(entry.target);
+    chatAvatarObserver.unobserve(entry.target);
+    if (target) loadChatAvatar(target.img, target.wrap, target.chat);
+  });
+}, {rootMargin:'180px 0px'}) : null;
+function queueChatAvatar(img, wrap, chat) {
+  if (!chatAvatarObserver || chatAvatarCache.has(`${state.userId}:${String(chat.chat_id)}`)) {
+    loadChatAvatar(img, wrap, chat);
+    return;
+  }
+  chatAvatarTargets.set(wrap, {img, wrap, chat});
+  chatAvatarObserver.observe(wrap);
+}
+async function loadChatAvatar(img, wrap, chat) {
+  if (!img || !wrap || !chat) return;
+  const cacheKey = `${state.userId}:${String(chat.chat_id)}`;
+  const apply = (src) => {
+    if (!src || !img) return false;
+    if (img.dataset.loadedSource !== src) {
+      img.dataset.loadedSource = src;
+      img.onload = () => { chatAvatarReady.add(src); wrap.classList.add('has-image'); };
+      img.onerror = () => { wrap.classList.remove('has-image'); img.removeAttribute('src'); };
+      img.src = src;
+    }
+    if (chatAvatarReady.has(src) || (img.complete && img.naturalWidth > 0)) {
+      wrap.classList.add('has-image');
+    }
+    return true;
+  };
+  if (chatAvatarCache.has(cacheKey)) { apply(chatAvatarCache.get(cacheKey)); return; }
+  if (!chatAvatarPromises.has(cacheKey)) {
+    const params = new URLSearchParams({
+      chat_id: String(chat.chat_id), connection_id: String(chat.avatar_connection_id || chat.connection_id),
+      owner_id: String(state.userId)
+    });
+    const base = miniAppClient.defaults?.baseURL || '';
+    const url = `${base}/api/miniapp/avatar?${params.toString()}`;
+    const task = fetch(url, {
+      method: 'GET', cache: 'force-cache',
+      headers: {'X-Telegram-Init-Data': initData}
+    }).then(async response => {
+      if (!response.ok) throw new Error(`Avatar HTTP ${response.status}`);
+      const blob = await response.blob();
+      if (!blob.size) throw new Error('Empty avatar');
+      const objectUrl = URL.createObjectURL(blob);
+      chatAvatarCache.set(cacheKey, objectUrl);
+      return objectUrl;
+    }).catch(() => {
+      if (chat.chat_username) {
+        const fallbackUrl = `https://t.me/i/userpic/320/${encodeURIComponent(String(chat.chat_username).replace(/^@/,''))}.jpg`;
+        chatAvatarCache.set(cacheKey, fallbackUrl);
+        return fallbackUrl;
+      }
+      return null;
+    });
+    chatAvatarPromises.set(cacheKey, task);
+  }
+  const src = await chatAvatarPromises.get(cacheKey);
+  if (src) apply(src);
+}
 function renderChats() {
   const list = $('chats-list');
+  chatAvatarObserver?.disconnect();
   const q = state.chatSearch.trim().toLocaleLowerCase('ru');
-  let rows = state.chats.filter(c => {
-    if (state.chatFilter === 'deleted' && !Number(c.deleted_count)) return false;
-    if (state.chatFilter === 'media' && !Number(c.media_count)) return false;
-    // The API can match any historical message, not only the latest preview.
+  const rows = state.chats.filter(c => {
     const matchedByServer = Boolean(q && c.match_query === state.chatSearch.trim());
     return !q || matchedByServer || `${c.label || ''} ${c.last_message || ''} ${c.chat_username || ''}`.toLocaleLowerCase('ru').includes(q);
   });
   list.innerHTML = '';
-  if (!rows.length) { list.innerHTML = '<div class="empty-state">Чатов по этому запросу нет</div>'; return; }
+  if (!rows.length) { list.innerHTML = '<div class="empty-state">Переписок по этому запросу нет</div>'; return; }
   const fragment = document.createDocumentFragment();
   rows.forEach(chat => {
     const item = document.createElement('button'); item.type = 'button'; item.className = 'chat-row';
     const title = chat.label || `Чат ${chat.chat_id}`;
     const initials = esc(title.trim().slice(0,1).toUpperCase() || '?');
-    const preview = chat.last_message || (chat.last_content_type ? `📎 ${chat.last_content_type}` : 'Нет сообщений');
-    item.innerHTML = `<span class="chat-avatar-wrap"><span class="chat-avatar-fallback">${initials}</span><img class="chat-avatar-image" alt="" loading="lazy"></span><span class="chat-main"><strong>${esc(title)}</strong><small>${esc(preview)}</small></span><span class="chat-side"><time>${esc(fmtDate(chat.last_at))}</time><small>${Number(chat.total || 0)} сообщ.</small></span>`;
+    const preview = chat.last_message || (chat.last_content_type ? `Вложение: ${chat.last_content_type}` : 'Нет сообщений');
+    item.innerHTML = `<span class="chat-avatar-wrap"><span class="chat-avatar-fallback">${initials}</span><img class="chat-avatar-image" alt="" decoding="async" loading="eager"></span><span class="chat-main"><strong>${esc(title)}</strong><small>${esc(preview)}</small></span><span class="chat-side"><time>${esc(fmtDate(chat.last_at))}</time><small>${Number(chat.total || 0)} сообщ.</small></span>`;
     const img = item.querySelector('.chat-avatar-image');
-    const avatarParams = new URLSearchParams({chat_id:String(chat.chat_id), connection_id:String(chat.connection_id), initData});
-    const apiBase = miniAppClient.defaults?.baseURL || '';
-    img.loading = 'eager'; img.decoding = 'async';
-    img.addEventListener('load', () => item.querySelector('.chat-avatar-wrap')?.classList.add('has-image'));
-    img.addEventListener('error', () => {
-      if (chat.chat_username && !img.dataset.fallbackTried) {
-        img.dataset.fallbackTried = '1';
-        img.src = `https://t.me/i/userpic/320/${encodeURIComponent(String(chat.chat_username).replace(/^@/,''))}.jpg`;
-      } else {
-        img.style.opacity = '0';
-        item.querySelector('.chat-avatar-wrap')?.classList.remove('has-image');
-      }
-    });
-    img.src = `${apiBase}/api/miniapp/avatar?${avatarParams.toString()}`;
-    item.addEventListener('click', () => openChat(chat)); fragment.appendChild(item);
+    const wrap = item.querySelector('.chat-avatar-wrap');
+    queueChatAvatar(img, wrap, chat);
+    item.addEventListener('click', () => openChat(chat));
+    fragment.appendChild(item);
   });
   list.appendChild(fragment);
 }
-
 async function loadChats() {
   if (!$('chats-list')) return;
   try {
-    const params = {filter:'all'};
+    const params = {};
     if (state.chatSearch.trim()) params.q = state.chatSearch.trim();
     const {data} = await miniAppClient.get('/api/miniapp/chats', {params});
-    state.chats = data.chats || []; renderChats();
+    // The API groups a logical Telegram chat across all active Business connections.
+    state.chats = Array.isArray(data.chats) ? data.chats : [];
+    renderChats();
   } catch (error) { $('chats-list').innerHTML = `<div class="empty-state">${esc(apiError(error))}</div>`; }
 }
 
 // MESSAGES ----------------------------------------------------------------
-function setMessageFilter(filter) {
-  state.messageFilter = filter;
-  const menu = $('message-filter-menu');
-  menu?.querySelectorAll('[data-message-filter]').forEach(el => el.classList.toggle('selected', el.dataset.messageFilter === filter));
-  menu?.classList.add('hidden');
-  loadMessages(false);
-}
-window.setMessageFilter = setMessageFilter;
 async function openChat(chat) {
-  state.activeChat = chat; state.messageOffset = 0; state.hasMoreMessages = false; state.messageFilter = 'all'; state.messageSearch = '';
+  state.activeChat = chat; state.messageOffset = 0; state.hasMoreMessages = false; state.messageSearch = '';
   const title = chat.label || `Чат ${chat.chat_id}`;
   $('chat-title').textContent = title;
   $('chat-subtitle').textContent = `${chat.total || 0} сообщений в архиве`;
@@ -302,16 +346,18 @@ async function openChat(chat) {
   const avatar = $('chat-header-avatar-image');
   const avatarWrap = $('chat-header-avatar');
   if (avatar && avatarWrap) {
-    avatar.onerror = () => { avatar.style.opacity = '0'; avatarWrap.classList.remove('has-image'); };
-    avatar.onload = () => { avatar.style.opacity = '1'; avatarWrap.classList.add('has-image'); };
-    const avatarParams = new URLSearchParams({chat_id:String(chat.chat_id), connection_id:String(chat.connection_id), initData});
-    const apiBase = miniAppClient.defaults?.baseURL || '';
-    avatar.src = `${apiBase}/api/miniapp/avatar?${avatarParams.toString()}`;
+    const avatarKey = `${state.userId}:${String(chat.chat_id)}`;
+    if (avatar.dataset.chatKey !== avatarKey) {
+      avatar.dataset.chatKey = avatarKey;
+      avatarWrap.classList.remove('has-image');
+      avatar.dataset.loadedSource = '';
+      avatar.removeAttribute('src');
+      $('chat-header-initial').style.display = 'grid';
+    }
+    loadChatAvatar(avatar, avatarWrap, chat);
   }
-  $('message-search').value = '';
+  if ($('message-search')) $('message-search').value = '';
   $('message-search-wrap')?.classList.add('hidden');
-  $('message-filter-menu')?.classList.add('hidden');
-  $('message-filter-menu')?.querySelectorAll('[data-message-filter]').forEach(el => el.classList.toggle('selected', el.dataset.messageFilter === 'all'));
   setPage('messages');
   await loadMessages(false);
 }
@@ -320,7 +366,8 @@ function messageHtml(msg) {
   const isSticker = msg.content_type === 'sticker';
   const cls = ['message-bubble', outgoing ? 'outgoing' : 'incoming', isSticker ? 'has-sticker' : '', msg.deleted ? 'is-deleted' : '', msg.edited ? 'is-edited' : ''].filter(Boolean).join(' ');
   const replyId = Number(msg.reply_to_message_id || 0);
-  const replyHtml = replyId ? `<button class="reply-preview" type="button" data-reply-to="${replyId}"><strong>${esc(msg.reply_to_sender_name || 'Ответ на сообщение')}</strong><span>${esc(msg.reply_to_text || `Сообщение #${replyId}`)}</span></button>` : '';
+  const rowConnectionId = String(msg.connection_id || state.activeChat.connection_id);
+  const replyHtml = replyId ? `<button class="reply-preview" type="button" data-reply-to="${replyId}" data-reply-connection="${esc(rowConnectionId)}"><strong>${esc(msg.reply_to_sender_name || 'Ответ на сообщение')}</strong><span>${esc(msg.reply_to_text || `Сообщение #${replyId}`)}</span></button>` : '';
   // Keep the actual archived content visible. Status is only a small icon
   // in the footer, never a separate 'deleted/edited' placeholder bubble.
   // Sticker messages are stored with a descriptive text fallback in SQLite.
@@ -329,7 +376,8 @@ function messageHtml(msg) {
   let media = '';
   let mediaUrl = '';
   if (msg.has_media) {
-    const params = new URLSearchParams({chat_id: state.activeChat.chat_id, connection_id: state.activeChat.connection_id, message_id: msg.message_id, initData});
+    const mediaConnectionId = String(msg.media_connection_id || rowConnectionId);
+    const params = new URLSearchParams({chat_id: state.activeChat.chat_id, connection_id: mediaConnectionId, message_id: msg.message_id, initData});
     const apiBase = miniAppClient.defaults?.baseURL || '';
     const url = `${apiBase}/api/miniapp/media?${params.toString()}`;
     mediaUrl = url;
@@ -362,7 +410,7 @@ function messageHtml(msg) {
   const archiveMarker = msg.deleted
     ? `<svg class="msg-state deleted-icon" viewBox="0 0 24 24" role="img" aria-label="Удалено"><path d="M4 7h16M10 11v6m4-6v6M6 7l1 14h10l1-14M9 7V4h6v3"/></svg>`
     : msg.edited
-      ? `<button class="history-button" type="button" title="Показать историю изменений" aria-label="История изменений" data-history="${Number(msg.message_id)}"><svg class="msg-state edit-icon" viewBox="0 0 24 24" role="img" aria-label="Изменено"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg></button>` : '';
+      ? `<button class="history-button" type="button" title="История изменений" aria-label="История изменений" data-history="${Number(msg.message_id)}" data-history-connection="${esc(rowConnectionId)}"><svg class="msg-state edit-icon" viewBox="0 0 24 24" role="img" aria-label="Изменено"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg></button>` : '';
   // Telegram semantics: one tick = sent, two ticks = read by the recipient.
   // The read flag is supplied by the archive API from the connected account's MTProto session.
   const isRead = outgoing && (msg.is_read === true || msg.is_read === 1 || msg.is_read === '1');
@@ -370,7 +418,7 @@ function messageHtml(msg) {
     ? `<svg class="telegram-ticks is-read" viewBox="0 0 18 14" role="img" aria-label="Прочитано"><path d="m1 7 4 4L14 2M7 7l4 4 6-7"/></svg>`
     : `<svg class="telegram-ticks is-sent" viewBox="0 0 18 14" role="img" aria-label="Отправлено"><path d="m2 7 4 4L16 1.5"/></svg>`
   ) : '';
-  return `<article class="${cls}" data-message-id="${Number(msg.message_id)}">${replyHtml}${body ? `<div class="message-text">${body.replace(/\n/g,'<br>')}</div>` : ''}${media ? `<div class="message-attachment">${media}</div>` : ''}<footer class="message-footer"><time>${esc(fmtDate(msg.sent_at || msg.updated_at))}</time>${archiveMarker}${sentTicks}</footer></article>`;
+  return `<article class="${cls}" data-message-id="${Number(msg.message_id)}" data-connection-id="${esc(rowConnectionId)}">${replyHtml}${body ? `<div class="message-text">${body.replace(/\n/g,'<br>')}</div>` : ''}${media ? `<div class="message-attachment">${media}</div>` : ''}<footer class="message-footer"><time>${esc(fmtDate(msg.sent_at || msg.updated_at))}</time>${archiveMarker}${sentTicks}</footer></article>`;
 }
 
 // Telegram animated stickers use .tgs (gzip-compressed Lottie JSON).
@@ -463,7 +511,6 @@ async function loadMessages(append = false) {
     const params = {
       chat_id: state.activeChat.chat_id,
       connection_id: state.activeChat.connection_id,
-      filter: state.messageFilter,
       offset: state.messageOffset,
       limit: 50
     };
@@ -483,11 +530,11 @@ async function loadMessages(append = false) {
   } finally { state.loadingMessages = false; }
 }
 
-async function showEditHistory(messageId) {
-  if (!state.activeChat) return;
+async function showEditHistory(messageId, connectionId = state.activeChat?.connection_id) {
+  if (!state.activeChat || !connectionId) return;
   try {
     const {data} = await miniAppClient.get('/api/miniapp/message_versions', {params:{
-      chat_id:state.activeChat.chat_id, connection_id:state.activeChat.connection_id, message_id:messageId
+      chat_id:state.activeChat.chat_id, connection_id:connectionId, message_id:messageId
     }});
     const versions = data.versions || [];
     const body = versions.length ? versions.map((v,i) => `<section class="history-entry"><small>Изменение ${i+1} · ${esc(fmtDate(v.changed_at))}</small><div class="history-label">Было</div><p>${esc(v.old_text || 'Пусто')}</p><div class="history-label">Стало</div><p>${esc(v.new_text || 'Пусто')}</p></section>`).join('') : '<p class="empty-state">История изменений не найдена.</p>';
@@ -523,32 +570,19 @@ $('chat-search')?.addEventListener('input', (e) => {
 $('toggle-message-search')?.addEventListener('click', () => {
   const wrap = $('message-search-wrap');
   if (!wrap) return;
-  $('message-filter-menu')?.classList.add('hidden');
   wrap.classList.toggle('hidden');
   if (!wrap.classList.contains('hidden')) $('message-search')?.focus();
   else {
-    $('message-search').value = '';
+    if ($('message-search')) $('message-search').value = '';
     state.messageSearch = '';
     loadMessages(false);
   }
 });
 $('close-message-search')?.addEventListener('click', () => {
   $('message-search-wrap')?.classList.add('hidden');
-  $('message-search').value = '';
+  if ($('message-search')) $('message-search').value = '';
   state.messageSearch = '';
   loadMessages(false);
-});
-$('toggle-message-menu')?.addEventListener('click', (event) => {
-  event.stopPropagation();
-  $('message-filter-menu')?.classList.toggle('hidden');
-  $('message-search-wrap')?.classList.add('hidden');
-});
-$('message-filter-menu')?.addEventListener('click', (event) => {
-  const option = event.target.closest('[data-message-filter]');
-  if (option) setMessageFilter(option.dataset.messageFilter);
-});
-document.addEventListener('click', (event) => {
-  if (!event.target.closest('.telegram-chat-header')) $('message-filter-menu')?.classList.add('hidden');
 });
 
 let messageSearchTimer;
@@ -559,15 +593,16 @@ $('messages-list')?.addEventListener('click', async (event) => {
   const reply = event.target.closest('[data-reply-to]');
   if (reply) {
     const targetId = Number(reply.dataset.replyTo);
-    const target = $('messages-list').querySelector(`[data-message-id="${targetId}"]`);
+    const targetConnection = reply.dataset.replyConnection || state.activeChat?.connection_id || '';
+    const target = [...$('messages-list').querySelectorAll('[data-message-id]')].find(node => Number(node.dataset.messageId) === targetId && node.dataset.connectionId === targetConnection);
     if (target) {
       target.scrollIntoView({behavior:'smooth', block:'center'});
       target.classList.add('reply-highlight');
       setTimeout(() => target.classList.remove('reply-highlight'), 1300);
     } else if (state.activeChat) {
       try {
-        const params = {chat_id:state.activeChat.chat_id, connection_id:state.activeChat.connection_id,
-          filter:'all', offset:0, limit:50, around_message_id:targetId};
+        const params = {chat_id:state.activeChat.chat_id, connection_id:targetConnection,
+          filter:'all', offset:0, limit:50, around_message_id:targetId, around_connection_id:targetConnection};
         const {data} = await miniAppClient.get('/api/miniapp/messages', {params});
         const rows = (data.messages || []).slice().reverse();
         $('messages-list').innerHTML = rows.map(messageHtml).join('') || '<div class="empty-state">Сообщение не найдено</div>';
@@ -575,7 +610,7 @@ $('messages-list')?.addEventListener('click', async (event) => {
         state.messageOffset = data.next_offset ?? rows.length;
         state.hasMoreMessages = data.next_offset !== null && data.next_offset !== undefined;
         requestAnimationFrame(() => {
-          const found = $('messages-list').querySelector(`[data-message-id="${targetId}"]`);
+          const found = [...$('messages-list').querySelectorAll('[data-message-id]')].find(node => Number(node.dataset.messageId) === targetId && node.dataset.connectionId === targetConnection);
           if (found) { found.scrollIntoView({behavior:'smooth',block:'center'}); found.classList.add('reply-highlight'); setTimeout(() => found.classList.remove('reply-highlight'),1300); }
         });
       } catch (error) { alertUser(`Не удалось открыть сообщение: ${apiError(error)}`); }
@@ -583,7 +618,7 @@ $('messages-list')?.addEventListener('click', async (event) => {
     return;
   }
   const history = event.target.closest('[data-history]');
-  if (history) { showEditHistory(Number(history.dataset.history)); return; }
+  if (history) { showEditHistory(Number(history.dataset.history), history.dataset.historyConnection); return; }
   const mediaTarget = event.target.closest('[data-media-url]');
   if (mediaTarget && !event.target.closest('audio')) openLightbox(mediaTarget.dataset.mediaUrl, mediaTarget.dataset.mediaType, Number(mediaTarget.dataset.mid));
 });
@@ -630,7 +665,7 @@ async function loadPremium() {
   catch (_) {}
 }
 async function loadReferrals() {
-  try { const {data} = await miniAppClient.get('/api/miniapp/referrals'); state.refLink = data.link || ''; $('ref-count').textContent = data.count || 0; }
+  try { const {data} = await miniAppClient.get('/api/miniapp/referrals'); state.refLink = data.link || ''; $('ref-count').textContent = Number(data.count || 0).toLocaleString('ru-RU'); }
   catch (error) { console.warn(error); }
 }
 window.copyRefLink = async () => {
@@ -639,13 +674,13 @@ window.copyRefLink = async () => {
   catch (_) { alertUser(state.refLink); }
 };
 const FEATURE_INFO = {
-  archive:['Расширенный архив','Premium: 30 дней хранения. Расширенный доступ: до 365 дней и ежедневные резервные копии базы.'],
-  priority:['Приоритетное сохранение','Твои файлы и медиа удаляются последними при очистке сервера.'],
-  mirrors:['Несколько подключений','Архив ведёт все активные подключения аккаунта; отдельный лимит в текущей сборке не задан.'],
-  spam:['Увеличенный .spam','Повышенный лимит команды рассылки.'],
-  badge:['Префикс профиля','Цветная отметка, которую назначает администратор в панели управления.'],
-  support:['Приоритетная поддержка','В профиле отображается назначенный администратором префикс для быстрой идентификации обращения.'],
-  media:['Увеличенный лимит медиа','Увеличенный лимит сохранения файлов.']
+  archive:['Расширенный архив','Больше возможностей для хранения и просмотра переписки.'],
+  priority:['Приоритетное сохранение','Твои важные материалы получают повышенный приоритет.'],
+  mirrors:['Несколько подключений','Все подключённые переписки собраны в одном архиве.'],
+  spam:['Расширенные команды','Дополнительные возможности и повышенные лимиты.'],
+  badge:['Отметка профиля','Цветной акцент рядом с именем в профиле.'],
+  support:['Приоритетная поддержка','Быстрее получай помощь по вопросам сервиса.'],
+  media:['Больше медиа','Больше возможностей для сохранения файлов.']
 };
 window.openFeatureModal = (key) => { const row=FEATURE_INFO[key]; if(!row)return; $('feature-title').textContent=row[0]; $('feature-desc').textContent=row[1]; $('feature-modal').classList.add('active'); };
 window.closeFeatureModal = (event) => { if(event && event.target!==$('feature-modal') && !event.target.closest('button')) return; $('feature-modal').classList.remove('active'); };
@@ -662,6 +697,57 @@ async function loadAdminStats() {
     $('adm-stat-week').textContent = data.week_premium || 0;
   } catch (error) { alertUser(apiError(error)); }
 }
+
+async function loadAdminStatistics() {
+  if (!state.isAdmin) return;
+  const chart = $('admin-daily-chart');
+  const recent = $('admin-recent-activity');
+  if (chart) chart.innerHTML = '<div class="empty-state">Загружаем статистику…</div>';
+  if (recent) recent.innerHTML = '<div class="empty-state">Загружаем…</div>';
+  try {
+    const {data} = await miniAppClient.get('/api/miniapp/admin/statistics');
+    const values = data.summary || {};
+    const mappings = {
+      'full-users':'users','full-active-users':'active_users','full-connections':'connections','full-active-connections':'active_connections',
+      'full-messages':'messages','full-chats':'chats','full-media':'media','full-deleted':'deleted',
+      'full-edited':'edited','full-premium':'premium','full-referrals':'referrals','full-referrals-rewarded':'referrals_rewarded','full-referrals-pending':'referrals_pending',
+      'full-payments':'payments','full-stars':'stars'
+    };
+    Object.entries(mappings).forEach(([id,key]) => { if ($(id)) $(id).textContent = Number(values[key] || 0).toLocaleString('ru-RU'); });
+    const days = Array.isArray(data.daily) ? data.daily : [];
+    if (chart) {
+      const max = Math.max(1, ...days.map(d => Math.max(Number(d.messages || 0), Number(d.users || 0))));
+      chart.innerHTML = days.map(day => {
+        const m = Number(day.messages || 0), u = Number(day.users || 0);
+        const mh = Math.max(m ? 4 : 1, Math.round(m / max * 76));
+        const uh = Math.max(u ? 4 : 1, Math.round(u / max * 76));
+        return `<div class="daily-column" title="${esc(day.date)} · сообщений: ${m} · новых пользователей: ${u}"><div class="daily-bars"><i class="daily-users" style="height:${uh}px"></i><i class="daily-messages" style="height:${mh}px"></i></div><small>${esc(String(day.date || '').slice(5))}</small></div>`;
+      }).join('') || '<div class="empty-state">Пока нет данных</div>';
+    }
+    if (recent) {
+      const rows = Array.isArray(data.recent) ? data.recent : [];
+      recent.innerHTML = rows.map(row => `<article class="recent-activity-row"><span class="recent-activity-dot"></span><div><b>${esc(row.action || 'Действие')}</b><small>${esc(row.details || '')}</small></div><time>${esc(fmtDate(row.created_at))}</time></article>`).join('') || '<div class="empty-state">Действий пока нет</div>';
+    }
+    const media = $('admin-media-breakdown');
+    if (media) {
+      const rows = Array.isArray(data.media_breakdown) ? data.media_breakdown : [];
+      const names = {photo:'Фото',video:'Видео',video_note:'Видеосообщения',voice:'Голосовые',audio:'Аудио',animation:'GIF',document:'Документы',sticker:'Стикеры'};
+      const maxMedia = Math.max(1, ...rows.map(r => Number(r.total || 0)));
+      media.innerHTML = rows.map(r => `<div class="breakdown-row"><span>${esc(names[r.type] || r.type || 'Другое')}</span><i><b style="width:${Math.max(2,Number(r.total||0)/maxMedia*100)}%"></b></i><strong>${Number(r.total||0).toLocaleString('ru-RU')}</strong></div>`).join('') || '<div class="empty-state">Медиа пока нет</div>';
+    }
+    const top = $('admin-top-users');
+    if (top) {
+      const rows = Array.isArray(data.top_users) ? data.top_users : [];
+      top.innerHTML = rows.map((r,i) => `<div class="top-user-row"><em>${i+1}</em><span><b>${esc(r.name || 'Пользователь')}</b><small>${Number(r.chats||0).toLocaleString('ru-RU')} чатов</small></span><strong>${Number(r.messages||0).toLocaleString('ru-RU')}</strong></div>`).join('') || '<div class="empty-state">Пока нет активности</div>';
+    }
+    if ($('statistics-updated-at')) $('statistics-updated-at').textContent = `Обновлено: ${new Date().toLocaleString('ru-RU')}`;
+  } catch (error) {
+    if (chart) chart.innerHTML = `<div class="empty-state">${esc(apiError(error))}</div>`;
+    if (recent) recent.innerHTML = '';
+  }
+}
+$('stats-refresh')?.addEventListener('click', loadAdminStatistics);
+
 window.openAdminModal = async (action) => {
   if (!state.isAdmin) return;
   state.adminAction = action;
@@ -782,6 +868,6 @@ window.removeUserPrefix = async () => {
 };
 
 // Global browser Back button in Telegram
-try { tg?.BackButton?.onClick(() => { if ($('history-modal').classList.contains('active')) closeHistory(); else if ($('media-lightbox').classList.contains('active')) closeLightbox(); else if ($('view-messages')?.classList.contains('active')) setPage('chats'); else if ($('view-chats')?.classList.contains('active')) setPage('home'); else if ($('view-admin')?.classList.contains('active')) setPage('profile'); else setPage('home'); }); } catch (_) {}
+try { tg?.BackButton?.onClick(() => { if ($('history-modal').classList.contains('active')) closeHistory(); else if ($('media-lightbox').classList.contains('active')) closeLightbox(); else if ($('view-messages')?.classList.contains('active')) setPage('chats'); else if ($('view-chats')?.classList.contains('active')) setPage('home'); else if ($('view-statistics')?.classList.contains('active')) setPage('admin'); else if ($('view-admin')?.classList.contains('active')) setPage('profile'); else setPage('home'); }); } catch (_) {}
 updatePrefixPreview();
 initApp();

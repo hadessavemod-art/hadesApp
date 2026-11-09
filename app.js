@@ -14,15 +14,68 @@ const $ = (id) => document.getElementById(id);
 const haptic = (kind = 'light') => { try { tg?.HapticFeedback?.impactOccurred(kind); } catch (_) {} };
 const alertUser = (message) => { try { tg?.showAlert?.(String(message)); } catch (_) { window.alert(String(message)); } };
 const esc = (value) => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
-const fmtDate = (value) => {
-  if (!value) return '';
-  const raw = String(value).trim().replace(' ', 'T');
+function parseArchiveDate(value) {
+  if (value === null || value === undefined || value === '') return null;
+  if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value;
+  const rawValue = String(value).trim();
+  if (/^\d{10}(?:\.\d+)?$/.test(rawValue)) {
+    const d = new Date(Number(rawValue) * 1000);
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+  if (/^\d{13}$/.test(rawValue)) {
+    const d = new Date(Number(rawValue));
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+  const raw = rawValue.includes('T') ? rawValue : rawValue.replace(' ', 'T');
   const hasTimezone = /(?:Z|[+-]\d{2}:?\d{2})$/i.test(raw);
   const date = new Date(raw + (hasTimezone ? '' : 'Z'));
-  if (Number.isNaN(date.getTime())) return String(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+function localDateKey(value) {
+  const date = parseArchiveDate(value);
+  if (!date) return '';
+  return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+}
+function fmtMessageTime(value) {
+  const date = parseArchiveDate(value);
+  return date ? date.toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit', hour12:false}) : '';
+}
+function fmtChatListTime(value) {
+  const date = parseArchiveDate(value);
+  if (!date) return '';
   const now = new Date();
-  return date.toDateString() === now.toDateString()
-    ? date.toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'})
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const day = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const daysAgo = Math.round((today - day) / 86400000);
+  if (daysAgo === 0) return fmtMessageTime(date);
+  if (daysAgo === 1) return 'вчера';
+  if (daysAgo > 1 && daysAgo < 7) return date.toLocaleDateString('ru-RU', {weekday:'short'}).replace('.', '');
+  return date.getFullYear() === now.getFullYear()
+    ? date.toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit'})
+    : date.toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit', year:'2-digit'});
+}
+function fmtConversationStart(value) {
+  const date = parseArchiveDate(value);
+  if (!date) return 'дата неизвестна';
+  return date.toLocaleDateString('ru-RU', {day:'2-digit', month:'long', year:'numeric'});
+}
+function fmtDaySeparator(value) {
+  const date = parseArchiveDate(value);
+  if (!date) return '';
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const day = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const daysAgo = Math.round((today - day) / 86400000);
+  if (daysAgo === 0) return 'Сегодня';
+  if (daysAgo === 1) return 'Вчера';
+  const label = date.toLocaleDateString('ru-RU', {day:'2-digit', month:'long'});
+  return date.getFullYear() === now.getFullYear() ? label : `${label} ${date.getFullYear()}`;
+}
+const fmtDate = (value) => {
+  const date = parseArchiveDate(value);
+  if (!date) return value ? String(value) : '';
+  const now = new Date();
+  return date.toDateString() === now.toDateString() ? fmtMessageTime(date)
     : date.toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit'});
 };
 const apiError = (error) => error?.response?.data?.error || error?.message || 'Ошибка сети';
@@ -315,7 +368,7 @@ function renderChats() {
     const title = chat.label || `Чат ${chat.chat_id}`;
     const initials = esc(title.trim().slice(0,1).toUpperCase() || '?');
     const preview = chat.last_message || (chat.last_content_type ? `Вложение: ${chat.last_content_type}` : 'Нет сообщений');
-    item.innerHTML = `<span class="chat-avatar-wrap"><span class="chat-avatar-fallback">${initials}</span><img class="chat-avatar-image" alt="" decoding="async" loading="eager"></span><span class="chat-main"><strong>${esc(title)}</strong><small>${esc(preview)}</small></span><span class="chat-side"><time>${esc(fmtDate(chat.last_at))}</time><small>${Number(chat.total || 0)} сообщ.</small></span>`;
+    item.innerHTML = `<span class="chat-avatar-wrap"><span class="chat-avatar-fallback">${initials}</span><img class="chat-avatar-image" alt="" decoding="async" loading="eager"></span><span class="chat-main"><strong>${esc(title)}</strong><small>${esc(preview)}</small></span><span class="chat-side"><time>${esc(fmtChatListTime(chat.last_at))}</time><small>${Number(chat.total || 0)} сообщ.</small></span>`;
     const img = item.querySelector('.chat-avatar-image');
     const wrap = item.querySelector('.chat-avatar-wrap');
     queueChatAvatar(img, wrap, chat);
@@ -341,7 +394,7 @@ async function openChat(chat) {
   state.activeChat = chat; state.messageOffset = 0; state.hasMoreMessages = false; state.messageSearch = '';
   const title = chat.label || `Чат ${chat.chat_id}`;
   $('chat-title').textContent = title;
-  $('chat-subtitle').textContent = `${chat.total || 0} сообщений в архиве`;
+  $('chat-subtitle').textContent = chat.first_at ? `Переписка с ${fmtConversationStart(chat.first_at)}` : `${Number(chat.total || 0).toLocaleString('ru-RU')} сообщений в архиве`;
   $('chat-header-initial').textContent = title.trim().slice(0, 1).toUpperCase() || '?';
   const avatar = $('chat-header-avatar-image');
   const avatarWrap = $('chat-header-avatar');
@@ -418,7 +471,9 @@ function messageHtml(msg) {
     ? `<svg class="telegram-ticks is-read" viewBox="0 0 18 14" role="img" aria-label="Прочитано"><path d="m1 7 4 4L14 2M7 7l4 4 6-7"/></svg>`
     : `<svg class="telegram-ticks is-sent" viewBox="0 0 18 14" role="img" aria-label="Отправлено"><path d="m2 7 4 4L16 1.5"/></svg>`
   ) : '';
-  return `<article class="${cls}" data-message-id="${Number(msg.message_id)}" data-connection-id="${esc(rowConnectionId)}">${replyHtml}${body ? `<div class="message-text">${body.replace(/\n/g,'<br>')}</div>` : ''}${media ? `<div class="message-attachment">${media}</div>` : ''}<footer class="message-footer"><time>${esc(fmtDate(msg.sent_at || msg.updated_at))}</time>${archiveMarker}${sentTicks}</footer></article>`;
+  const sentAt = msg.sent_at || msg.updated_at;
+  const dayKey = localDateKey(sentAt);
+  return `<article class="${cls}" data-message-id="${Number(msg.message_id)}" data-connection-id="${esc(rowConnectionId)}" data-date-key="${esc(dayKey)}">${replyHtml}${body ? `<div class="message-text">${body.replace(/\n/g,'<br>')}</div>` : ''}${media ? `<div class="message-attachment">${media}</div>` : ''}<footer class="message-footer"><time datetime="${esc(sentAt || '')}">${esc(fmtMessageTime(sentAt))}</time>${archiveMarker}${sentTicks}</footer></article>`;
 }
 
 // Telegram animated stickers use .tgs (gzip-compressed Lottie JSON).
@@ -501,6 +556,20 @@ async function hydrateTgsStickers(root = document) {
   }
 }
 
+function renderMessageBatch(rows) {
+  let previousDay = '';
+  return rows.map(msg => {
+    const timestamp = msg.sent_at || msg.updated_at;
+    const dayKey = localDateKey(timestamp);
+    let divider = '';
+    if (dayKey && dayKey !== previousDay) {
+      divider = `<div class="message-date-divider" data-date-key="${esc(dayKey)}"><span>${esc(fmtDaySeparator(timestamp))}</span></div>`;
+    }
+    if (dayKey) previousDay = dayKey;
+    return divider + messageHtml(msg);
+  }).join('');
+}
+
 async function loadMessages(append = false) {
   if (!state.activeChat || state.loadingMessages) return;
   state.loadingMessages = true;
@@ -517,9 +586,19 @@ async function loadMessages(append = false) {
     if (state.messageSearch.trim()) params.q = state.messageSearch.trim();
     const {data} = await miniAppClient.get('/api/miniapp/messages', {params});
     const rows = (data.messages || []).slice().reverse();
-    const html = rows.map(messageHtml).join('');
+    const html = renderMessageBatch(rows);
     if (!append) list.innerHTML = html || '<div class="empty-state">Сообщений не найдено</div>';
-    else if (html) list.insertAdjacentHTML('afterbegin', html);
+    else if (html) {
+      const existingFirst = list.querySelector('.message-bubble[data-date-key]');
+      const incomingLast = rows[rows.length - 1];
+      const existingKey = existingFirst?.dataset.dateKey || '';
+      const incomingLastKey = localDateKey(incomingLast?.sent_at || incomingLast?.updated_at);
+      if (existingKey && incomingLastKey === existingKey) {
+        const existingDivider = existingFirst.previousElementSibling;
+        if (existingDivider?.classList.contains('message-date-divider')) existingDivider.remove();
+      }
+      list.insertAdjacentHTML('afterbegin', html);
+    }
     hydrateTgsStickers(list);
     state.messageOffset = data.next_offset ?? (state.messageOffset + (data.messages || []).length);
     state.hasMoreMessages = data.next_offset !== null && data.next_offset !== undefined;
@@ -605,7 +684,7 @@ $('messages-list')?.addEventListener('click', async (event) => {
           filter:'all', offset:0, limit:50, around_message_id:targetId, around_connection_id:targetConnection};
         const {data} = await miniAppClient.get('/api/miniapp/messages', {params});
         const rows = (data.messages || []).slice().reverse();
-        $('messages-list').innerHTML = rows.map(messageHtml).join('') || '<div class="empty-state">Сообщение не найдено</div>';
+        $('messages-list').innerHTML = renderMessageBatch(rows) || '<div class="empty-state">Сообщение не найдено</div>';
         hydrateTgsStickers($('messages-list'));
         state.messageOffset = data.next_offset ?? rows.length;
         state.hasMoreMessages = data.next_offset !== null && data.next_offset !== undefined;

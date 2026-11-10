@@ -207,15 +207,56 @@ function startSubscriptionPolling() {
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden) pollSubscriptionStatus();
 });
+function russianChannelWord(value) {
+  const count = Math.abs(Number(value) || 0);
+  const lastTwo = count % 100;
+  const lastOne = count % 10;
+  if (lastTwo >= 11 && lastTwo <= 14) return 'каналов';
+  if (lastOne === 1) return 'канал';
+  if (lastOne >= 2 && lastOne <= 4) return 'канала';
+  return 'каналов';
+}
+
+function subscriptionGateCopy(count, unavailableCount = 0) {
+  if (count < 1) {
+    return {
+      title: '🔒 Не удалось проверить доступ',
+      lead: 'Не удалось получить список обязательных каналов. Попробуйте проверить доступ ещё раз чуть позже.'
+    };
+  }
+  if (count === 1) {
+    return {
+      title: '🔒 Остался один шаг до доступа',
+      lead: 'Подпишитесь на канал ниже, чтобы открыть доступ к HadesSave. После подписки нажмите кнопку проверки.'
+    };
+  }
+  if (count >= 2 && count <= 4) {
+    return {
+      title: '🔒 Осталось совсем немного!',
+      lead: `Подпишитесь на все ${count} ${russianChannelWord(count)} ниже, чтобы открыть доступ к HadesSave. Затем нажмите кнопку проверки.`
+    };
+  }
+  return {
+    title: '🔒 Подписка для доступа',
+    lead: `Чтобы открыть HadesSave, подпишитесь на все ${count} ${russianChannelWord(count)} ниже. После этого нажмите кнопку проверки.`
+  };
+}
+
 function renderSubscriptionGate(data = {}) {
   const gate = $('subscription-gate');
   const app = document.querySelector('.hs-app');
   if (!gate) {
-    alertUser('Для доступа к HadesSave необходимо подписаться на обязательные сообщества.');
+    alertUser('Чтобы открыть HadesSave, подпишитесь на все обязательные каналы.');
     return;
   }
   const list = $('subscription-gate-list');
   const channels = Array.isArray(data.channels) ? data.channels : [];
+  const requiredCountValue = Number(data.required_count);
+  const requiredCount = Number.isFinite(requiredCountValue) && requiredCountValue >= 0
+    ? requiredCountValue : channels.length;
+  const copy = subscriptionGateCopy(requiredCount);
+  $('subscription-gate-title').textContent = copy.title;
+  $('subscription-gate-lead').textContent = copy.lead;
   list.innerHTML = channels.map(channel => {
     const title = esc(channel.title || 'Сообщество');
     const member = Boolean(channel.member);

@@ -132,14 +132,20 @@ async function initApp() {
     {
       const telegramUser = tg?.initDataUnsafe?.user || {};
       const url = telegramUser.photo_url || (state.username ? `https://t.me/i/userpic/320/${encodeURIComponent(state.username)}.jpg` : '');
-      ['user-avatar-img','profile-avatar-img'].forEach(id => {
-        const img = $(id); if (!img || !url) return;
-        img.loading = 'eager'; img.decoding = 'async'; img.fetchPriority = 'high';
-        const fallback = $(id.replace('-img','-text'));
-        img.onload = () => { img.style.display = 'block'; if (fallback) fallback.style.display = 'none'; };
-        img.onerror = () => { img.style.display = 'none'; if (fallback) fallback.style.display = 'grid'; };
-        if (img.dataset.sourceUrl !== url) { img.dataset.sourceUrl = url; img.src = url; }
-      });
+      requestPersistentAvatarStorage();
+      if (url) {
+        loadCachedProfileAvatar(url).then(cachedUrl => {
+          ['user-avatar-img','profile-avatar-img'].forEach(id => {
+            const img = $(id);
+            const fallback = $(id.replace('-img','-text'));
+            setProfileAvatarSource(img, fallback, cachedUrl);
+          });
+        }).catch(() => {
+          ['user-avatar-img','profile-avatar-img'].forEach(id => {
+            setProfileAvatarSource($(id), $(id.replace('-img','-text')), url);
+          });
+        });
+      }
     }
     const prefixBadge = $('profile-prefix-badge');
     const premiumProfileBadge = $('profile-premium-badge');
@@ -170,6 +176,9 @@ async function initApp() {
     $('admin-tab-btn')?.classList.toggle('hidden', !state.isAdmin);
     await loadStats();
     setPage('home');
+    // Start one background pass so avatars are already saved before the user
+    // opens the archive. loadChats also renders the hidden list safely.
+    void loadChats();
     startSubscriptionPolling();
   } catch (error) {
     console.error(error);
@@ -325,11 +334,155 @@ async function loadStats() {
   } catch (error) { console.warn('stats', error); }
 }
 
-// CHAT LIST -----------------------------------------------------------------
-const chatAvatarCache = new Map();
-const chatAvatarPromises = new Map();
-const chatAvatarReady = new Set();
+// CHAT AVATAR STORAGE ---------------------------------------------------------
+// Avatars are stored in two places:
+// 1) on the API host in /app/data/avatars (server-side persistent file cache);
+// 2) in IndexedDB in this Telegram WebView (persistent per-device cache).
+// This prevents downloading the same profile photos on every Mini App launch.
+const AVATAR_DB_NAME = 'hadessave-avatar-cache';
+const AVATAR_DB_VERSION = 1;
+const AVATAR_DB_STORE = 'images';
+let avatarDbPromise = null;
+const chatAvatarCache = new Map();       // cache key -> object URL / fallback URL
+const chatAvatarPromises = new Map();    // cache key -> single in-flight/resolved promise
 const chatAvatarTargets = new WeakMap();
+const avatarPrefetchStarted = new Set();
+
+function openAvatarDb() {
+  if (!('indexedDB' in window)) return Promise.resolve(null);
+  if (!avatarDbPromise) {
+    avatarDbPromise = new Promise(resolve => {
+      try {
+        const request = indexedDB.open(AVATAR_DB_NAME, AVATAR_DB_VERSION);
+        request.onupgradeneeded = () => {
+          const db = request.result;
+          if (!db.objectStoreNames.contains(AVATAR_DB_STORE)) {
+            db.createObjectStore(AVATAR_DB_STORE);
+          }
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => resolve(null);
+        request.onblocked = () => resolve(null);
+      } catch (_) { resolve(null); }
+    });
+  }
+  return avatarDbPromise;
+}
+
+async function avatarDbGet(key) {
+  const db = await openAvatarDb();
+  if (!db) return null;
+  return new Promise(resolve => {
+    try {
+      const tx = db.transaction(AVATAR_DB_STORE, 'readonly');
+      const req = tx.objectStore(AVATAR_DB_STORE).get(key);
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => resolve(null);
+    } catch (_) { resolve(null); }
+  });
+}
+
+async function avatarDbPut(key, blob) {
+  const db = await openAvatarDb();
+  if (!db || !blob || !blob.size) return false;
+  return new Promise(resolve => {
+    try {
+      const tx = db.transaction(AVATAR_DB_STORE, 'readwrite');
+      tx.objectStore(AVATAR_DB_STORE).put({blob, savedAt: Date.now(), type: blob.type || 'image/jpeg'}, key);
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = tx.onabort = () => resolve(false);
+    } catch (_) { resolve(false); }
+  });
+}
+
+async function requestPersistentAvatarStorage() {
+  try {
+    if (navigator.storage?.persist) await navigator.storage.persist();
+  } catch (_) { /* IndexedDB remains usable even if persistent quota is not granted. */ }
+}
+
+function makeAvatarObjectUrl(key, blob) {
+  let value = chatAvatarCache.get(key);
+  if (value) return value;
+  value = URL.createObjectURL(blob);
+  chatAvatarCache.set(key, value);
+  return value;
+}
+
+function chatAvatarKey(chat) {
+  return `${state.userId}:chat:${String(chat.chat_id)}`;
+}
+
+function chatAvatarApiUrl(chat) {
+  const params = new URLSearchParams({
+    chat_id: String(chat.chat_id),
+    connection_id: String(chat.avatar_connection_id || chat.connection_id),
+    owner_id: String(state.userId)
+  });
+  const base = miniAppClient.defaults?.baseURL || '';
+  return `${base}/api/miniapp/avatar?${params.toString()}`;
+}
+
+async function ensureChatAvatar(chat) {
+  if (!chat || !chat.chat_id) return null;
+  const key = chatAvatarKey(chat);
+  if (chatAvatarCache.has(key)) return chatAvatarCache.get(key);
+  if (chatAvatarPromises.has(key)) return chatAvatarPromises.get(key);
+
+  const task = (async () => {
+    // First check permanent device storage. A hit means no API request at all.
+    const saved = await avatarDbGet(key);
+    if (saved?.blob?.size) return makeAvatarObjectUrl(key, saved.blob);
+
+    // On a cache miss, request the API once. The API itself has a permanent
+    // server-side file cache, so Telegram is contacted only on the first fill.
+    try {
+      const response = await fetch(chatAvatarApiUrl(chat), {
+        method: 'GET', cache: 'force-cache',
+        headers: {'X-Telegram-Init-Data': initData}
+      });
+      if (!response.ok) throw new Error(`Avatar HTTP ${response.status}`);
+      const blob = await response.blob();
+      if (!blob.size || !String(blob.type || '').startsWith('image/')) throw new Error('Invalid avatar image');
+      await avatarDbPut(key, blob);
+      return makeAvatarObjectUrl(key, blob);
+    } catch (error) {
+      // Keep a light fallback if the bot cannot access the profile photo.
+      if (chat.chat_username) {
+        const fallbackUrl = `https://t.me/i/userpic/320/${encodeURIComponent(String(chat.chat_username).replace(/^@/,''))}.jpg`;
+        chatAvatarCache.set(key, fallbackUrl);
+        return fallbackUrl;
+      }
+      console.debug('Avatar is unavailable for chat', chat.chat_id, error?.message || error);
+      return null;
+    }
+  })();
+  chatAvatarPromises.set(key, task);
+  return task;
+}
+
+function applyChatAvatar(img, wrap, src) {
+  if (!img || !wrap || !src) return;
+  if (img.dataset.loadedSource !== src) {
+    img.dataset.loadedSource = src;
+    img.onload = () => wrap.classList.add('has-image');
+    img.onerror = () => {
+      wrap.classList.remove('has-image');
+      img.removeAttribute('src');
+      img.dataset.loadedSource = '';
+    };
+    img.src = src;
+  }
+  if (img.complete && img.naturalWidth > 0) wrap.classList.add('has-image');
+}
+
+async function loadChatAvatar(img, wrap, chat) {
+  if (!img || !wrap || !chat) return;
+  const key = chatAvatarKey(chat);
+  const src = await ensureChatAvatar(chat);
+  if (src) applyChatAvatar(img, wrap, src);
+}
+
 const chatAvatarObserver = ('IntersectionObserver' in window) ? new IntersectionObserver(entries => {
   entries.forEach(entry => {
     if (!entry.isIntersecting) return;
@@ -337,62 +490,68 @@ const chatAvatarObserver = ('IntersectionObserver' in window) ? new Intersection
     chatAvatarObserver.unobserve(entry.target);
     if (target) loadChatAvatar(target.img, target.wrap, target.chat);
   });
-}, {rootMargin:'180px 0px'}) : null;
+}, {rootMargin:'320px 0px'}) : null;
+
 function queueChatAvatar(img, wrap, chat) {
-  if (!chatAvatarObserver || chatAvatarCache.has(`${state.userId}:${String(chat.chat_id)}`)) {
+  const key = chatAvatarKey(chat);
+  if (chatAvatarCache.has(key) || !chatAvatarObserver) {
     loadChatAvatar(img, wrap, chat);
     return;
   }
   chatAvatarTargets.set(wrap, {img, wrap, chat});
   chatAvatarObserver.observe(wrap);
 }
-async function loadChatAvatar(img, wrap, chat) {
-  if (!img || !wrap || !chat) return;
-  const cacheKey = `${state.userId}:${String(chat.chat_id)}`;
-  const apply = (src) => {
-    if (!src || !img) return false;
-    if (img.dataset.loadedSource !== src) {
-      img.dataset.loadedSource = src;
-      img.onload = () => { chatAvatarReady.add(src); wrap.classList.add('has-image'); };
-      img.onerror = () => { wrap.classList.remove('has-image'); img.removeAttribute('src'); };
-      img.src = src;
+
+function prefetchChatAvatars(chats) {
+  const userKey = String(state.userId);
+  if (avatarPrefetchStarted.has(userKey)) return;
+  const unique = [...new Map((chats || []).filter(c => c?.chat_id).map(c => [String(c.chat_id), c])).values()];
+  if (!unique.length) return;
+  avatarPrefetchStarted.add(userKey);
+  let next = 0;
+  const worker = async () => {
+    while (next < unique.length) {
+      const chat = unique[next++];
+      try { await ensureChatAvatar(chat); } catch (_) { /* One unavailable avatar must not stop the queue. */ }
     }
-    if (chatAvatarReady.has(src) || (img.complete && img.naturalWidth > 0)) {
-      wrap.classList.add('has-image');
-    }
-    return true;
   };
-  if (chatAvatarCache.has(cacheKey)) { apply(chatAvatarCache.get(cacheKey)); return; }
-  if (!chatAvatarPromises.has(cacheKey)) {
-    const params = new URLSearchParams({
-      chat_id: String(chat.chat_id), connection_id: String(chat.avatar_connection_id || chat.connection_id),
-      owner_id: String(state.userId)
-    });
-    const base = miniAppClient.defaults?.baseURL || '';
-    const url = `${base}/api/miniapp/avatar?${params.toString()}`;
-    const task = fetch(url, {
-      method: 'GET', cache: 'force-cache',
-      headers: {'X-Telegram-Init-Data': initData}
-    }).then(async response => {
-      if (!response.ok) throw new Error(`Avatar HTTP ${response.status}`);
-      const blob = await response.blob();
-      if (!blob.size) throw new Error('Empty avatar');
-      const objectUrl = URL.createObjectURL(blob);
-      chatAvatarCache.set(cacheKey, objectUrl);
-      return objectUrl;
-    }).catch(() => {
-      if (chat.chat_username) {
-        const fallbackUrl = `https://t.me/i/userpic/320/${encodeURIComponent(String(chat.chat_username).replace(/^@/,''))}.jpg`;
-        chatAvatarCache.set(cacheKey, fallbackUrl);
-        return fallbackUrl;
-      }
-      return null;
-    });
-    chatAvatarPromises.set(cacheKey, task);
-  }
-  const src = await chatAvatarPromises.get(cacheKey);
-  if (src) apply(src);
+  // Warm the full archive in the background without flooding the API.
+  void Promise.all(Array.from({length: Math.min(3, unique.length)}, () => worker()));
 }
+
+async function loadCachedProfileAvatar(url) {
+  if (!url || !state.userId) return null;
+  // Include the photo URL in the key so a newly changed Telegram avatar
+  // gets a fresh local copy while an unchanged one remains permanent.
+  const key = `${state.userId}:profile:${url}`;
+  if (chatAvatarCache.has(key)) return chatAvatarCache.get(key);
+  const existing = await avatarDbGet(key);
+  if (existing?.blob?.size) return makeAvatarObjectUrl(key, existing.blob);
+  try {
+    const response = await fetch(url, {mode:'cors', credentials:'omit', cache:'force-cache'});
+    if (!response.ok) throw new Error(`Profile avatar HTTP ${response.status}`);
+    const blob = await response.blob();
+    if (!blob.size || !String(blob.type || '').startsWith('image/')) throw new Error('Invalid profile avatar');
+    await avatarDbPut(key, blob);
+    return makeAvatarObjectUrl(key, blob);
+  } catch (_) {
+    // Some Telegram CDN photo URLs do not allow cross-origin fetch. The native
+    // img request remains as a fallback and is still handled by the WebView cache.
+    return url;
+  }
+}
+
+function setProfileAvatarSource(img, fallback, src) {
+  if (!img || !src) return;
+  img.loading = 'eager'; img.decoding = 'async'; img.fetchPriority = 'high';
+  img.onload = () => { img.style.display = 'block'; if (fallback) fallback.style.display = 'none'; };
+  img.onerror = () => { img.style.display = 'none'; if (fallback) fallback.style.display = 'grid'; };
+  if (img.dataset.sourceUrl !== src) {
+    img.dataset.sourceUrl = src;
+    img.src = src;
+  }
+}
+
 function renderChats() {
   const list = $('chats-list');
   chatAvatarObserver?.disconnect();
@@ -427,6 +586,7 @@ async function loadChats() {
     // The API groups a logical Telegram chat across all active Business connections.
     state.chats = Array.isArray(data.chats) ? data.chats : [];
     renderChats();
+    prefetchChatAvatars(state.chats);
   } catch (error) { $('chats-list').innerHTML = `<div class="empty-state">${esc(apiError(error))}</div>`; }
 }
 

@@ -7,7 +7,7 @@ const state = {
   chats: [], chatSearch: '',
   activeChat: null, messageSearch: '',
   messageOffset: 0, loadingMessages: false, hasMoreMessages: false,
-  currentMedia: null
+  currentMedia: null, selectedPremiumDays: 30
 };
 
 const $ = (id) => document.getElementById(id);
@@ -90,7 +90,7 @@ function setPage(name) {
   if (name === 'settings') loadSettings();
   if (name === 'premium') loadPremium();
   if (name === 'referrals') loadReferrals();
-  if (name === 'admin') { loadAdminStats(); loadPrefixes(); }
+  if (name === 'admin') { loadAdminStats(); loadPrefixes(); loadConnectionGuide(); }
   if (name === 'statistics') loadAdminStatistics();
   try { if (name === 'messages') tg?.BackButton?.show?.(); else tg?.BackButton?.hide?.(); } catch (_) {}
 }
@@ -166,7 +166,7 @@ async function initApp() {
     $('premium-badge')?.classList.toggle('hidden', !data.is_premium);
     if (data.is_premium) {
       $('premium-status-text').textContent = state.hasPermanentAccess ? 'Расширенный доступ активен' : 'Подписка активна';
-      $('premium-action-btn').textContent = state.hasPermanentAccess ? 'Все возможности открыты' : 'Продлить подписку';
+      $('premium-action-btn').textContent = state.hasPermanentAccess ? 'Доступ открыт навсегда' : 'Продлить Premium';
       if (state.hasPermanentAccess && $('premium-action-btn')) $('premium-action-btn').disabled = true;
       if (state.hasPermanentAccess) $('premium-timer')?.classList.add('hidden');
       else if (data.premium_expires_at) startPremiumTimer(data.premium_expires_at);
@@ -940,10 +940,84 @@ window.clearArchive = () => {
 };
 
 // PREMIUM / REFERRALS -----------------------------------------------------
+const PREMIUM_PLAN_VIEW = {
+  7: {price:45, regular:100, discount:55},
+  14: {price:69, regular:150, discount:54},
+  30: {price:120, regular:300, discount:60}
+};
+window.selectPremiumPlan = (days) => {
+  days = Number(days);
+  if (!PREMIUM_PLAN_VIEW[days]) return;
+  state.selectedPremiumDays = days;
+  document.querySelectorAll('.premium-plan').forEach(card => {
+    const selected = Number(card.dataset.days) === days;
+    card.classList.toggle('is-selected', selected);
+    card.setAttribute('aria-pressed', selected ? 'true' : 'false');
+  });
+  const plan = PREMIUM_PLAN_VIEW[days];
+  const price = $('premium-price-text');
+  if (price) price.textContent = `Выбрано: ${days} дней · ${plan.price} ₽ вместо ${plan.regular} ₽`;
+  const button = $('premium-action-btn');
+  if (button && !button.disabled) button.textContent = `Оплатить ${plan.price} ₽ через СБП`;
+  haptic('light');
+};
+
 async function loadPremium() {
-  try { const {data} = await miniAppClient.get('/api/miniapp/stats'); $('premium-status-text').textContent = Boolean(data.has_permanent_access) ? 'Расширенный доступ активен' : data.is_premium ? 'Подписка активна' : 'Подписка не активна'; }
-  catch (_) {}
+  try {
+    const {data} = await miniAppClient.get('/api/miniapp/stats');
+    const status = $('premium-status-text');
+    const button = $('premium-action-btn');
+    if (status) status.textContent = Boolean(data.has_permanent_access) ? '👑 Расширенный доступ активен' : data.is_premium ? '✅ Premium активен' : 'Premium пока не активен';
+    const cryptoOption = $('premium-payment-method')?.querySelector('option[value="13"]');
+    if (cryptoOption) cryptoOption.disabled = !data.premium_crypto_enabled;
+    if (button) {
+      button.disabled = Boolean(data.has_permanent_access) || !data.premium_payment_ready;
+      const plan = PREMIUM_PLAN_VIEW[state.selectedPremiumDays] || PREMIUM_PLAN_VIEW[30];
+      button.textContent = data.has_permanent_access ? 'Доступ открыт навсегда' : data.premium_payment_ready ? `Оплатить ${plan.price} ₽ через СБП` : 'Оплата скоро появится';
+    }
+    const timer = $('premium-timer');
+    if (timer) {
+      if (!data.has_permanent_access && data.premium_expires_at) {
+        timer.classList.remove('hidden');
+        startPremiumTimer(data.premium_expires_at);
+      } else timer.classList.add('hidden');
+    }
+    window.selectPremiumPlan(state.selectedPremiumDays);
+    if (button && data.has_permanent_access) button.disabled = true;
+  } catch (error) { console.warn('Premium info:', error); }
 }
+
+$('premium-payment-method')?.addEventListener('change', () => {
+  const button = $('premium-action-btn');
+  if (button && !button.disabled) {
+    const plan = PREMIUM_PLAN_VIEW[state.selectedPremiumDays] || PREMIUM_PLAN_VIEW[30];
+    button.textContent = $('premium-payment-method').value === '13' ? `Оплатить ${plan.price} ₽ криптовалютой` : `Оплатить ${plan.price} ₽ через СБП`;
+  }
+});
+
+window.startPremiumPayment = async () => {
+  const emailInput = $('premium-email');
+  const button = $('premium-action-btn');
+  const email = String(emailInput?.value || '').trim();
+  if (!emailInput || !emailInput.checkValidity() || !email) {
+    emailInput?.focus();
+    alertUser('Укажи корректный email — он нужен для оформления платежа.');
+    return;
+  }
+  const plan = PREMIUM_PLAN_VIEW[state.selectedPremiumDays] || PREMIUM_PLAN_VIEW[30];
+  if (button) { button.disabled = true; button.textContent = 'Создаём платёж…'; }
+  try {
+    const paymentMethod = Number($('premium-payment-method')?.value || 2);
+    const {data} = await miniAppClient.post('/api/miniapp/premium/create', {email, payment_method: paymentMethod, plan_days: state.selectedPremiumDays});
+    if (!data.redirect || !/^https:\/\//i.test(data.redirect)) throw new Error('Platega не вернула ссылку на оплату.');
+    if (tg?.openLink) tg.openLink(data.redirect);
+    else window.open(data.redirect, '_blank', 'noopener');
+  } catch (error) {
+    alertUser(error?.response?.data?.error || error.message || 'Не удалось создать платёж. Попробуй позже.');
+  } finally {
+    if (button) { button.disabled = false; await loadPremium(); }
+  }
+};
 async function loadReferrals() {
   try { const {data} = await miniAppClient.get('/api/miniapp/referrals'); state.refLink = data.link || ''; $('ref-count').textContent = Number(data.count || 0).toLocaleString('ru-RU'); }
   catch (error) { console.warn(error); }
@@ -1064,6 +1138,56 @@ window.executeAdminAction = async () => {
   } catch(error) { alertUser(apiError(error)); }
   finally {btn.disabled=false;btn.textContent=old;}
 };
+
+// CONNECTION GUIDE IMAGE MANAGEMENT ---------------------------------------
+async function loadConnectionGuide() {
+  if (!state.isAdmin) return;
+  const image = $('connection-guide-preview');
+  const empty = $('connection-guide-empty');
+  const status = $('connection-guide-status');
+  if (status) status.textContent = 'Загружаем текущее изображение…';
+  try {
+    const {data} = await miniAppClient.get('/api/miniapp/admin/connection-guide');
+    if (data.exists && data.image_data_url && image) {
+      image.src = data.image_data_url;
+      image.hidden = false;
+      if (empty) empty.style.display = 'none';
+      if (status) status.textContent = `Сейчас используется: ${data.filename} · ${(Number(data.size_bytes || 0) / 1024 / 1024).toFixed(2)} МБ`;
+    } else {
+      if (image) { image.hidden = true; image.removeAttribute('src'); }
+      if (empty) { empty.style.display = 'block'; empty.textContent = 'Фото ещё не загружено'; }
+      if (status) status.textContent = 'Загрузи PNG или JPG — он будет показываться на экране подключения.';
+    }
+  } catch (error) {
+    if (status) status.textContent = apiError(error);
+    if (empty) { empty.style.display = 'block'; empty.textContent = 'Не удалось загрузить изображение'; }
+  }
+}
+
+window.uploadConnectionGuide = async () => {
+  if (!state.isAdmin) return;
+  const input = $('connection-guide-file');
+  const file = input?.files?.[0];
+  if (!file) return alertUser('Сначала выбери изображение.');
+  if (!['image/png', 'image/jpeg'].includes(file.type)) return alertUser('Поддерживаются только PNG и JPG.');
+  if (file.size > 8 * 1024 * 1024) return alertUser('Размер изображения не должен превышать 8 МБ.');
+  const button = document.querySelector('.connection-guide-admin-card .primary-button');
+  const old = button?.textContent;
+  if (button) { button.disabled = true; button.textContent = 'Загружаем…'; }
+  try {
+    const form = new FormData();
+    form.append('image', file, file.name);
+    const {data} = await miniAppClient.upload('/api/miniapp/admin/connection-guide', form);
+    alertUser(data.message || 'Изображение обновлено.');
+    input.value = '';
+    await loadConnectionGuide();
+  } catch (error) {
+    alertUser(apiError(error));
+  } finally {
+    if (button) { button.disabled = false; button.textContent = old || 'Загрузить / заменить фото'; }
+  }
+};
+
 
 // PROFILE PREFIX MANAGEMENT ------------------------------------------------
 async function loadPrefixes() {

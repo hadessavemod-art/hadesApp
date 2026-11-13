@@ -27,7 +27,10 @@ async function request(method, path, options = {}) {
   if (telegramInitData) headers.set('X-Telegram-Init-Data', telegramInitData);
 
   let body;
-  if (options.data !== undefined) {
+  if (options.formData !== undefined) {
+    // Let fetch set multipart boundary automatically.
+    body = options.formData;
+  } else if (options.data !== undefined) {
     headers.set('Content-Type', 'application/json');
     body = JSON.stringify(options.data);
   }
@@ -74,5 +77,8 @@ export const miniAppClient = {
   },
   post(path, data, options = {}) {
     return request('POST', path, { ...options, data });
+  },
+  upload(path, formData, options = {}) {
+    return request('POST', path, { ...options, formData, timeout: options.timeout || 30000 });
   },
 };

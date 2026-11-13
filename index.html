@@ -8,13 +8,23 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="mini-app.css?v=connection-guide-admin-upload-20261111">
+  <link rel="stylesheet" href="mini-app.css?v=premium-two-step-20261113">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body class="mini-app-body">
 <svg class="hs-icon-sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
 
   <symbol id="arrow-left" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7M5 12h14"/></symbol>
+  <symbol id="arrow-right" viewBox="0 0 24 24"><path d="M5 12h14m-7-7 7 7-7 7"/></symbol>
+  <symbol id="arrow-up-right" viewBox="0 0 24 24"><path d="M7 17 17 7M7 7h10v10"/></symbol>
+  <symbol id="check-circle-2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.2 2.2 4.8-5"/></symbol>
+  <symbol id="circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/></symbol>
+  <symbol id="circle-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.2 2.2 4.8-5"/></symbol>
+  <symbol id="scan-line" viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M3 12h18"/></symbol>
+  <symbol id="chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="file-down" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M12 12v7m-3-3 3 3 3-3"/></symbol>
+  <symbol id="folder-open" viewBox="0 0 24 24"><path d="M3 6a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v2M3 6v12a2 2 0 0 0 2 2h12a2 2 0 0 0 1.8-1.1L22 12H7l-2 8"/><path d="M7 12h15"/></symbol>
+  <symbol id="search-check" viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="7.2"/><path d="m16.2 16.2 4.3 4.3M8 10.8l2 2 4-4"/></symbol>
   <symbol id="chart-no-axes-combined" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-5 5"/><path d="M15 9h4v4"/></symbol>
   <symbol id="chevron-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
   <symbol id="copy" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></symbol>
@@ -87,8 +97,20 @@
       <div class="stat-card"><strong id="stat-media">0</strong><span>Медиа</span></div>
     </div>
     <div class="home-section-heading"><div class="section-label">АРХИВ И ВОЗМОЖНОСТИ</div><button id="home-prefix-pencil" class="home-prefix-pencil hidden" type="button" aria-label="Настроить отметки" title="Настроить отметки" onclick="switchTab('admin')"><svg class="icon" aria-hidden="true"><use href="#pencil"/></svg></button></div>
+    <section class="home-premium-preview" aria-label="Возможности Hades Premium">
+      <div class="home-premium-preview-head"><span class="home-premium-gem"><svg class="icon"><use href="#gem"/></svg></span><div><b>Возможности Premium</b><small>Дополнительные инструменты архива</small></div><button type="button" class="home-premium-more" onclick="switchTab('premium')" aria-label="Все возможности"><svg class="icon"><use href="#chevron-right"/></svg></button></div>
+      <div class="home-premium-preview-grid">
+        <div class="home-premium-preview-item"><svg class="icon"><use href="#archive"/></svg><span>Архив до 30 дней</span></div>
+        <div class="home-premium-preview-item"><svg class="icon"><use href="#image"/></svg><span>Медиа до 50 МБ</span></div>
+        <div class="home-premium-preview-item"><svg class="icon"><use href="#file-down"/></svg><span>Экспорт HTML / JSON</span></div>
+        <div class="home-premium-preview-item"><svg class="icon"><use href="#folder-open"/></svg><span>Умные папки</span></div>
+        <div class="home-premium-preview-item"><svg class="icon"><use href="#search"/></svg><span>Глобальный поиск</span></div>
+        <div class="home-premium-preview-item"><svg class="icon"><use href="#zap"/></svg><span>.spam до 50 сообщений</span></div>
+        <div class="home-premium-preview-item"><svg class="icon"><use href="#bell"/></svg><span>Уведомления по словам</span></div>
+      </div>
+      <button type="button" class="home-premium-details" onclick="switchTab('premium')">Посмотреть все функции <svg class="icon"><use href="#arrow-right"/></svg></button>
+    </section>
     <div class="menu-group">
-<button class="menu-item" onclick="switchTab('premium')"><span class="menu-icon purple"><svg class="icon"><use href="#gem"/></svg></span><span class="menu-text"><b>Hades Premium</b><small>Расширенный архив и возможности</small></span><svg class="icon chevron"><use href="#chevron-right"/></svg></button>
       <button class="menu-item" onclick="switchTab('referrals')"><span class="menu-icon green"><svg class="icon"><use href="#users-round"/></svg></span><span class="menu-text"><b>Рефералы</b><small>Приглашай друзей</small></span><svg class="icon chevron"><use href="#chevron-right"/></svg></button>
     </div>
   </main>
@@ -123,42 +145,81 @@
     <div class="menu-group"><button class="menu-item danger-action" onclick="clearArchive()"><span class="menu-icon red"><svg class="icon"><use href="#trash-2"/></svg></span><span class="menu-text"><b>Очистить весь архив</b><small>Удалить сообщения и медиа навсегда</small></span></button></div>
   </main>
 
-  <main id="view-premium" class="page">
+  <main id="view-premium" class="page premium-overview-page">
     <header class="page-header"><button class="back-btn" onclick="switchTab('home')"><svg class="icon"><use href="#arrow-left"/></svg></button><h2>Hades Premium</h2></header>
-    <section class="premium-hero">
-      <div class="premium-logo"><svg class="icon"><use href="#crown"/></svg></div>
-      <h2>HADES PREMIUM</h2>
-      <p id="premium-status-text">Проверка подписки…</p>
-      <div class="premium-sale-banner"><span class="premium-sale-spark">✦</span><span><b>Специальная цена</b><small>Скидка действует сейчас на все тарифы</small></span><strong>− до 60%</strong></div>
-      <div class="premium-plans" role="group" aria-label="Выбор срока Premium">
-        <button class="premium-plan" type="button" data-days="7" onclick="selectPremiumPlan(7)" aria-pressed="false">
-          <span class="premium-plan-days">7 дней</span><span class="premium-plan-price">45 ₽</span><span class="premium-plan-old">100 ₽</span><span class="premium-plan-discount">−55%</span>
-        </button>
-        <button class="premium-plan" type="button" data-days="14" onclick="selectPremiumPlan(14)" aria-pressed="false">
-          <span class="premium-plan-days">14 дней</span><span class="premium-plan-price">69 ₽</span><span class="premium-plan-old">150 ₽</span><span class="premium-plan-discount">−54%</span>
-        </button>
-        <button class="premium-plan is-selected" type="button" data-days="30" onclick="selectPremiumPlan(30)" aria-pressed="true">
-          <span class="premium-plan-ribbon">ВЫГОДНЕЕ</span><span class="premium-plan-days">30 дней</span><span class="premium-plan-price">120 ₽</span><span class="premium-plan-old">300 ₽</span><span class="premium-plan-discount">−60%</span>
-        </button>
-      </div>
-      <p id="premium-price-text" class="premium-price-text">Выбрано: 30 дней · 120 ₽ вместо 300 ₽</p>
-      <label class="premium-email-label" for="premium-email">Email для оформления платежа</label>
+    <section class="premium-overview-hero">
+      <div class="premium-overview-mark"><svg class="icon"><use href="#crown"/></svg></div>
+      <span class="premium-eyebrow">БОЛЬШЕ ВОЗМОЖНОСТЕЙ</span>
+      <h2>HADES <em>PREMIUM</em></h2>
+      <p>Расширь возможности архива и получи больше инструментов для работы с переписками.</p>
+      <div id="premium-status-text" class="premium-status-line">Проверяем подписку…</div>
+    </section>
+    <div class="section-label">ЧТО ВХОДИТ В PREMIUM</div>
+    <div class="premium-feature-list">
+      <article class="premium-feature-card"><span class="premium-feature-icon"><svg class="icon"><use href="#archive"/></svg></span><span><b>Архив до 30 дней</b><small>Вместо 3 дней на базовом тарифе</small></span><svg class="icon premium-feature-check"><use href="#check-circle-2"/></svg></article>
+      <article class="premium-feature-card"><span class="premium-feature-icon"><svg class="icon"><use href="#image"/></svg></span><span><b>Медиа до 50 МБ</b><small>Лимит загрузки выше: 50 МБ вместо 20 МБ</small></span><svg class="icon premium-feature-check"><use href="#check-circle-2"/></svg></article>
+      <article class="premium-feature-card"><span class="premium-feature-icon"><svg class="icon"><use href="#file-down"/></svg></span><span><b>Экспорт архива</b><small>Выгрузка переписок в HTML и JSON</small></span><svg class="icon premium-feature-check"><use href="#check-circle-2"/></svg></article>
+      <article class="premium-feature-card"><span class="premium-feature-icon"><svg class="icon"><use href="#folder-open"/></svg></span><span><b>Умные папки</b><small>Сводка по категориям сообщений и медиа</small></span><svg class="icon premium-feature-check"><use href="#check-circle-2"/></svg></article>
+      <article class="premium-feature-card"><span class="premium-feature-icon"><svg class="icon"><use href="#search"/></svg></span><span><b>Глобальный поиск</b><small>Поиск по тексту во всей сохранённой истории</small></span><svg class="icon premium-feature-check"><use href="#check-circle-2"/></svg></article>
+      <article class="premium-feature-card"><span class="premium-feature-icon"><svg class="icon"><use href="#search-check"/></svg></span><span><b>Поиск по медиа</b><small>Быстрый поиск фото, видео, аудио и документов</small></span><svg class="icon premium-feature-check"><use href="#check-circle-2"/></svg></article>
+      <article class="premium-feature-card"><span class="premium-feature-icon"><svg class="icon"><use href="#zap"/></svg></span><span><b>Расширенная команда .spam</b><small>До 50 сообщений за раз вместо 20</small></span><svg class="icon premium-feature-check"><use href="#check-circle-2"/></svg></article>
+      <article class="premium-feature-card"><span class="premium-feature-icon"><svg class="icon"><use href="#bell"/></svg></span><span><b>Уведомления по ключевым словам</b><small>Создавай до 20 отслеживаемых фраз</small></span><svg class="icon premium-feature-check"><use href="#check-circle-2"/></svg></article>
+      <article class="premium-feature-card"><span class="premium-feature-icon"><svg class="icon"><use href="#shield-check"/></svg></span><span><b>Расширенный список MUTE</b><small>Удобное управление активными правилами</small></span><svg class="icon premium-feature-check"><use href="#check-circle-2"/></svg></article>
+    </div>
+    <button class="premium-overview-cta" type="button" onclick="switchTab('premium-buy')">Купить Premium <svg class="icon"><use href="#arrow-right"/></svg></button>
+  </main>
+
+  <main id="view-premium-buy" class="page premium-buy-page">
+    <header class="page-header"><button class="back-btn" onclick="switchTab('premium')"><svg class="icon"><use href="#arrow-left"/></svg></button><h2>Выбор Premium</h2></header>
+    <section class="premium-checkout-hero">
+      <div class="premium-checkout-kicker"><svg class="icon"><use href="#gem"/></svg><span>HADES PREMIUM</span><b>СПЕЦЦЕНЫ</b></div>
+      <h2>Выбери свой срок</h2>
+      <p>Выбери подходящий тариф. На следующем экране будут данные и способы оплаты.</p>
+      <div id="premium-checkout-status" class="premium-checkout-status">Проверяем доступ…</div>
+    </section>
+    <div class="premium-plan-list" role="group" aria-label="Выбор срока Premium">
+      <button class="premium-plan-row" type="button" data-days="7" onclick="selectPremiumPlan(7)" aria-pressed="false">
+        <span class="premium-plan-period"><b>7 дней</b><small>Короткий доступ</small><em>Выбрать тариф <svg class="icon"><use href="#arrow-right"/></svg></em></span>
+        <span class="premium-plan-pricebox"><span class="premium-plan-old">100 ₽</span><strong>45 ₽</strong><small class="premium-plan-saving">Экономия 55 ₽ · −55%</small></span>
+        <svg class="icon premium-plan-radio"><use href="#arrow-up-right"/></svg>
+      </button>
+      <button class="premium-plan-row" type="button" data-days="14" onclick="selectPremiumPlan(14)" aria-pressed="false">
+        <span class="premium-plan-period"><b>14 дней</b><small>Оптимальный срок</small><em>Выбрать тариф <svg class="icon"><use href="#arrow-right"/></svg></em></span>
+        <span class="premium-plan-pricebox"><span class="premium-plan-old">150 ₽</span><strong>69 ₽</strong><small class="premium-plan-saving">Экономия 81 ₽ · −54%</small></span>
+        <svg class="icon premium-plan-radio"><use href="#arrow-up-right"/></svg>
+      </button>
+      <button class="premium-plan-row premium-plan-row-best" type="button" data-days="30" onclick="selectPremiumPlan(30)" aria-pressed="false">
+        <span class="premium-plan-badge">МАКСИМАЛЬНАЯ ВЫГОДА</span>
+        <span class="premium-plan-period"><b>30 дней</b><small>Полный месяц Premium</small><em>Выбрать тариф <svg class="icon"><use href="#arrow-right"/></svg></em></span>
+        <span class="premium-plan-pricebox"><span class="premium-plan-old">300 ₽</span><strong>120 ₽</strong><small class="premium-plan-saving">Экономия 180 ₽ · −60%</small></span>
+        <svg class="icon premium-plan-radio"><use href="#arrow-up-right"/></svg>
+      </button>
+    </div>
+    <div class="premium-selection-hint"><svg class="icon"><use href="#shield-check"/></svg><span>Без автопродления. Оплата только после выбора тарифа.</span></div>
+  </main>
+
+  <main id="view-premium-payment" class="page premium-payment-page">
+    <header class="page-header"><button class="back-btn" onclick="switchTab('premium-buy')"><svg class="icon"><use href="#arrow-left"/></svg></button><h2>Оплата Premium</h2></header>
+    <section class="premium-payment-hero">
+      <div class="premium-checkout-kicker"><svg class="icon"><use href="#lock-keyhole"/></svg><span>ЗАЩИЩЁННАЯ ОПЛАТА</span></div>
+      <h2>Почти готово</h2>
+      <p>Проверь выбранный тариф и укажи email для оформления платежа.</p>
+    </section>
+    <section class="premium-selected-order">
+      <div class="premium-selected-order-top"><span>ТВОЙ ТАРИФ</span><b id="premium-payment-days">30 дней</b></div>
+      <div class="premium-selected-order-price"><span id="premium-payment-old">300 ₽</span><strong id="premium-payment-price">120 ₽</strong></div>
+      <div class="premium-selected-order-saving" id="premium-payment-saving">Твоя экономия — 180 ₽ · скидка 60%</div>
+      <div class="premium-selected-order-note">Разовый платёж · без автоматического продления</div>
+    </section>
+    <section class="premium-payment-box">
+      <label class="premium-email-label" for="premium-email">Email для чека и оформления платежа</label>
       <input id="premium-email" class="premium-email-input" type="email" inputmode="email" autocomplete="email" maxlength="254" placeholder="name@example.com" required>
       <label class="premium-email-label" for="premium-payment-method">Способ оплаты</label>
-      <select id="premium-payment-method" class="premium-email-input"><option value="2">СБП · QR-код</option><option value="13" disabled>Криптовалюта · скоро</option></select>
-      <button id="premium-action-btn" class="primary-button" type="button" onclick="startPremiumPayment()">Оплатить 120 ₽ через СБП</button>
-      <p class="premium-legal-note">Оплачивая подписку, ты принимаешь <a href="offer.html" target="_blank" rel="noopener">пользовательское соглашение</a> и <a href="privacy.html" target="_blank" rel="noopener">политику конфиденциальности</a>.</p>
+      <div class="premium-payment-method-wrap"><svg class="icon"><use href="#scan-line"/></svg><select id="premium-payment-method" class="premium-email-input"><option value="2">СБП · QR-код</option><option value="13" disabled>Криптовалюта · скоро</option></select><svg class="icon"><use href="#chevron-down"/></svg></div>
+      <button id="premium-action-btn" class="primary-button premium-pay-button" type="button" onclick="startPremiumPayment()">Перейти к оплате 120 ₽ <svg class="icon"><use href="#arrow-up-right"/></svg></button>
+      <p class="premium-legal-note">Нажимая «Перейти к оплате», ты принимаешь <a href="offer.html" target="_blank" rel="noopener">пользовательское соглашение</a> и <a href="privacy.html" target="_blank" rel="noopener">политику конфиденциальности</a>.</p>
     </section>
-    <div class="section-label">ВОЗМОЖНОСТИ ПОДПИСКИ</div>
-    <div class="menu-group feature-list">
-      <button class="feature-row" onclick="openFeatureModal('archive')"><span class="menu-icon blue"><svg class="icon"><use href="#archive"/></svg></span><span><b>Расширенный архив</b><small>Хранение сообщений до 30 дней</small></span></button>
-      <button class="feature-row" onclick="openFeatureModal('priority')"><span class="menu-icon purple"><svg class="icon"><use href="#shield-check"/></svg></span><span><b>Приоритетное сохранение</b><small>Повышенный приоритет файлов</small></span></button>
-      <button class="feature-row" onclick="openFeatureModal('mirrors')"><span class="menu-icon cyan"><svg class="icon"><use href="#network"/></svg></span><span><b>Дополнительные подключения</b><small>Архив всех активных подключений</small></span></button>
-      <button class="feature-row" onclick="openFeatureModal('spam')"><span class="menu-icon green"><svg class="icon"><use href="#zap"/></svg></span><span><b>Увеличенный .spam</b><small>Повышенные лимиты</small></span></button>
-      <button class="feature-row" onclick="openFeatureModal('badge')"><span class="menu-icon yellow"><svg class="icon"><use href="#crown"/></svg></span><span><b>Отметка в профиле</b><small>Значок Premium в профиле</small></span></button>
-      <button class="feature-row" onclick="openFeatureModal('support')"><span class="menu-icon green"><svg class="icon"><use href="#headphones"/></svg></span><span><b>Приоритетная поддержка</b><small>Приоритет обработки вопросов</small></span></button>
-      <button class="feature-row" onclick="openFeatureModal('media')"><span class="menu-icon blue"><svg class="icon"><use href="#image"/></svg></span><span><b>Увеличенный лимит медиа</b><small>Больше места для файлов</small></span></button>
-    </div>
+    <div class="premium-payment-secure-note"><svg class="icon"><use href="#shield-check"/></svg><span>Платёж обрабатывается Platega. Premium активируется после подтверждения оплаты.</span></div>
   </main>
 
   <main id="view-referrals" class="page">
@@ -167,10 +228,10 @@
       <div class="referral-gift-mark"><svg class="icon"><use href="#gift"/></svg></div>
       <span class="screen-kicker">ПРИГЛАШАЙ И ПОЛУЧАЙ</span>
       <h2>+1 день Premium</h2>
-      <p class="referral-reward-copy">За каждого друга, который запустит HadesSave и подключит его к своему аккаунту, тебе начислится <b>1 день Premium</b>.</p>
-      <div class="referral-count"><strong id="ref-count">0</strong><small>друзей подключили HadesSave по твоей ссылке</small></div>
+      <p class="referral-reward-copy">За каждого друга, который запустит HadesSave и подтвердит подписку на обязательный канал, тебе начислится <b>1 день Premium</b>.</p>
+      <div class="referral-count"><strong id="ref-count">0</strong><small>друзей запустили бота и подтвердили подписку</small></div>
       <button class="primary-button" onclick="copyRefLink()"><svg class="icon"><use href="#copy"/></svg> Скопировать ссылку</button>
-      <small class="referral-footnote">Бонус начисляется автоматически после подключения друга.</small>
+      <small class="referral-footnote">Бонус начисляется автоматически после подтверждения подписки другом.</small>
     </section>
   </main>
 
@@ -276,12 +337,13 @@
   <div id="admin-modal" class="overlay" onclick="closeAdminModal(event)"><div class="dialog" onclick="event.stopPropagation()"><button class="dialog-close" onclick="closeAdminModal()">×</button><h3 id="admin-modal-title">Действие</h3><div id="admin-input-fields"><input id="admin-target" class="admin-input" placeholder="Telegram ID"><div id="admin-grant-fields"><input id="admin-days" class="admin-input" type="number" min="1" max="3650" value="30" placeholder="Дней"></div><div id="admin-ban-fields"><input id="admin-reason" class="admin-input" placeholder="Причина блокировки"></div><div id="admin-role-fields"><select id="admin-role-select" class="admin-input"><option value="owner">Владелец</option><option value="admin">Управляющий</option><option value="aboba">Помощник</option><option value="none">Без роли</option></select></div></div><div id="admin-broadcast-fields"><textarea id="admin-broadcast-text" class="admin-input" rows="4" placeholder="Текст рассылки"></textarea></div><div id="admin-list-container"></div><button id="admin-execute-btn" class="primary-button" onclick="executeAdminAction()">Выполнить</button></div></div>
   <div id="feature-modal" class="overlay" onclick="closeFeatureModal(event)"><div class="dialog" onclick="event.stopPropagation()"><button class="dialog-close" onclick="closeFeatureModal()">×</button><h3 id="feature-title"></h3><p id="feature-desc"></p><button class="primary-button" onclick="closeFeatureModal()">Понятно</button></div></div>
 
-  <nav class="bottom-nav">
+  <nav class="bottom-nav" aria-label="Основная навигация">
     <button class="nav-item active" data-tab="home" onclick="switchTab('home')"><svg class="icon" aria-hidden="true"><use href="#house"/></svg><span>Главная</span></button>
     <button class="nav-item" data-tab="chats" onclick="switchTab('chats')"><svg class="icon" aria-hidden="true"><use href="#message-circle"/></svg><span>Чаты</span></button>
-<button class="nav-item" data-tab="profile" onclick="switchTab('profile')"><svg class="icon" aria-hidden="true"><use href="#user-round"/></svg><span>Профиль</span></button>
+    <button class="nav-item nav-item-premium" data-tab="premium-buy" onclick="switchTab('premium-buy')"><svg class="icon" aria-hidden="true"><use href="#gem"/></svg><span>Купить Premium</span></button>
+    <button class="nav-item" data-tab="profile" onclick="switchTab('profile')"><svg class="icon" aria-hidden="true"><use href="#user-round"/></svg><span>Профиль</span></button>
   </nav>
 </div>
-<script type="module" src="app.js?v=connection-guide-admin-upload-20261111"></script>
+<script type="module" src="app.js?v=premium-two-step-20261113"></script>
 </body>
 </html>

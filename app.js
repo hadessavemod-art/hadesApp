@@ -84,11 +84,21 @@ function setPage(name) {
   if (['admin','statistics'].includes(name) && !state.isAdmin) return alertUser('Раздел недоступен.');
   document.body.classList.toggle('chat-open', name === 'messages');
   document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === `view-${name}`));
-  document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.tab === name || (name === 'messages' && b.dataset.tab === 'chats') || (['settings','premium','referrals','admin','statistics'].includes(name) && b.dataset.tab === 'profile')));
+  const deepLinkHash = ['premium','premium-buy','premium-payment'].includes(name) ? `#${name}` : '';
+  const nextUrl = `${window.location.pathname}${window.location.search}${deepLinkHash}`;
+  const currentUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+  if (nextUrl !== currentUrl) {
+    try { window.history.replaceState(null, '', nextUrl); } catch (_) {}
+  }
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active',
+    b.dataset.tab === name ||
+    (name === 'messages' && b.dataset.tab === 'chats') ||
+    (['premium','premium-buy','premium-payment'].includes(name) && b.dataset.tab === 'premium-buy') ||
+    (['settings','referrals','admin','statistics'].includes(name) && b.dataset.tab === 'profile')));
   if (name === 'home') loadStats();
   if (name === 'chats') loadChats();
   if (name === 'settings') loadSettings();
-  if (name === 'premium') loadPremium();
+  if (['premium','premium-buy','premium-payment'].includes(name)) loadPremium();
   if (name === 'referrals') loadReferrals();
   if (name === 'admin') { loadAdminStats(); loadPrefixes(); loadConnectionGuide(); }
   if (name === 'statistics') loadAdminStatistics();
@@ -97,6 +107,12 @@ function setPage(name) {
 window.switchTab = (name) => { haptic(); setPage(name); };
 
 function showPreloader(show) { $('preloader')?.classList.toggle('hidden', !show); }
+
+let appInitialized = false;
+function initialPageFromHash() {
+  const hash = String(window.location.hash || '').slice(1).split('?')[0];
+  return ['premium','premium-buy','premium-payment'].includes(hash) ? hash : 'home';
+}
 
 async function initApp() {
   if (!initData) {
@@ -164,18 +180,21 @@ async function initApp() {
       premiumProfileBadge.textContent = 'PREMIUM';
     }
     $('premium-badge')?.classList.toggle('hidden', !data.is_premium);
-    if (data.is_premium) {
-      $('premium-status-text').textContent = state.hasPermanentAccess ? 'Расширенный доступ активен' : 'Подписка активна';
-      $('premium-action-btn').textContent = state.hasPermanentAccess ? 'Доступ открыт навсегда' : 'Продлить Premium';
-      if (state.hasPermanentAccess && $('premium-action-btn')) $('premium-action-btn').disabled = true;
-      if (state.hasPermanentAccess) $('premium-timer')?.classList.add('hidden');
-      else if (data.premium_expires_at) startPremiumTimer(data.premium_expires_at);
+    if (data.is_premium || state.hasPermanentAccess) {
+      if (state.hasPermanentAccess) {
+        $('premium-status-text').textContent = 'Все возможности доступны этому аккаунту';
+        $('premium-timer')?.classList.add('hidden');
+      } else {
+        $('premium-status-text').textContent = 'Premium активен';
+        if (data.premium_expires_at) startPremiumTimer(data.premium_expires_at);
+      }
     } else {
-      $('premium-status-text').textContent = 'Подписка не активна';
+      $('premium-status-text').textContent = 'Premium пока не активен';
     }
     $('admin-tab-btn')?.classList.toggle('hidden', !state.isAdmin);
     await loadStats();
-    setPage('home');
+    appInitialized = true;
+    setPage(initialPageFromHash());
     // Start one background pass so avatars are already saved before the user
     // opens the archive. loadChats also renders the hidden list safely.
     void loadChats();
@@ -202,7 +221,12 @@ async function pollSubscriptionStatus() {
     } else if (!$('subscription-gate')?.classList.contains('hidden')) {
       $('subscription-gate')?.classList.add('hidden');
       document.querySelector('.hs-app')?.classList.remove('hidden');
-      // The app has already been initialized; only dismiss the subscription gate.
+      if (!appInitialized) {
+        await initApp();
+      } else {
+        await loadStats();
+        setPage(initialPageFromHash());
+      }
     }
   } catch (error) {
     const payload = error?.response?.data || {};
@@ -297,7 +321,12 @@ async function refreshRequiredSubscriptions() {
     if (data.ok) {
       $('subscription-gate')?.classList.add('hidden');
       document.querySelector('.hs-app')?.classList.remove('hidden');
-      // The app has already been initialized; only dismiss the subscription gate.
+      if (!appInitialized) {
+        await initApp();
+      } else {
+        await loadStats();
+        setPage(initialPageFromHash());
+      }
       return;
     }
     renderSubscriptionGate(data);
@@ -941,39 +970,79 @@ window.clearArchive = () => {
 
 // PREMIUM / REFERRALS -----------------------------------------------------
 const PREMIUM_PLAN_VIEW = {
-  7: {price:45, regular:100, discount:55},
-  14: {price:69, regular:150, discount:54},
-  30: {price:120, regular:300, discount:60}
+  7: {price:45, regular:100, discount:55, saving:55},
+  14: {price:69, regular:150, discount:54, saving:81},
+  30: {price:120, regular:300, discount:60, saving:180}
 };
 window.selectPremiumPlan = (days) => {
   days = Number(days);
   if (!PREMIUM_PLAN_VIEW[days]) return;
   state.selectedPremiumDays = days;
-  document.querySelectorAll('.premium-plan').forEach(card => {
+  const plan = PREMIUM_PLAN_VIEW[days];
+  const daysLabel = `${days} ${days === 7 ? 'дней' : days === 14 ? 'дней' : 'дней'}`;
+  if ($('premium-payment-days')) $('premium-payment-days').textContent = daysLabel;
+  if ($('premium-payment-old')) $('premium-payment-old').textContent = `${plan.regular} ₽`;
+  if ($('premium-payment-price')) $('premium-payment-price').textContent = `${plan.price} ₽`;
+  if ($('premium-payment-saving')) $('premium-payment-saving').textContent = `Твоя экономия — ${plan.saving} ₽ · скидка ${plan.discount}%`;
+  const button = $('premium-action-btn');
+  if (button && !button.disabled) {
+    const method = Number($('premium-payment-method')?.value || 2);
+    button.innerHTML = `Перейти к оплате ${plan.price} ₽ <svg class="icon"><use href="#arrow-up-right"></use></svg>`;
+    button.dataset.methodLabel = method === 13 ? 'crypto' : 'sbp';
+  }
+  document.querySelectorAll('.premium-plan-row').forEach(card => {
     const selected = Number(card.dataset.days) === days;
     card.classList.toggle('is-selected', selected);
     card.setAttribute('aria-pressed', selected ? 'true' : 'false');
   });
-  const plan = PREMIUM_PLAN_VIEW[days];
-  const price = $('premium-price-text');
-  if (price) price.textContent = `Выбрано: ${days} дней · ${plan.price} ₽ вместо ${plan.regular} ₽`;
-  const button = $('premium-action-btn');
-  if (button && !button.disabled) button.textContent = `Оплатить ${plan.price} ₽ через СБП`;
   haptic('light');
+  setPage('premium-payment');
 };
+
+function updatePremiumPaymentSummary() {
+  const days = Number(state.selectedPremiumDays || 30);
+  const plan = PREMIUM_PLAN_VIEW[days] || PREMIUM_PLAN_VIEW[30];
+  if ($('premium-payment-days')) $('premium-payment-days').textContent = `${days} дней`;
+  if ($('premium-payment-old')) $('premium-payment-old').textContent = `${plan.regular} ₽`;
+  if ($('premium-payment-price')) $('premium-payment-price').textContent = `${plan.price} ₽`;
+  if ($('premium-payment-saving')) $('premium-payment-saving').textContent = `Твоя экономия — ${plan.saving} ₽ · скидка ${plan.discount}%`;
+  const button = $('premium-action-btn');
+  if (button && !button.disabled) button.innerHTML = `Перейти к оплате ${plan.price} ₽ <svg class="icon"><use href="#arrow-up-right"></use></svg>`;
+}
 
 async function loadPremium() {
   try {
     const {data} = await miniAppClient.get('/api/miniapp/stats');
-    const status = $('premium-status-text');
-    const button = $('premium-action-btn');
-    if (status) status.textContent = Boolean(data.has_permanent_access) ? '👑 Расширенный доступ активен' : data.is_premium ? '✅ Premium активен' : 'Premium пока не активен';
+    const active = Boolean(data.is_premium || data.has_permanent_access);
+    state.hasPermanentAccess = Boolean(data.has_permanent_access);
+    const statusText = data.has_permanent_access
+      ? 'Все возможности доступны этому аккаунту'
+      : data.is_premium
+        ? 'Premium активен'
+        : 'Выбери срок — доступ включится после подтверждения оплаты';
+    if ($('premium-status-text')) $('premium-status-text').textContent = statusText;
+    if ($('premium-checkout-status')) {
+      $('premium-checkout-status').textContent = data.has_permanent_access
+        ? 'Все функции уже доступны'
+        : data.is_premium
+          ? 'Подписка активна — новый срок добавится к текущему'
+          : 'Разовая оплата · без автоматического продления';
+    }
     const cryptoOption = $('premium-payment-method')?.querySelector('option[value="13"]');
     if (cryptoOption) cryptoOption.disabled = !data.premium_crypto_enabled;
+    const button = $('premium-action-btn');
     if (button) {
-      button.disabled = Boolean(data.has_permanent_access) || !data.premium_payment_ready;
       const plan = PREMIUM_PLAN_VIEW[state.selectedPremiumDays] || PREMIUM_PLAN_VIEW[30];
-      button.textContent = data.has_permanent_access ? 'Доступ открыт навсегда' : data.premium_payment_ready ? `Оплатить ${plan.price} ₽ через СБП` : 'Оплата скоро появится';
+      if (data.has_permanent_access) {
+        button.disabled = true;
+        button.innerHTML = 'Все возможности уже доступны <svg class="icon"><use href="#check-circle-2"></use></svg>';
+      } else {
+        button.disabled = !data.premium_payment_ready;
+        const method = Number($('premium-payment-method')?.value || 2);
+        button.innerHTML = data.premium_payment_ready
+          ? `Оплатить ${plan.price} ₽ ${method === 13 ? 'криптовалютой' : 'через СБП'} <svg class="icon"><use href="#arrow-up-right"></use></svg>`
+          : 'Оплата временно недоступна';
+      }
     }
     const timer = $('premium-timer');
     if (timer) {
@@ -982,18 +1051,15 @@ async function loadPremium() {
         startPremiumTimer(data.premium_expires_at);
       } else timer.classList.add('hidden');
     }
-    window.selectPremiumPlan(state.selectedPremiumDays);
-    if (button && data.has_permanent_access) button.disabled = true;
+    updatePremiumPaymentSummary();
+    if (button && data.has_permanent_access) {
+      button.disabled = true;
+      button.innerHTML = 'Все возможности уже доступны <svg class="icon"><use href="#check-circle-2"></use></svg>';
+    }
   } catch (error) { console.warn('Premium info:', error); }
 }
 
-$('premium-payment-method')?.addEventListener('change', () => {
-  const button = $('premium-action-btn');
-  if (button && !button.disabled) {
-    const plan = PREMIUM_PLAN_VIEW[state.selectedPremiumDays] || PREMIUM_PLAN_VIEW[30];
-    button.textContent = $('premium-payment-method').value === '13' ? `Оплатить ${plan.price} ₽ криптовалютой` : `Оплатить ${plan.price} ₽ через СБП`;
-  }
-});
+$('premium-payment-method')?.addEventListener('change', updatePremiumPaymentSummary);
 
 window.startPremiumPayment = async () => {
   const emailInput = $('premium-email');
@@ -1002,6 +1068,10 @@ window.startPremiumPayment = async () => {
   if (!emailInput || !emailInput.checkValidity() || !email) {
     emailInput?.focus();
     alertUser('Укажи корректный email — он нужен для оформления платежа.');
+    return;
+  }
+  if (state.hasPermanentAccess) {
+    alertUser('Все возможности уже доступны этому аккаунту.');
     return;
   }
   const plan = PREMIUM_PLAN_VIEW[state.selectedPremiumDays] || PREMIUM_PLAN_VIEW[30];

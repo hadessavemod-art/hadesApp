@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="mini-app.css?v=hades-avatar-idb-cache-v1-20261110">
+  <link rel="stylesheet" href="mini-app.css?v=connection-guide-admin-upload-20261111">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body class="mini-app-body">
@@ -125,7 +125,30 @@
 
   <main id="view-premium" class="page">
     <header class="page-header"><button class="back-btn" onclick="switchTab('home')"><svg class="icon"><use href="#arrow-left"/></svg></button><h2>Hades Premium</h2></header>
-    <section class="premium-hero"><div class="premium-logo"><svg class="icon"><use href="#crown"/></svg></div><h2>HADES PREMIUM</h2><p id="premium-status-text">Проверка подписки…</p><button id="premium-action-btn" class="primary-button" onclick="window.Telegram?.WebApp?.showAlert?.('Оплата подключается через бота')">Подключить Premium</button></section>
+    <section class="premium-hero">
+      <div class="premium-logo"><svg class="icon"><use href="#crown"/></svg></div>
+      <h2>HADES PREMIUM</h2>
+      <p id="premium-status-text">Проверка подписки…</p>
+      <div class="premium-sale-banner"><span class="premium-sale-spark">✦</span><span><b>Специальная цена</b><small>Скидка действует сейчас на все тарифы</small></span><strong>− до 60%</strong></div>
+      <div class="premium-plans" role="group" aria-label="Выбор срока Premium">
+        <button class="premium-plan" type="button" data-days="7" onclick="selectPremiumPlan(7)" aria-pressed="false">
+          <span class="premium-plan-days">7 дней</span><span class="premium-plan-price">45 ₽</span><span class="premium-plan-old">100 ₽</span><span class="premium-plan-discount">−55%</span>
+        </button>
+        <button class="premium-plan" type="button" data-days="14" onclick="selectPremiumPlan(14)" aria-pressed="false">
+          <span class="premium-plan-days">14 дней</span><span class="premium-plan-price">69 ₽</span><span class="premium-plan-old">150 ₽</span><span class="premium-plan-discount">−54%</span>
+        </button>
+        <button class="premium-plan is-selected" type="button" data-days="30" onclick="selectPremiumPlan(30)" aria-pressed="true">
+          <span class="premium-plan-ribbon">ВЫГОДНЕЕ</span><span class="premium-plan-days">30 дней</span><span class="premium-plan-price">120 ₽</span><span class="premium-plan-old">300 ₽</span><span class="premium-plan-discount">−60%</span>
+        </button>
+      </div>
+      <p id="premium-price-text" class="premium-price-text">Выбрано: 30 дней · 120 ₽ вместо 300 ₽</p>
+      <label class="premium-email-label" for="premium-email">Email для оформления платежа</label>
+      <input id="premium-email" class="premium-email-input" type="email" inputmode="email" autocomplete="email" maxlength="254" placeholder="name@example.com" required>
+      <label class="premium-email-label" for="premium-payment-method">Способ оплаты</label>
+      <select id="premium-payment-method" class="premium-email-input"><option value="2">СБП · QR-код</option><option value="13" disabled>Криптовалюта · скоро</option></select>
+      <button id="premium-action-btn" class="primary-button" type="button" onclick="startPremiumPayment()">Оплатить 120 ₽ через СБП</button>
+      <p class="premium-legal-note">Оплачивая подписку, ты принимаешь <a href="offer.html" target="_blank" rel="noopener">пользовательское соглашение</a> и <a href="privacy.html" target="_blank" rel="noopener">политику конфиденциальности</a>.</p>
+    </section>
     <div class="section-label">ВОЗМОЖНОСТИ ПОДПИСКИ</div>
     <div class="menu-group feature-list">
       <button class="feature-row" onclick="openFeatureModal('archive')"><span class="menu-icon blue"><svg class="icon"><use href="#archive"/></svg></span><span><b>Расширенный архив</b><small>Хранение сообщений до 30 дней</small></span></button>
@@ -170,6 +193,19 @@
       <span><b>Полная статистика</b><small>Пользователи, архив, подключения и активность</small></span>
       <svg class="icon statistics-chevron"><use href="#chevron-right"/></svg>
     </button>
+
+    <div class="section-label">ИНСТРУКЦИЯ ПОДКЛЮЧЕНИЯ</div>
+    <section class="prefix-admin-card connection-guide-admin-card">
+      <p class="prefix-admin-hint">Это изображение бот отправляет пользователям при первом подключении и повторном подключении. Здесь можно заменить его без изменения кода.</p>
+      <div id="connection-guide-preview-wrap" class="connection-guide-preview-wrap">
+        <img id="connection-guide-preview" alt="Текущая инструкция подключения" hidden>
+        <div id="connection-guide-empty" class="empty-state">Загрузка изображения…</div>
+      </div>
+      <label class="admin-field-label" for="connection-guide-file">Новое изображение (PNG или JPG, до 8 МБ)</label>
+      <input id="connection-guide-file" class="admin-input connection-guide-file" type="file" accept="image/png,image/jpeg">
+      <button class="primary-button" type="button" onclick="uploadConnectionGuide()">Загрузить / заменить фото</button>
+      <small id="connection-guide-status" class="connection-guide-status">Изображение используется на экране подключения.</small>
+    </section>
     <div class="section-label">ОТМЕТКИ ПРОФИЛЯ</div>
     <section class="prefix-admin-card">
       <p class="prefix-admin-hint">Создай цветную отметку и назначь её нужному аккаунту.</p>
@@ -246,6 +282,6 @@
 <button class="nav-item" data-tab="profile" onclick="switchTab('profile')"><svg class="icon" aria-hidden="true"><use href="#user-round"/></svg><span>Профиль</span></button>
   </nav>
 </div>
-<script type="module" src="app.js?v=hades-avatar-idb-cache-v1-20261110"></script>
+<script type="module" src="app.js?v=connection-guide-admin-upload-20261111"></script>
 </body>
 </html>

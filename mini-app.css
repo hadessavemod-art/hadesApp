@@ -2492,3 +2492,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 .premium-payment-page .premium-pay-button{min-height:53px;margin-top:18px}
 .premium-payment-secure-note{margin-top:12px}
 @media(max-width:370px){.premium-plan-row{min-height:104px;padding:14px 11px;gap:8px}.premium-plan-pricebox strong{font-size:23px}.premium-plan-saving{font-size:8px}.premium-selected-order-price strong{font-size:32px}}
+
+/* Legal documents: visible links on tariff selection, checkout and profile. */
+
+
+/* HadesSave legal document cards — 14 Nov 2026 */

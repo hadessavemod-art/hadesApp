@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="mini-app.css?v=nav-state-fix-20261113">
+  <link rel="stylesheet" href="mini-app.css?v=policy-doc-links-20261113">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body class="mini-app-body">
@@ -166,7 +166,7 @@
   <main id="view-premium-buy" class="page premium-buy-page">
     <header class="page-header"><button class="back-btn" onclick="switchTab('premium')"><svg class="icon"><use href="#arrow-left"/></svg></button><h2>Выбор Premium</h2></header>
     <section class="premium-checkout-hero">
-      <div class="premium-checkout-kicker"><svg class="icon"><use href="#gem"/></svg><span>HADES PREMIUM</span><b>СПЕЦЦЕНЫ</b></div>
+      <div class="premium-checkout-kicker"><svg class="icon"><use href="#gem"/></svg><span>HADES PREMIUM</span><b>АКЦИЯ</b></div>
       <h2>Выбери свой срок</h2>
       <p>Выбери подходящий тариф. На следующем экране будут данные и способы оплаты.</p>
       <div id="premium-checkout-status" class="premium-checkout-status">Проверяем доступ…</div>
@@ -190,6 +190,10 @@
       </button>
     </div>
     <div class="premium-selection-hint"><svg class="icon"><use href="#shield-check"/></svg><span>Без автопродления. Оплата только после выбора тарифа.</span></div>
+    <div class="premium-doc-links" aria-label="Документы HadesSave">
+      <a href="offer.html" target="_blank" rel="noopener">📄 Пользовательское соглашение</a>
+      <a href="privacy.html" target="_blank" rel="noopener">🔐 Политика конфиденциальности</a>
+    </div>
   </main>
 
   <main id="view-premium-payment" class="page premium-payment-page">
@@ -211,7 +215,11 @@
       <label class="premium-email-label" for="premium-payment-method">Способ оплаты</label>
       <div class="premium-payment-method-wrap"><svg class="icon"><use href="#scan-line"/></svg><select id="premium-payment-method" class="premium-email-input"><option value="2">СБП · QR-код</option><option value="13" disabled>Криптовалюта · скоро</option></select><svg class="icon"><use href="#chevron-down"/></svg></div>
       <button id="premium-action-btn" class="primary-button premium-pay-button" type="button" onclick="startPremiumPayment()">Перейти к оплате 120 ₽ <svg class="icon"><use href="#arrow-up-right"/></svg></button>
-      <p class="premium-legal-note">Нажимая «Перейти к оплате», ты принимаешь <a href="offer.html" target="_blank" rel="noopener">пользовательское соглашение</a> и <a href="privacy.html" target="_blank" rel="noopener">политику конфиденциальности</a>.</p>
+      <div class="premium-legal-actions">
+        <span>Перед оплатой ознакомься с документами:</span>
+        <a href="offer.html" target="_blank" rel="noopener">📄 Соглашение</a>
+        <a href="privacy.html" target="_blank" rel="noopener">🔐 Политика</a>
+      </div>
     </section>
     <div class="premium-payment-secure-note"><svg class="icon"><use href="#shield-check"/></svg><span>Платёж обрабатывается Platega. Premium активируется после подтверждения оплаты.</span></div>
   </main>
@@ -235,6 +243,8 @@
     <div class="menu-group">
       <button class="menu-item" onclick="switchTab('settings')"><span class="menu-icon gray"><svg class="icon"><use href="#settings"/></svg></span><span class="menu-text"><b>Настройки</b><small>Настрой приложение под себя</small></span><svg class="icon chevron"><use href="#chevron-right"/></svg></button>
       <a class="menu-item" href="https://t.me/Hades_save_men" target="_blank" rel="noopener"><span class="menu-icon green"><svg class="icon"><use href="#headphones"/></svg></span><span class="menu-text"><b>Поддержка</b><small>Помощь по работе HadesSave</small></span><svg class="icon chevron"><use href="#chevron-right"/></svg></a>
+      <a class="menu-item" href="privacy.html" target="_blank" rel="noopener"><span class="menu-icon gray"><svg class="icon"><use href="#shield-check"/></svg></span><span class="menu-text"><b>Политика конфиденциальности</b><small>Какие данные обрабатываются и зачем</small></span><svg class="icon chevron"><use href="#chevron-right"/></svg></a>
+      <a class="menu-item" href="offer.html" target="_blank" rel="noopener"><span class="menu-icon gray"><svg class="icon"><use href="#file-down"/></svg></span><span class="menu-text"><b>Пользовательское соглашение</b><small>Условия использования и оплаты</small></span><svg class="icon chevron"><use href="#chevron-right"/></svg></a>
     </div>
   </main>
 

@@ -1,17 +1,22 @@
 import { setTelegramInitData, miniAppClient } from './miniAppClient.js';
+
 const tg = window.Telegram?.WebApp;
 const initData = tg?.initData || '';
+
 const state = {
-  userId: 0, username: '', refLink: '', hasPermanentAccess: false, role: null, isAdmin: false, profilePrefix: null, prefixes: [], adminAction: '', editingPrefixId: 0,
+  userId: 0, username: '', refLink: '', hasPermanentAccess: false, role: null,
+  isAdmin: false, profilePrefix: null, prefixes: [], adminAction: '', editingPrefixId: 0,
   chats: [], chatSearch: '',
   activeChat: null, messageSearch: '',
   messageOffset: 0, loadingMessages: false, hasMoreMessages: false,
   currentMedia: null, selectedPremiumDays: 30
 };
+
 const $ = (id) => document.getElementById(id);
 const haptic = (kind = 'light') => { try { tg?.HapticFeedback?.impactOccurred(kind); } catch (_) {} };
 const alertUser = (message) => { try { tg?.showAlert?.(String(message)); } catch (_) { window.alert(String(message)); } };
 const esc = (value) => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+
 function parseArchiveDate(value) {
   if (value === null || value === undefined || value === '') return null;
   if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value;
@@ -29,15 +34,18 @@ function parseArchiveDate(value) {
   const date = new Date(raw + (hasTimezone ? '' : 'Z'));
   return Number.isNaN(date.getTime()) ? null : date;
 }
+
 function localDateKey(value) {
   const date = parseArchiveDate(value);
   if (!date) return '';
   return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
 }
+
 function fmtMessageTime(value) {
   const date = parseArchiveDate(value);
   return date ? date.toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit', hour12:false}) : '';
 }
+
 function fmtChatListTime(value) {
   const date = parseArchiveDate(value);
   if (!date) return '';
@@ -52,11 +60,13 @@ function fmtChatListTime(value) {
     ? date.toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit'})
     : date.toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit', year:'2-digit'});
 }
+
 function fmtConversationStart(value) {
   const date = parseArchiveDate(value);
   if (!date) return 'дата неизвестна';
   return date.toLocaleDateString('ru-RU', {day:'2-digit', month:'long', year:'numeric'});
 }
+
 function fmtDaySeparator(value) {
   const date = parseArchiveDate(value);
   if (!date) return '';
@@ -69,6 +79,7 @@ function fmtDaySeparator(value) {
   const label = date.toLocaleDateString('ru-RU', {day:'2-digit', month:'long'});
   return date.getFullYear() === now.getFullYear() ? label : `${label} ${date.getFullYear()}`;
 }
+
 const fmtDate = (value) => {
   const date = parseArchiveDate(value);
   if (!date) return value ? String(value) : '';
@@ -76,7 +87,9 @@ const fmtDate = (value) => {
   return date.toDateString() === now.toDateString() ? fmtMessageTime(date)
     : date.toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit'});
 };
+
 const apiError = (error) => error?.response?.data?.error || error?.message || 'Ошибка сети';
+
 function setPage(name) {
   if (['admin','statistics'].includes(name) && !state.isAdmin) return alertUser('Раздел недоступен.');
   document.body.classList.toggle('chat-open', name === 'messages');
@@ -101,18 +114,43 @@ function setPage(name) {
   if (name === 'statistics') loadAdminStatistics();
   try { if (name === 'messages') tg?.BackButton?.show?.(); else tg?.BackButton?.hide?.(); } catch (_) {}
 }
+
 window.switchTab = (name) => { haptic(); setPage(name); };
 function showPreloader(show) { $('preloader')?.classList.toggle('hidden', !show); }
 let appInitialized = false;
+
 function initialPageFromHash() {
   const hash = String(window.location.hash || '').slice(1).split('?')[0];
   return ['premium','premium-buy','premium-payment'].includes(hash) ? hash : 'home';
 }
+
 async function initApp() {
+  // Тестовый режим: если initData пустой (открыто в браузере), показываем интерфейс с фейковыми данными
   if (!initData) {
-    document.body.innerHTML = '<main class="launch-error">Открой Mini App через бота HadesSave в Telegram.</main>';
+    document.body.dataset.theme = 'crimson';
+    state.userId = 7831720836;
+    state.username = 'FLEX';
+    state.isAdmin = true;
+    const name = 'FLEX';
+    $('user-name').textContent = name;
+    $('user-id').textContent = `ID: ${state.userId}`;
+    $('profile-name').textContent = name;
+    $('profile-id').textContent = `ID: ${state.userId}`;
+    $('user-avatar-text').textContent = name.slice(0,1).toUpperCase();
+    $('profile-avatar-text').textContent = name.slice(0,1).toUpperCase();
+    $('premium-badge')?.classList.remove('hidden');
+    $('profile-premium-badge')?.classList.remove('hidden');
+    $('premium-status-text').textContent = 'Premium активен';
+    $('admin-tab-btn')?.classList.remove('hidden');
+    $('profile-admin-pencil')?.classList.remove('hidden');
+    $('home-prefix-pencil')?.classList.remove('hidden');
+    await loadStats();
+    appInitialized = true;
+    setPage(initialPageFromHash());
+    void loadChats();
     return;
   }
+
   setTelegramInitData(initData);
   showPreloader(true);
   try {
@@ -201,8 +239,10 @@ async function initApp() {
     }
   } finally { showPreloader(false); }
 }
+
 let subscriptionGateBusy = false;
 let subscriptionPollTimer = null;
+
 async function pollSubscriptionStatus() {
   if (!initData || document.hidden || subscriptionGateBusy) return;
   try {
@@ -212,25 +252,22 @@ async function pollSubscriptionStatus() {
     } else if (!$('subscription-gate')?.classList.contains('hidden')) {
       $('subscription-gate')?.classList.add('hidden');
       document.querySelector('.hs-app')?.classList.remove('hidden');
-      if (!appInitialized) {
-        await initApp();
-      } else {
-        await loadStats();
-        setPage(initialPageFromHash());
-      }
+      if (!appInitialized) { await initApp(); }
+      else { await loadStats(); setPage(initialPageFromHash()); }
     }
   } catch (error) {
     const payload = error?.response?.data || {};
     if (payload.subscription_required) renderSubscriptionGate(payload);
   }
 }
+
 function startSubscriptionPolling() {
   if (subscriptionPollTimer) clearInterval(subscriptionPollTimer);
   subscriptionPollTimer = setInterval(pollSubscriptionStatus, 20000);
 }
-document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) pollSubscriptionStatus();
-});
+
+document.addEventListener('visibilitychange', () => { if (!document.hidden) pollSubscriptionStatus(); });
+
 function russianChannelWord(value) {
   const count = Math.abs(Number(value) || 0);
   const lastTwo = count % 100;
@@ -240,42 +277,22 @@ function russianChannelWord(value) {
   if (lastOne >= 2 && lastOne <= 4) return 'канала';
   return 'каналов';
 }
-function subscriptionGateCopy(count, unavailableCount = 0) {
-  if (count < 1) {
-    return {
-      title: '🔒 Не удалось проверить доступ',
-      lead: 'Не удалось получить список обязательных каналов. Попробуйте проверить доступ ещё раз чуть позже.'
-    };
-  }
-  if (count === 1) {
-    return {
-      title: '🔒 Остался один шаг до доступа',
-      lead: 'Подпишитесь на канал ниже, чтобы открыть доступ к HadesSave. После подписки нажмите кнопку проверки.'
-    };
-  }
-  if (count >= 2 && count <= 4) {
-    return {
-      title: '🔒 Осталось совсем немного!',
-      lead: `Подпишитесь на все ${count} ${russianChannelWord(count)} ниже, чтобы открыть доступ к HadesSave. Затем нажмите кнопку проверки.`
-    };
-  }
-  return {
-    title: '🔒 Подписка для доступа',
-    lead: `Чтобы открыть HadesSave, подпишитесь на все ${count} ${russianChannelWord(count)} ниже. После этого нажмите кнопку проверки.`
-  };
+
+function subscriptionGateCopy(count) {
+  if (count < 1) return { title: '🔒 Не удалось проверить доступ', lead: 'Не удалось получить список обязательных каналов. Попробуйте проверить доступ ещё раз чуть позже.' };
+  if (count === 1) return { title: '🔒 Остался один шаг до доступа', lead: 'Подпишитесь на канал ниже, чтобы открыть доступ к HadesSave. После подписки нажмите кнопку проверки.' };
+  if (count >= 2 && count <= 4) return { title: '🔒 Осталось совсем немного!', lead: `Подпишитесь на все ${count} ${russianChannelWord(count)} ниже, чтобы открыть доступ к HadesSave. Затем нажмите кнопку проверки.` };
+  return { title: '🔒 Подписка для доступа', lead: `Чтобы открыть HadesSave, подпишитесь на все ${count} ${russianChannelWord(count)} ниже. После этого нажмите кнопку проверки.` };
 }
+
 function renderSubscriptionGate(data = {}) {
   const gate = $('subscription-gate');
   const app = document.querySelector('.hs-app');
-  if (!gate) {
-    alertUser('Чтобы открыть HadesSave, подпишитесь на все обязательные каналы.');
-    return;
-  }
+  if (!gate) { alertUser('Чтобы открыть HadesSave, подпишитесь на все обязательные каналы.'); return; }
   const list = $('subscription-gate-list');
   const channels = Array.isArray(data.channels) ? data.channels : [];
   const requiredCountValue = Number(data.required_count);
-  const requiredCount = Number.isFinite(requiredCountValue) && requiredCountValue >= 0
-    ? requiredCountValue : channels.length;
+  const requiredCount = Number.isFinite(requiredCountValue) && requiredCountValue >= 0 ? requiredCountValue : channels.length;
   const copy = subscriptionGateCopy(requiredCount);
   $('subscription-gate-title').textContent = copy.title;
   $('subscription-gate-lead').textContent = copy.lead;
@@ -297,6 +314,7 @@ function renderSubscriptionGate(data = {}) {
   app?.classList.add('hidden');
   tg?.BackButton?.hide?.();
 }
+
 async function refreshRequiredSubscriptions() {
   if (subscriptionGateBusy) return;
   subscriptionGateBusy = true;
@@ -309,12 +327,8 @@ async function refreshRequiredSubscriptions() {
     if (data.ok) {
       $('subscription-gate')?.classList.add('hidden');
       document.querySelector('.hs-app')?.classList.remove('hidden');
-      if (!appInitialized) {
-        await initApp();
-      } else {
-        await loadStats();
-        setPage(initialPageFromHash());
-      }
+      if (!appInitialized) { await initApp(); }
+      else { await loadStats(); setPage(initialPageFromHash()); }
       return;
     }
     renderSubscriptionGate(data);
@@ -327,7 +341,9 @@ async function refreshRequiredSubscriptions() {
     if (button) { button.disabled = false; button.textContent = 'Я подписался · Проверить'; }
   }
 }
+
 $('subscription-gate-refresh')?.addEventListener('click', refreshRequiredSubscriptions);
+
 let premiumTimer = null;
 function startPremiumTimer(expiresAt) {
   clearInterval(premiumTimer);
@@ -339,6 +355,7 @@ function startPremiumTimer(expiresAt) {
   };
   $('premium-timer')?.classList.remove('hidden'); tick(); premiumTimer = setInterval(tick, 1000);
 }
+
 async function loadStats() {
   try {
     const {data} = await miniAppClient.get('/api/miniapp/stats');
@@ -348,6 +365,7 @@ async function loadStats() {
     $('stat-media').textContent = data.media_count || 0;
   } catch (error) { console.warn('stats', error); }
 }
+
 const AVATAR_DB_NAME = 'hadessave-avatar-cache';
 const AVATAR_DB_VERSION = 1;
 const AVATAR_DB_STORE = 'images';
@@ -356,18 +374,14 @@ const chatAvatarCache = new Map();
 const chatAvatarPromises = new Map();
 const chatAvatarTargets = new WeakMap();
 const avatarPrefetchStarted = new Set();
+
 function openAvatarDb() {
   if (!('indexedDB' in window)) return Promise.resolve(null);
   if (!avatarDbPromise) {
     avatarDbPromise = new Promise(resolve => {
       try {
         const request = indexedDB.open(AVATAR_DB_NAME, AVATAR_DB_VERSION);
-        request.onupgradeneeded = () => {
-          const db = request.result;
-          if (!db.objectStoreNames.contains(AVATAR_DB_STORE)) {
-            db.createObjectStore(AVATAR_DB_STORE);
-          }
-        };
+        request.onupgradeneeded = () => { const db = request.result; if (!db.objectStoreNames.contains(AVATAR_DB_STORE)) db.createObjectStore(AVATAR_DB_STORE); };
         request.onsuccess = () => resolve(request.result);
         request.onerror = () => resolve(null);
         request.onblocked = () => resolve(null);
@@ -376,6 +390,7 @@ function openAvatarDb() {
   }
   return avatarDbPromise;
 }
+
 async function avatarDbGet(key) {
   const db = await openAvatarDb();
   if (!db) return null;
@@ -388,6 +403,7 @@ async function avatarDbGet(key) {
     } catch (_) { resolve(null); }
   });
 }
+
 async function avatarDbPut(key, blob) {
   const db = await openAvatarDb();
   if (!db || !blob || !blob.size) return false;
@@ -400,11 +416,9 @@ async function avatarDbPut(key, blob) {
     } catch (_) { resolve(false); }
   });
 }
-async function requestPersistentAvatarStorage() {
-  try {
-    if (navigator.storage?.persist) await navigator.storage.persist();
-  } catch (_) {}
-}
+
+async function requestPersistentAvatarStorage() { try { if (navigator.storage?.persist) await navigator.storage.persist(); } catch (_) {} }
+
 function makeAvatarObjectUrl(key, blob) {
   let value = chatAvatarCache.get(key);
   if (value) return value;
@@ -412,18 +426,15 @@ function makeAvatarObjectUrl(key, blob) {
   chatAvatarCache.set(key, value);
   return value;
 }
-function chatAvatarKey(chat) {
-  return `${state.userId}:chat:${String(chat.chat_id)}`;
-}
+
+function chatAvatarKey(chat) { return `${state.userId}:chat:${String(chat.chat_id)}`; }
+
 function chatAvatarApiUrl(chat) {
-  const params = new URLSearchParams({
-    chat_id: String(chat.chat_id),
-    connection_id: String(chat.avatar_connection_id || chat.connection_id),
-    owner_id: String(state.userId)
-  });
+  const params = new URLSearchParams({ chat_id: String(chat.chat_id), connection_id: String(chat.avatar_connection_id || chat.connection_id), owner_id: String(state.userId) });
   const base = miniAppClient.defaults?.baseURL || '';
   return `${base}/api/miniapp/avatar?${params.toString()}`;
 }
+
 async function ensureChatAvatar(chat) {
   if (!chat || !chat.chat_id) return null;
   const key = chatAvatarKey(chat);
@@ -433,10 +444,7 @@ async function ensureChatAvatar(chat) {
     const saved = await avatarDbGet(key);
     if (saved?.blob?.size) return makeAvatarObjectUrl(key, saved.blob);
     try {
-      const response = await fetch(chatAvatarApiUrl(chat), {
-        method: 'GET', cache: 'force-cache',
-        headers: {'X-Telegram-Init-Data': initData}
-      });
+      const response = await fetch(chatAvatarApiUrl(chat), { method: 'GET', cache: 'force-cache', headers: {'X-Telegram-Init-Data': initData} });
       if (!response.ok) throw new Error(`Avatar HTTP ${response.status}`);
       const blob = await response.blob();
       if (!blob.size || !String(blob.type || '').startsWith('image/')) throw new Error('Invalid avatar image');
@@ -455,26 +463,24 @@ async function ensureChatAvatar(chat) {
   chatAvatarPromises.set(key, task);
   return task;
 }
+
 function applyChatAvatar(img, wrap, src) {
   if (!img || !wrap || !src) return;
   if (img.dataset.loadedSource !== src) {
     img.dataset.loadedSource = src;
     img.onload = () => wrap.classList.add('has-image');
-    img.onerror = () => {
-      wrap.classList.remove('has-image');
-      img.removeAttribute('src');
-      img.dataset.loadedSource = '';
-    };
+    img.onerror = () => { wrap.classList.remove('has-image'); img.removeAttribute('src'); img.dataset.loadedSource = ''; };
     img.src = src;
   }
   if (img.complete && img.naturalWidth > 0) wrap.classList.add('has-image');
 }
+
 async function loadChatAvatar(img, wrap, chat) {
   if (!img || !wrap || !chat) return;
-  const key = chatAvatarKey(chat);
   const src = await ensureChatAvatar(chat);
   if (src) applyChatAvatar(img, wrap, src);
 }
+
 const chatAvatarObserver = ('IntersectionObserver' in window) ? new IntersectionObserver(entries => {
   entries.forEach(entry => {
     if (!entry.isIntersecting) return;
@@ -483,15 +489,14 @@ const chatAvatarObserver = ('IntersectionObserver' in window) ? new Intersection
     if (target) loadChatAvatar(target.img, target.wrap, target.chat);
   });
 }, {rootMargin:'320px 0px'}) : null;
+
 function queueChatAvatar(img, wrap, chat) {
   const key = chatAvatarKey(chat);
-  if (chatAvatarCache.has(key) || !chatAvatarObserver) {
-    loadChatAvatar(img, wrap, chat);
-    return;
-  }
+  if (chatAvatarCache.has(key) || !chatAvatarObserver) { loadChatAvatar(img, wrap, chat); return; }
   chatAvatarTargets.set(wrap, {img, wrap, chat});
   chatAvatarObserver.observe(wrap);
 }
+
 function prefetchChatAvatars(chats) {
   const userKey = String(state.userId);
   if (avatarPrefetchStarted.has(userKey)) return;
@@ -499,14 +504,10 @@ function prefetchChatAvatars(chats) {
   if (!unique.length) return;
   avatarPrefetchStarted.add(userKey);
   let next = 0;
-  const worker = async () => {
-    while (next < unique.length) {
-      const chat = unique[next++];
-      try { await ensureChatAvatar(chat); } catch (_) {}
-    }
-  };
+  const worker = async () => { while (next < unique.length) { const chat = unique[next++]; try { await ensureChatAvatar(chat); } catch (_) {} } };
   void Promise.all(Array.from({length: Math.min(3, unique.length)}, () => worker()));
 }
+
 async function loadCachedProfileAvatar(url) {
   if (!url || !state.userId) return null;
   const key = `${state.userId}:profile:${url}`;
@@ -520,20 +521,17 @@ async function loadCachedProfileAvatar(url) {
     if (!blob.size || !String(blob.type || '').startsWith('image/')) throw new Error('Invalid profile avatar');
     await avatarDbPut(key, blob);
     return makeAvatarObjectUrl(key, blob);
-  } catch (_) {
-    return url;
-  }
+  } catch (_) { return url; }
 }
+
 function setProfileAvatarSource(img, fallback, src) {
   if (!img || !src) return;
   img.loading = 'eager'; img.decoding = 'async'; img.fetchPriority = 'high';
   img.onload = () => { img.style.display = 'block'; if (fallback) fallback.style.display = 'none'; };
   img.onerror = () => { img.style.display = 'none'; if (fallback) fallback.style.display = 'grid'; };
-  if (img.dataset.sourceUrl !== src) {
-    img.dataset.sourceUrl = src;
-    img.src = src;
-  }
+  if (img.dataset.sourceUrl !== src) { img.dataset.sourceUrl = src; img.src = src; }
 }
+
 function renderChats() {
   const list = $('chats-list');
   chatAvatarObserver?.disconnect();
@@ -559,6 +557,7 @@ function renderChats() {
   });
   list.appendChild(fragment);
 }
+
 async function loadChats() {
   if (!$('chats-list')) return;
   try {
@@ -570,6 +569,7 @@ async function loadChats() {
     prefetchChatAvatars(state.chats);
   } catch (error) { $('chats-list').innerHTML = `<div class="empty-state">${esc(apiError(error))}</div>`; }
 }
+
 async function openChat(chat) {
   state.activeChat = chat; state.messageOffset = 0; state.hasMoreMessages = false; state.messageSearch = '';
   const title = chat.label || `Чат ${chat.chat_id}`;
@@ -594,6 +594,7 @@ async function openChat(chat) {
   setPage('messages');
   await loadMessages(false);
 }
+
 function messageHtml(msg) {
   const outgoing = Boolean(msg.is_outgoing || msg.direction === 'outgoing');
   const isSticker = msg.content_type === 'sticker';
@@ -614,24 +615,14 @@ function messageHtml(msg) {
     if (type === 'sticker') {
       const ext = String(msg.media_ext || '').toLowerCase();
       const format = ext === '.tgs' ? 'tgs' : (ext === '.webm' ? 'webm' : 'webp');
-      if (format === 'tgs') {
-        media = `<div class="message-sticker-tgs" data-sticker-url="${url}" role="img" aria-label="Анимированный стикер"></div>`;
-      } else if (format === 'webm') {
-        media = `<video class="message-sticker-video" src="${url}" autoplay loop muted playsinline preload="auto" aria-label="Анимированный стикер"></video>`;
-      } else {
-        media = `<img class="message-sticker-image" src="${url}" alt="Стикер" loading="lazy" decoding="async" draggable="false">`;
-      }
-    } else if (type === 'photo') {
-      media = `<img class="message-media" src="${url}" alt="Фото" loading="lazy" data-media-url="${url}" data-media-type="${type}" data-mid="${msg.message_id}">`;
-    } else if (type === 'video_note') {
-      media = `<video class="message-media message-video-note" src="${url}" controls playsinline preload="metadata"></video>`;
-    } else if (['video','animation'].includes(type)) {
-      media = `<video class="message-media" src="${url}" controls playsinline preload="metadata"></video>`;
-    } else if (['voice','audio'].includes(type)) {
-      media = `<audio class="message-audio" src="${url}" controls preload="metadata"></audio>`;
-    } else {
-      media = `<div class="document-preview"><span class="document-preview-icon">▤</span><span class="document-preview-name">${esc(msg.file_name || 'Документ')}</span><span class="document-preview-type">${esc((msg.media_ext || '').replace('.', '').toUpperCase() || 'ФАЙЛ')}</span></div>`;
-    }
+      if (format === 'tgs') media = `<div class="message-sticker-tgs" data-sticker-url="${url}" role="img" aria-label="Анимированный стикер"></div>`;
+      else if (format === 'webm') media = `<video class="message-sticker-video" src="${url}" autoplay loop muted playsinline preload="auto" aria-label="Анимированный стикер"></video>`;
+      else media = `<img class="message-sticker-image" src="${url}" alt="Стикер" loading="lazy" decoding="async" draggable="false">`;
+    } else if (type === 'photo') media = `<img class="message-media" src="${url}" alt="Фото" loading="lazy" data-media-url="${url}" data-media-type="${type}" data-mid="${msg.message_id}">`;
+    else if (type === 'video_note') media = `<video class="message-media message-video-note" src="${url}" controls playsinline preload="metadata"></video>`;
+    else if (['video','animation'].includes(type)) media = `<video class="message-media" src="${url}" controls playsinline preload="metadata"></video>`;
+    else if (['voice','audio'].includes(type)) media = `<audio class="message-audio" src="${url}" controls preload="metadata"></audio>`;
+    else media = `<div class="document-preview"><span class="document-preview-icon">▤</span><span class="document-preview-name">${esc(msg.file_name || 'Документ')}</span><span class="document-preview-type">${esc((msg.media_ext || '').replace('.', '').toUpperCase() || 'ФАЙЛ')}</span></div>`;
   } else if (!body && msg.content_type && msg.content_type !== 'text') {
     const missingMediaLabels = {photo:'📷 Фото не сохранилось',video:'🎬 Видео не сохранилось',video_note:'⭕ Видеокружок не сохранился',voice:'🎤 Голосовое не сохранилось',audio:'🎵 Аудио не сохранилось',animation:'🎞 GIF не сохранился',document:'📎 Файл не сохранился',sticker:'🎭 Стикер не сохранился'};
     body = esc(missingMediaLabels[msg.content_type] || 'Вложение недоступно');
@@ -643,59 +634,42 @@ function messageHtml(msg) {
   const isRead = outgoing && (msg.is_read === true || msg.is_read === 1 || msg.is_read === '1');
   const sentTicks = outgoing ? (isRead
     ? `<svg class="telegram-ticks is-read" viewBox="0 0 18 14" role="img" aria-label="Прочитано"><path d="m1 7 4 4L14 2M7 7l4 4 6-7"/></svg>`
-    : `<svg class="telegram-ticks is-sent" viewBox="0 0 18 14" role="img" aria-label="Отправлено"><path d="m2 7 4 4L16 1.5"/></svg>`
-  ) : '';
+    : `<svg class="telegram-ticks is-sent" viewBox="0 0 18 14" role="img" aria-label="Отправлено"><path d="m2 7 4 4L16 1.5"/></svg>`) : '';
   const sentAt = msg.sent_at || msg.updated_at;
   const dayKey = localDateKey(sentAt);
   return `<article class="${cls}" data-message-id="${Number(msg.message_id)}" data-connection-id="${esc(rowConnectionId)}" data-date-key="${esc(dayKey)}">${replyHtml}${body ? `<div class="message-text">${body.replace(/\n/g,'<br>')}</div>` : ''}${media ? `<div class="message-attachment">${media}</div>` : ''}<footer class="message-footer"><time datetime="${esc(sentAt || '')}">${esc(fmtMessageTime(sentAt))}</time>${archiveMarker}${sentTicks}</footer></article>`;
 }
+
 let lottieLoaderPromise;
 let pakoLoaderPromise;
+
 function loadExternalScript(src, globalName) {
   if (window[globalName]) return Promise.resolve(window[globalName]);
   return new Promise((resolve, reject) => {
     const script = document.createElement('script');
-    script.src = src;
-    script.async = true;
-    script.dataset.hsLibrary = globalName;
-    script.onload = () => {
-      script.dataset.loaded = '1';
-      window[globalName] ? resolve(window[globalName]) : reject(new Error(`${globalName} did not initialize`));
-    };
+    script.src = src; script.async = true; script.dataset.hsLibrary = globalName;
+    script.onload = () => { script.dataset.loaded = '1'; window[globalName] ? resolve(window[globalName]) : reject(new Error(`${globalName} did not initialize`)); };
     script.onerror = () => reject(new Error(`Unable to load ${globalName}`));
     document.head.appendChild(script);
   });
 }
+
 async function ensureLottie() {
   if (window.lottie) return window.lottie;
-  if (!lottieLoaderPromise) {
-    lottieLoaderPromise = loadExternalScript(
-      'https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js', 'lottie'
-    ).catch(() => loadExternalScript(
-      'https://cdn.jsdelivr.net/npm/lottie-web@5.12.2/build/player/lottie.min.js', 'lottie'
-    ));
-  }
+  if (!lottieLoaderPromise) lottieLoaderPromise = loadExternalScript('https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js', 'lottie').catch(() => loadExternalScript('https://cdn.jsdelivr.net/npm/lottie-web@5.12.2/build/player/lottie.min.js', 'lottie'));
   return lottieLoaderPromise;
 }
+
 async function gunzipTgs(buffer) {
   if ('DecompressionStream' in window) {
-    try {
-      const stream = new Blob([buffer]).stream().pipeThrough(new DecompressionStream('gzip'));
-      return await new Response(stream).text();
-    } catch (error) {
-      console.warn('[HadesSave] Native TGS decompression failed, trying pako:', error);
-    }
+    try { const stream = new Blob([buffer]).stream().pipeThrough(new DecompressionStream('gzip')); return await new Response(stream).text(); }
+    catch (error) { console.warn('[HadesSave] Native TGS decompression failed, trying pako:', error); }
   }
-  if (!pakoLoaderPromise) {
-    pakoLoaderPromise = loadExternalScript(
-      'https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js', 'pako'
-    ).catch(() => loadExternalScript(
-      'https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js', 'pako'
-    ));
-  }
+  if (!pakoLoaderPromise) pakoLoaderPromise = loadExternalScript('https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js', 'pako').catch(() => loadExternalScript('https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js', 'pako'));
   const pako = await pakoLoaderPromise;
   return new TextDecoder().decode(pako.ungzip(new Uint8Array(buffer)));
 }
+
 async function hydrateTgsStickers(root = document) {
   const players = root.querySelectorAll('.message-sticker-tgs:not([data-player-state])');
   if (!players.length) return;
@@ -707,14 +681,7 @@ async function hydrateTgsStickers(root = document) {
       if (!response.ok) throw new Error(`Sticker request failed: HTTP ${response.status}`);
       const text = await gunzipTgs(await response.arrayBuffer());
       const animationData = JSON.parse(text);
-      lottie.loadAnimation({
-        container: host,
-        renderer: 'svg',
-        loop: true,
-        autoplay: true,
-        animationData,
-        rendererSettings: {preserveAspectRatio: 'xMidYMid meet', progressiveLoad: true}
-      });
+      lottie.loadAnimation({ container: host, renderer: 'svg', loop: true, autoplay: true, animationData, rendererSettings: {preserveAspectRatio: 'xMidYMid meet', progressiveLoad: true} });
       host.dataset.playerState = 'ready';
     } catch (error) {
       console.warn('[HadesSave] Could not render animated sticker:', error);
@@ -724,19 +691,19 @@ async function hydrateTgsStickers(root = document) {
     }
   }
 }
+
 function renderMessageBatch(rows) {
   let previousDay = '';
   return rows.map(msg => {
     const timestamp = msg.sent_at || msg.updated_at;
     const dayKey = localDateKey(timestamp);
     let divider = '';
-    if (dayKey && dayKey !== previousDay) {
-      divider = `<div class="message-date-divider" data-date-key="${esc(dayKey)}"><span>${esc(fmtDaySeparator(timestamp))}</span></div>`;
-    }
+    if (dayKey && dayKey !== previousDay) divider = `<div class="message-date-divider" data-date-key="${esc(dayKey)}"><span>${esc(fmtDaySeparator(timestamp))}</span></div>`;
     if (dayKey) previousDay = dayKey;
     return divider + messageHtml(msg);
   }).join('');
 }
+
 async function loadMessages(append = false) {
   if (!state.activeChat || state.loadingMessages) return;
   state.loadingMessages = true;
@@ -744,12 +711,7 @@ async function loadMessages(append = false) {
   if (!append) { list.innerHTML = '<div class="empty-state">Загружаю сообщения…</div>'; state.messageOffset = 0; }
   const oldHeight = list.scrollHeight;
   try {
-    const params = {
-      chat_id: state.activeChat.chat_id,
-      connection_id: state.activeChat.connection_id,
-      offset: state.messageOffset,
-      limit: 50
-    };
+    const params = { chat_id: state.activeChat.chat_id, connection_id: state.activeChat.connection_id, offset: state.messageOffset, limit: 50 };
     if (state.messageSearch.trim()) params.q = state.messageSearch.trim();
     const {data} = await miniAppClient.get('/api/miniapp/messages', {params});
     const rows = (data.messages || []).slice().reverse();
@@ -771,66 +733,51 @@ async function loadMessages(append = false) {
     state.hasMoreMessages = data.next_offset !== null && data.next_offset !== undefined;
     if (!append) list.scrollTop = list.scrollHeight;
     else list.scrollTop = list.scrollHeight - oldHeight;
-  } catch (error) {
-    if (!append) list.innerHTML = `<div class="empty-state">${esc(apiError(error))}</div>`;
-  } finally { state.loadingMessages = false; }
+  } catch (error) { if (!append) list.innerHTML = `<div class="empty-state">${esc(apiError(error))}</div>`; }
+  finally { state.loadingMessages = false; }
 }
+
 async function showEditHistory(messageId, connectionId = state.activeChat?.connection_id) {
   if (!state.activeChat || !connectionId) return;
   try {
-    const {data} = await miniAppClient.get('/api/miniapp/message_versions', {params:{
-      chat_id:state.activeChat.chat_id, connection_id:connectionId, message_id:messageId
-    }});
+    const {data} = await miniAppClient.get('/api/miniapp/message_versions', {params:{ chat_id:state.activeChat.chat_id, connection_id:connectionId, message_id:messageId }});
     const versions = data.versions || [];
     const body = versions.length ? versions.map((v,i) => `<section class="history-entry"><small>Изменение ${i+1} · ${esc(fmtDate(v.changed_at))}</small><div class="history-label">Было</div><p>${esc(v.old_text || 'Пусто')}</p><div class="history-label">Стало</div><p>${esc(v.new_text || 'Пусто')}</p></section>`).join('') : '<p class="empty-state">История изменений не найдена.</p>';
     $('history-body').innerHTML = body; $('history-modal').classList.add('active');
   } catch (error) { alertUser(`Не удалось загрузить историю: ${apiError(error)}`); }
 }
+
 window.closeHistory = () => $('history-modal').classList.remove('active');
+
 $('messages-list')?.addEventListener('error', (event) => {
   const target = event.target;
   if (target instanceof HTMLImageElement && target.classList.contains('message-sticker-image')) {
-    const fallback = document.createElement('div');
-    fallback.className = 'sticker-unavailable';
-    fallback.textContent = 'Стикер недоступен';
-    target.replaceWith(fallback);
+    const fallback = document.createElement('div'); fallback.className = 'sticker-unavailable'; fallback.textContent = 'Стикер недоступен'; target.replaceWith(fallback);
   } else if (target instanceof HTMLVideoElement && target.classList.contains('message-sticker-video')) {
-    const fallback = document.createElement('div');
-    fallback.className = 'sticker-unavailable';
-    fallback.textContent = 'Стикер недоступен';
-    target.replaceWith(fallback);
+    const fallback = document.createElement('div'); fallback.className = 'sticker-unavailable'; fallback.textContent = 'Стикер недоступен'; target.replaceWith(fallback);
   }
 }, true);
+
 $('messages-list')?.addEventListener('scroll', () => {
   if ($('messages-list').scrollTop < 70 && state.hasMoreMessages && !state.loadingMessages) loadMessages(true);
 });
+
 let chatSearchTimer;
-$('chat-search')?.addEventListener('input', (e) => {
-  state.chatSearch = e.target.value;
-  clearTimeout(chatSearchTimer);
-  chatSearchTimer = setTimeout(loadChats, 300);
-});
+$('chat-search')?.addEventListener('input', (e) => { state.chatSearch = e.target.value; clearTimeout(chatSearchTimer); chatSearchTimer = setTimeout(loadChats, 300); });
+
 $('toggle-message-search')?.addEventListener('click', () => {
   const wrap = $('message-search-wrap');
   if (!wrap) return;
   wrap.classList.toggle('hidden');
   if (!wrap.classList.contains('hidden')) $('message-search')?.focus();
-  else {
-    if ($('message-search')) $('message-search').value = '';
-    state.messageSearch = '';
-    loadMessages(false);
-  }
+  else { if ($('message-search')) $('message-search').value = ''; state.messageSearch = ''; loadMessages(false); }
 });
-$('close-message-search')?.addEventListener('click', () => {
-  $('message-search-wrap')?.classList.add('hidden');
-  if ($('message-search')) $('message-search').value = '';
-  state.messageSearch = '';
-  loadMessages(false);
-});
+
+$('close-message-search')?.addEventListener('click', () => { $('message-search-wrap')?.classList.add('hidden'); if ($('message-search')) $('message-search').value = ''; state.messageSearch = ''; loadMessages(false); });
+
 let messageSearchTimer;
-$('message-search')?.addEventListener('input', () => {
-  clearTimeout(messageSearchTimer); messageSearchTimer = setTimeout(() => { state.messageSearch = $('message-search').value; loadMessages(false); }, 350);
-});
+$('message-search')?.addEventListener('input', () => { clearTimeout(messageSearchTimer); messageSearchTimer = setTimeout(() => { state.messageSearch = $('message-search').value; loadMessages(false); }, 350); });
+
 $('messages-list')?.addEventListener('click', async (event) => {
   const reply = event.target.closest('[data-reply-to]');
   if (reply) {
@@ -843,8 +790,7 @@ $('messages-list')?.addEventListener('click', async (event) => {
       setTimeout(() => target.classList.remove('reply-highlight'), 1300);
     } else if (state.activeChat) {
       try {
-        const params = {chat_id:state.activeChat.chat_id, connection_id:targetConnection,
-          filter:'all', offset:0, limit:50, around_message_id:targetId, around_connection_id:targetConnection};
+        const params = {chat_id:state.activeChat.chat_id, connection_id:targetConnection, filter:'all', offset:0, limit:50, around_message_id:targetId, around_connection_id:targetConnection};
         const {data} = await miniAppClient.get('/api/miniapp/messages', {params});
         const rows = (data.messages || []).slice().reverse();
         $('messages-list').innerHTML = renderMessageBatch(rows) || '<div class="empty-state">Сообщение не найдено</div>';
@@ -864,6 +810,7 @@ $('messages-list')?.addEventListener('click', async (event) => {
   const mediaTarget = event.target.closest('[data-media-url]');
   if (mediaTarget && !event.target.closest('audio')) openLightbox(mediaTarget.dataset.mediaUrl, mediaTarget.dataset.mediaType, Number(mediaTarget.dataset.mid));
 });
+
 function openLightbox(url, type, messageId) {
   state.currentMedia = {messageId, chat:state.activeChat};
   const box = $('lightbox-media-container'); box.innerHTML = '';
@@ -874,21 +821,25 @@ function openLightbox(url, type, messageId) {
   else { node = document.createElement('div'); node.textContent = 'Предпросмотр недоступен'; }
   box.appendChild(node); $('media-lightbox').classList.add('active'); haptic();
 }
+
 window.closeLightbox = (event) => {
   if (event && event.target !== $('media-lightbox') && !event.target.closest('button')) return;
   $('lightbox-media-container').querySelectorAll('video,audio').forEach(m => {m.pause();m.removeAttribute('src');m.load();});
   $('lightbox-media-container').innerHTML = ''; $('media-lightbox').classList.remove('active'); state.currentMedia = null;
 };
+
 async function loadSettings() {
   try {
     const {data} = await miniAppClient.get('/api/miniapp/settings');
     $('toggle-edits').checked = Boolean(data.edits); $('toggle-deletions').checked = Boolean(data.deletions); $('toggle-media').checked = Boolean(data.deleted_media);
   } catch (error) { console.warn(error); }
 }
+
 window.updateSetting = async (key, value) => {
   try { await miniAppClient.post('/api/miniapp/settings', {[key]:value}); haptic(); }
   catch (error) { alertUser(apiError(error)); }
 };
+
 window.clearArchive = () => {
   const confirmClear = async () => {
     try { const {data} = await miniAppClient.post('/api/miniapp/clear_archive'); alertUser(data.message || 'Архив очищен'); await loadStats(); }
@@ -897,11 +848,13 @@ window.clearArchive = () => {
   if (tg?.showPopup) tg.showPopup({title:'Очистить архив?',message:'Все сообщения и сохранённые медиа будут удалены без возможности восстановления.',buttons:[{id:'cancel',type:'cancel'},{id:'delete',type:'destructive',text:'Удалить'}]}, id => {if(id==='delete') confirmClear();});
   else if (window.confirm('Удалить весь архив без возможности восстановления?')) confirmClear();
 };
+
 const PREMIUM_PLAN_VIEW = {
   7: {price:45, regular:100, discount:55, saving:55},
   14: {price:69, regular:150, discount:54, saving:81},
   30: {price:120, regular:300, discount:60, saving:180}
 };
+
 window.selectPremiumPlan = (days) => {
   days = Number(days);
   if (!PREMIUM_PLAN_VIEW[days]) return;
@@ -926,6 +879,7 @@ window.selectPremiumPlan = (days) => {
   haptic('light');
   setPage('premium-payment');
 };
+
 function updatePremiumPaymentSummary() {
   const days = Number(state.selectedPremiumDays || 30);
   const plan = PREMIUM_PLAN_VIEW[days] || PREMIUM_PLAN_VIEW[30];
@@ -936,91 +890,65 @@ function updatePremiumPaymentSummary() {
   const button = $('premium-action-btn');
   if (button && !button.disabled) button.innerHTML = `Оплатить ${plan.price} ₽ <svg class="icon"><use href="#icon-arrow-up-right"></use></svg>`;
 }
+
 async function loadPremium() {
   try {
     const {data} = await miniAppClient.get('/api/miniapp/stats');
-    const active = Boolean(data.is_premium || data.has_permanent_access);
     state.hasPermanentAccess = Boolean(data.has_permanent_access);
-    const statusText = data.has_permanent_access
-      ? 'Все возможности доступны этому аккаунту'
-      : data.is_premium
-      ? 'Premium активен'
-      : 'Выбери срок — доступ включится после подтверждения оплаты';
+    const statusText = data.has_permanent_access ? 'Все возможности доступны этому аккаунту' : data.is_premium ? 'Premium активен' : 'Выбери срок — доступ включится после подтверждения оплаты';
     if ($('premium-status-text')) $('premium-status-text').textContent = statusText;
     if ($('premium-checkout-status')) {
-      $('premium-checkout-status').textContent = data.has_permanent_access
-        ? 'Все функции уже доступны'
-        : data.is_premium
-        ? 'Подписка активна — новый срок добавится к текущему'
-        : 'Разовая оплата · без автоматического продления';
+      $('premium-checkout-status').textContent = data.has_permanent_access ? 'Все функции уже доступны' : data.is_premium ? 'Подписка активна — новый срок добавится к текущему' : 'Разовая оплата · без автоматического продления';
     }
     const cryptoOption = $('premium-payment-method')?.querySelector('option[value="13"]');
     if (cryptoOption) cryptoOption.disabled = !data.premium_crypto_enabled;
     const button = $('premium-action-btn');
     if (button) {
       const plan = PREMIUM_PLAN_VIEW[state.selectedPremiumDays] || PREMIUM_PLAN_VIEW[30];
-      if (data.has_permanent_access) {
-        button.disabled = true;
-        button.innerHTML = 'Все возможности уже доступны <svg class="icon"><use href="#icon-check-circle"></use></svg>';
-      } else {
+      if (data.has_permanent_access) { button.disabled = true; button.innerHTML = 'Все возможности уже доступны <svg class="icon"><use href="#icon-check-circle"></use></svg>'; }
+      else {
         button.disabled = !data.premium_payment_ready;
         const method = Number($('premium-payment-method')?.value || 2);
-        button.innerHTML = data.premium_payment_ready
-          ? `Оплатить ${plan.price} ₽ ${method === 13 ? 'криптовалютой' : 'через СБП'} <svg class="icon"><use href="#icon-arrow-up-right"></use></svg>`
-          : 'Оплата временно недоступна';
+        button.innerHTML = data.premium_payment_ready ? `Оплатить ${plan.price} ₽ ${method === 13 ? 'криптовалютой' : 'через СБП'} <svg class="icon"><use href="#icon-arrow-up-right"></use></svg>` : 'Оплата временно недоступна';
       }
     }
     const timer = $('premium-timer');
-    if (timer) {
-      if (!data.has_permanentAccess && data.premium_expires_at) {
-        timer.classList.remove('hidden');
-        startPremiumTimer(data.premium_expires_at);
-      } else timer.classList.add('hidden');
-    }
+    if (timer) { if (!data.has_permanent_access && data.premium_expires_at) { timer.classList.remove('hidden'); startPremiumTimer(data.premium_expires_at); } else timer.classList.add('hidden'); }
     updatePremiumPaymentSummary();
-    if (button && data.has_permanent_access) {
-      button.disabled = true;
-      button.innerHTML = 'Все возможности уже доступны <svg class="icon"><use href="#icon-check-circle"></use></svg>';
-    }
+    if (button && data.has_permanent_access) { button.disabled = true; button.innerHTML = 'Все возможности уже доступны <svg class="icon"><use href="#icon-check-circle"></use></svg>'; }
   } catch (error) { console.warn('Premium info:', error); }
 }
+
 $('premium-payment-method')?.addEventListener('change', updatePremiumPaymentSummary);
+
 window.startPremiumPayment = async () => {
   const emailInput = $('premium-email');
   const button = $('premium-action-btn');
   const email = String(emailInput?.value || '').trim();
-  if (!emailInput || !emailInput.checkValidity() || !email) {
-    emailInput?.focus();
-    alertUser('Укажи корректный email — он нужен для оформления платежа.');
-    return;
-  }
-  if (state.hasPermanentAccess) {
-    alertUser('Все возможности уже доступны этому аккаунту.');
-    return;
-  }
+  if (!emailInput || !emailInput.checkValidity() || !email) { emailInput?.focus(); alertUser('Укажи корректный email — он нужен для оформления платежа.'); return; }
+  if (state.hasPermanentAccess) { alertUser('Все возможности уже доступны этому аккаунту.'); return; }
   const plan = PREMIUM_PLAN_VIEW[state.selectedPremiumDays] || PREMIUM_PLAN_VIEW[30];
   if (button) { button.disabled = true; button.textContent = 'Создаём платёж…'; }
   try {
     const paymentMethod = Number($('premium-payment-method')?.value || 2);
     const {data} = await miniAppClient.post('/api/miniapp/premium/create', {email, payment_method: paymentMethod, plan_days: state.selectedPremiumDays});
     if (!data.redirect || !/^https:\/\//i.test(data.redirect)) throw new Error('Platega не вернула ссылку на оплату.');
-    if (tg?.openLink) tg.openLink(data.redirect);
-    else window.open(data.redirect, '_blank', 'noopener');
-  } catch (error) {
-    alertUser(error?.response?.data?.error || error.message || 'Не удалось создать платёж. Попробуй позже.');
-  } finally {
-    if (button) { button.disabled = false; await loadPremium(); }
-  }
+    if (tg?.openLink) tg.openLink(data.redirect); else window.open(data.redirect, '_blank', 'noopener');
+  } catch (error) { alertUser(error?.response?.data?.error || error.message || 'Не удалось создать платёж. Попробуй позже.'); }
+  finally { if (button) { button.disabled = false; await loadPremium(); } }
 };
+
 async function loadReferrals() {
   try { const {data} = await miniAppClient.get('/api/miniapp/referrals'); state.refLink = data.link || ''; $('ref-count').textContent = Number(data.count || 0).toLocaleString('ru-RU'); }
   catch (error) { console.warn(error); }
 }
+
 window.copyRefLink = async () => {
   if (!state.refLink) return;
   try { await navigator.clipboard.writeText(state.refLink); alertUser('Ссылка скопирована'); }
   catch (_) { alertUser(state.refLink); }
 };
+
 const FEATURE_INFO = {
   archive:['Расширенный архив','Больше возможностей для хранения и просмотра переписки.'],
   priority:['Приоритетное сохранение','Твои важные материалы получают повышенный приоритет.'],
@@ -1030,8 +958,10 @@ const FEATURE_INFO = {
   support:['Приоритетная поддержка','Быстрее получай помощь по вопросам сервиса.'],
   media:['Больше медиа','Больше возможностей для сохранения файлов.']
 };
+
 window.openFeatureModal = (key) => { const row=FEATURE_INFO[key]; if(!row)return; $('feature-title').textContent=row[0]; $('feature-desc').textContent=row[1]; $('feature-modal').classList.add('active'); };
 window.closeFeatureModal = (event) => { if(event && event.target!==$('feature-modal') && !event.target.closest('button')) return; $('feature-modal').classList.remove('active'); };
+
 async function loadAdminStats() {
   if (!state.isAdmin) return;
   try {
@@ -1042,6 +972,7 @@ async function loadAdminStats() {
     $('adm-stat-week').textContent = data.week_premium || 0;
   } catch (error) { alertUser(apiError(error)); }
 }
+
 async function loadAdminStatistics() {
   if (!state.isAdmin) return;
   const chart = $('admin-daily-chart');
@@ -1090,7 +1021,9 @@ async function loadAdminStatistics() {
     if (recent) recent.innerHTML = '';
   }
 }
+
 $('stats-refresh')?.addEventListener('click', loadAdminStatistics);
+
 window.openAdminModal = async (action) => {
   if (!state.isAdmin) return;
   state.adminAction = action;
@@ -1112,7 +1045,9 @@ window.openAdminModal = async (action) => {
     } catch(error) { $('admin-list-container').textContent=apiError(error); }
   }
 };
+
 window.closeAdminModal = (event) => { if(event && event.target!==$('admin-modal') && !event.target.closest('button'))return; $('admin-modal')?.classList.remove('active'); };
+
 window.executeAdminAction = async () => {
   if (!state.isAdmin) return;
   const btn=$('admin-execute-btn'), old=btn.textContent; btn.disabled=true; btn.textContent='Выполняется…';
@@ -1127,6 +1062,7 @@ window.executeAdminAction = async () => {
   } catch(error) { alertUser(apiError(error)); }
   finally {btn.disabled=false;btn.textContent=old;}
 };
+
 async function loadConnectionGuide() {
   if (!state.isAdmin) return;
   const image = $('connection-guide-preview');
@@ -1150,6 +1086,7 @@ async function loadConnectionGuide() {
     if (empty) { empty.style.display = 'block'; empty.textContent = 'Не удалось загрузить изображение'; }
   }
 }
+
 window.uploadConnectionGuide = async () => {
   if (!state.isAdmin) return;
   const input = $('connection-guide-file');
@@ -1173,6 +1110,7 @@ window.uploadConnectionGuide = async () => {
     if (button) { button.disabled = false; button.textContent = old || 'Загрузить'; }
   }
 };
+
 async function loadPrefixes() {
   if (!state.isAdmin) return;
   try {
@@ -1188,12 +1126,14 @@ async function loadPrefixes() {
     }
   } catch (error) { if ($('prefix-list')) $('prefix-list').textContent = apiError(error); }
 }
+
 function updatePrefixPreview() {
   const name = ($('prefix-name')?.value || 'ПРЕФИКС').trim() || 'ПРЕФИКС';
   const color = $('prefix-color')?.value || '#ff344f';
   const preview = $('prefix-preview');
   if (preview) { preview.textContent = name; preview.style.setProperty('--prefix-color', color); }
 }
+
 window.editPrefix = (id) => {
   if (!state.isAdmin) return;
   const p = state.prefixes.find(x => Number(x.id) === Number(id));
@@ -1205,12 +1145,14 @@ window.editPrefix = (id) => {
   updatePrefixPreview();
   $('prefix-name')?.focus();
 };
+
 $('prefix-name')?.addEventListener('input', updatePrefixPreview);
 $('prefix-color')?.addEventListener('input', updatePrefixPreview);
 $('prefix-list')?.addEventListener('click', (event) => {
   const row = event.target.closest('[data-prefix-edit]');
   if (row) editPrefix(row.dataset.prefixEdit);
 });
+
 window.savePrefix = async () => {
   if (!state.isAdmin) return;
   const name = $('prefix-name').value.trim();
@@ -1222,6 +1164,7 @@ window.savePrefix = async () => {
     state.editingPrefixId = 0; $('prefix-name').value=''; $('prefix-save-btn').textContent='Создать'; updatePrefixPreview(); await loadPrefixes();
   } catch(error) { alertUser(apiError(error)); }
 };
+
 window.deletePrefix = async () => {
   if (!state.isAdmin) return;
   const id = Number($('prefix-select').value || state.editingPrefixId || 0);
@@ -1233,6 +1176,7 @@ window.deletePrefix = async () => {
     alertUser(data.message || 'Префикс удалён.'); state.editingPrefixId=0; $('prefix-name').value=''; $('prefix-save-btn').textContent='Создать'; await loadPrefixes();
   } catch(error) { alertUser(apiError(error)); }
 };
+
 window.assignPrefix = async () => {
   if (!state.isAdmin) return;
   const userId = Number($('prefix-target').value.trim());
@@ -1244,6 +1188,7 @@ window.assignPrefix = async () => {
     alertUser(data.message || 'Префикс назначен.'); await loadPrefixes();
   } catch(error) { alertUser(apiError(error)); }
 };
+
 window.removeUserPrefix = async () => {
   if (!state.isAdmin) return;
   const userId = Number($('prefix-target').value.trim());
@@ -1253,6 +1198,8 @@ window.removeUserPrefix = async () => {
     alertUser(data.message || 'Префикс снят.'); await loadPrefixes();
   } catch(error) { alertUser(apiError(error)); }
 };
+
 try { tg?.BackButton?.onClick(() => { if ($('history-modal').classList.contains('active')) closeHistory(); else if ($('media-lightbox').classList.contains('active')) closeLightbox(); else if ($('view-messages')?.classList.contains('active')) setPage('chats'); else if ($('view-chats')?.classList.contains('active')) setPage('home'); else if ($('view-statistics')?.classList.contains('active')) setPage('admin'); else if ($('view-admin')?.classList.contains('active')) setPage('profile'); else setPage('home'); }); } catch (_) {}
+
 updatePrefixPreview();
 initApp();

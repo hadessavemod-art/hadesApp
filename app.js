@@ -1,5 +1,4 @@
 import { setTelegramInitData, miniAppClient } from './miniAppClient.js';
-
 const tg = window.Telegram?.WebApp;
 const initData = tg?.initData || '';
 const state = {
@@ -9,7 +8,6 @@ const state = {
   messageOffset: 0, loadingMessages: false, hasMoreMessages: false,
   currentMedia: null, selectedPremiumDays: 30
 };
-
 const $ = (id) => document.getElementById(id);
 const haptic = (kind = 'light') => { try { tg?.HapticFeedback?.impactOccurred(kind); } catch (_) {} };
 const alertUser = (message) => { try { tg?.showAlert?.(String(message)); } catch (_) { window.alert(String(message)); } };
@@ -79,7 +77,6 @@ const fmtDate = (value) => {
     : date.toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit'});
 };
 const apiError = (error) => error?.response?.data?.error || error?.message || 'Ошибка сети';
-
 function setPage(name) {
   if (['admin','statistics'].includes(name) && !state.isAdmin) return alertUser('Раздел недоступен.');
   document.body.classList.toggle('chat-open', name === 'messages');
@@ -105,15 +102,12 @@ function setPage(name) {
   try { if (name === 'messages') tg?.BackButton?.show?.(); else tg?.BackButton?.hide?.(); } catch (_) {}
 }
 window.switchTab = (name) => { haptic(); setPage(name); };
-
 function showPreloader(show) { $('preloader')?.classList.toggle('hidden', !show); }
-
 let appInitialized = false;
 function initialPageFromHash() {
   const hash = String(window.location.hash || '').slice(1).split('?')[0];
   return ['premium','premium-buy','premium-payment'].includes(hash) ? hash : 'home';
 }
-
 async function initApp() {
   if (!initData) {
     document.body.innerHTML = '<main class="launch-error">Открой Mini App через бота HadesSave в Telegram.</main>';
@@ -195,8 +189,6 @@ async function initApp() {
     await loadStats();
     appInitialized = true;
     setPage(initialPageFromHash());
-    // Start one background pass so avatars are already saved before the user
-    // opens the archive. loadChats also renders the hidden list safely.
     void loadChats();
     startSubscriptionPolling();
   } catch (error) {
@@ -209,7 +201,6 @@ async function initApp() {
     }
   } finally { showPreloader(false); }
 }
-
 let subscriptionGateBusy = false;
 let subscriptionPollTimer = null;
 async function pollSubscriptionStatus() {
@@ -249,7 +240,6 @@ function russianChannelWord(value) {
   if (lastOne >= 2 && lastOne <= 4) return 'канала';
   return 'каналов';
 }
-
 function subscriptionGateCopy(count, unavailableCount = 0) {
   if (count < 1) {
     return {
@@ -274,7 +264,6 @@ function subscriptionGateCopy(count, unavailableCount = 0) {
     lead: `Чтобы открыть HadesSave, подпишитесь на все ${count} ${russianChannelWord(count)} ниже. После этого нажмите кнопку проверки.`
   };
 }
-
 function renderSubscriptionGate(data = {}) {
   const gate = $('subscription-gate');
   const app = document.querySelector('.hs-app');
@@ -308,7 +297,6 @@ function renderSubscriptionGate(data = {}) {
   app?.classList.add('hidden');
   tg?.BackButton?.hide?.();
 }
-
 async function refreshRequiredSubscriptions() {
   if (subscriptionGateBusy) return;
   subscriptionGateBusy = true;
@@ -340,7 +328,6 @@ async function refreshRequiredSubscriptions() {
   }
 }
 $('subscription-gate-refresh')?.addEventListener('click', refreshRequiredSubscriptions);
-
 let premiumTimer = null;
 function startPremiumTimer(expiresAt) {
   clearInterval(premiumTimer);
@@ -352,7 +339,6 @@ function startPremiumTimer(expiresAt) {
   };
   $('premium-timer')?.classList.remove('hidden'); tick(); premiumTimer = setInterval(tick, 1000);
 }
-
 async function loadStats() {
   try {
     const {data} = await miniAppClient.get('/api/miniapp/stats');
@@ -362,21 +348,14 @@ async function loadStats() {
     $('stat-media').textContent = data.media_count || 0;
   } catch (error) { console.warn('stats', error); }
 }
-
-// CHAT AVATAR STORAGE ---------------------------------------------------------
-// Avatars are stored in two places:
-// 1) on the API host in /app/data/avatars (server-side persistent file cache);
-// 2) in IndexedDB in this Telegram WebView (persistent per-device cache).
-// This prevents downloading the same profile photos on every Mini App launch.
 const AVATAR_DB_NAME = 'hadessave-avatar-cache';
 const AVATAR_DB_VERSION = 1;
 const AVATAR_DB_STORE = 'images';
 let avatarDbPromise = null;
-const chatAvatarCache = new Map();       // cache key -> object URL / fallback URL
-const chatAvatarPromises = new Map();    // cache key -> single in-flight/resolved promise
+const chatAvatarCache = new Map();
+const chatAvatarPromises = new Map();
 const chatAvatarTargets = new WeakMap();
 const avatarPrefetchStarted = new Set();
-
 function openAvatarDb() {
   if (!('indexedDB' in window)) return Promise.resolve(null);
   if (!avatarDbPromise) {
@@ -397,7 +376,6 @@ function openAvatarDb() {
   }
   return avatarDbPromise;
 }
-
 async function avatarDbGet(key) {
   const db = await openAvatarDb();
   if (!db) return null;
@@ -410,7 +388,6 @@ async function avatarDbGet(key) {
     } catch (_) { resolve(null); }
   });
 }
-
 async function avatarDbPut(key, blob) {
   const db = await openAvatarDb();
   if (!db || !blob || !blob.size) return false;
@@ -423,13 +400,11 @@ async function avatarDbPut(key, blob) {
     } catch (_) { resolve(false); }
   });
 }
-
 async function requestPersistentAvatarStorage() {
   try {
     if (navigator.storage?.persist) await navigator.storage.persist();
-  } catch (_) { /* IndexedDB remains usable even if persistent quota is not granted. */ }
+  } catch (_) {}
 }
-
 function makeAvatarObjectUrl(key, blob) {
   let value = chatAvatarCache.get(key);
   if (value) return value;
@@ -437,11 +412,9 @@ function makeAvatarObjectUrl(key, blob) {
   chatAvatarCache.set(key, value);
   return value;
 }
-
 function chatAvatarKey(chat) {
   return `${state.userId}:chat:${String(chat.chat_id)}`;
 }
-
 function chatAvatarApiUrl(chat) {
   const params = new URLSearchParams({
     chat_id: String(chat.chat_id),
@@ -451,20 +424,14 @@ function chatAvatarApiUrl(chat) {
   const base = miniAppClient.defaults?.baseURL || '';
   return `${base}/api/miniapp/avatar?${params.toString()}`;
 }
-
 async function ensureChatAvatar(chat) {
   if (!chat || !chat.chat_id) return null;
   const key = chatAvatarKey(chat);
   if (chatAvatarCache.has(key)) return chatAvatarCache.get(key);
   if (chatAvatarPromises.has(key)) return chatAvatarPromises.get(key);
-
   const task = (async () => {
-    // First check permanent device storage. A hit means no API request at all.
     const saved = await avatarDbGet(key);
     if (saved?.blob?.size) return makeAvatarObjectUrl(key, saved.blob);
-
-    // On a cache miss, request the API once. The API itself has a permanent
-    // server-side file cache, so Telegram is contacted only on the first fill.
     try {
       const response = await fetch(chatAvatarApiUrl(chat), {
         method: 'GET', cache: 'force-cache',
@@ -476,7 +443,6 @@ async function ensureChatAvatar(chat) {
       await avatarDbPut(key, blob);
       return makeAvatarObjectUrl(key, blob);
     } catch (error) {
-      // Keep a light fallback if the bot cannot access the profile photo.
       if (chat.chat_username) {
         const fallbackUrl = `https://t.me/i/userpic/320/${encodeURIComponent(String(chat.chat_username).replace(/^@/,''))}.jpg`;
         chatAvatarCache.set(key, fallbackUrl);
@@ -489,7 +455,6 @@ async function ensureChatAvatar(chat) {
   chatAvatarPromises.set(key, task);
   return task;
 }
-
 function applyChatAvatar(img, wrap, src) {
   if (!img || !wrap || !src) return;
   if (img.dataset.loadedSource !== src) {
@@ -504,14 +469,12 @@ function applyChatAvatar(img, wrap, src) {
   }
   if (img.complete && img.naturalWidth > 0) wrap.classList.add('has-image');
 }
-
 async function loadChatAvatar(img, wrap, chat) {
   if (!img || !wrap || !chat) return;
   const key = chatAvatarKey(chat);
   const src = await ensureChatAvatar(chat);
   if (src) applyChatAvatar(img, wrap, src);
 }
-
 const chatAvatarObserver = ('IntersectionObserver' in window) ? new IntersectionObserver(entries => {
   entries.forEach(entry => {
     if (!entry.isIntersecting) return;
@@ -520,7 +483,6 @@ const chatAvatarObserver = ('IntersectionObserver' in window) ? new Intersection
     if (target) loadChatAvatar(target.img, target.wrap, target.chat);
   });
 }, {rootMargin:'320px 0px'}) : null;
-
 function queueChatAvatar(img, wrap, chat) {
   const key = chatAvatarKey(chat);
   if (chatAvatarCache.has(key) || !chatAvatarObserver) {
@@ -530,7 +492,6 @@ function queueChatAvatar(img, wrap, chat) {
   chatAvatarTargets.set(wrap, {img, wrap, chat});
   chatAvatarObserver.observe(wrap);
 }
-
 function prefetchChatAvatars(chats) {
   const userKey = String(state.userId);
   if (avatarPrefetchStarted.has(userKey)) return;
@@ -541,17 +502,13 @@ function prefetchChatAvatars(chats) {
   const worker = async () => {
     while (next < unique.length) {
       const chat = unique[next++];
-      try { await ensureChatAvatar(chat); } catch (_) { /* One unavailable avatar must not stop the queue. */ }
+      try { await ensureChatAvatar(chat); } catch (_) {}
     }
   };
-  // Warm the full archive in the background without flooding the API.
   void Promise.all(Array.from({length: Math.min(3, unique.length)}, () => worker()));
 }
-
 async function loadCachedProfileAvatar(url) {
   if (!url || !state.userId) return null;
-  // Include the photo URL in the key so a newly changed Telegram avatar
-  // gets a fresh local copy while an unchanged one remains permanent.
   const key = `${state.userId}:profile:${url}`;
   if (chatAvatarCache.has(key)) return chatAvatarCache.get(key);
   const existing = await avatarDbGet(key);
@@ -564,12 +521,9 @@ async function loadCachedProfileAvatar(url) {
     await avatarDbPut(key, blob);
     return makeAvatarObjectUrl(key, blob);
   } catch (_) {
-    // Some Telegram CDN photo URLs do not allow cross-origin fetch. The native
-    // img request remains as a fallback and is still handled by the WebView cache.
     return url;
   }
 }
-
 function setProfileAvatarSource(img, fallback, src) {
   if (!img || !src) return;
   img.loading = 'eager'; img.decoding = 'async'; img.fetchPriority = 'high';
@@ -580,7 +534,6 @@ function setProfileAvatarSource(img, fallback, src) {
     img.src = src;
   }
 }
-
 function renderChats() {
   const list = $('chats-list');
   chatAvatarObserver?.disconnect();
@@ -612,14 +565,11 @@ async function loadChats() {
     const params = {};
     if (state.chatSearch.trim()) params.q = state.chatSearch.trim();
     const {data} = await miniAppClient.get('/api/miniapp/chats', {params});
-    // The API groups a logical Telegram chat across all active Business connections.
     state.chats = Array.isArray(data.chats) ? data.chats : [];
     renderChats();
     prefetchChatAvatars(state.chats);
   } catch (error) { $('chats-list').innerHTML = `<div class="empty-state">${esc(apiError(error))}</div>`; }
 }
-
-// MESSAGES ----------------------------------------------------------------
 async function openChat(chat) {
   state.activeChat = chat; state.messageOffset = 0; state.hasMoreMessages = false; state.messageSearch = '';
   const title = chat.label || `Чат ${chat.chat_id}`;
@@ -651,10 +601,6 @@ function messageHtml(msg) {
   const replyId = Number(msg.reply_to_message_id || 0);
   const rowConnectionId = String(msg.connection_id || state.activeChat.connection_id);
   const replyHtml = replyId ? `<button class="reply-preview" type="button" data-reply-to="${replyId}" data-reply-connection="${esc(rowConnectionId)}"><strong>${esc(msg.reply_to_sender_name || 'Ответ на сообщение')}</strong><span>${esc(msg.reply_to_text || `Сообщение #${replyId}`)}</span></button>` : '';
-  // Keep the actual archived content visible. Status is only a small icon
-  // in the footer, never a separate 'deleted/edited' placeholder bubble.
-  // Sticker messages are stored with a descriptive text fallback in SQLite.
-  // Do not show that label on top of the actual sticker artwork.
   let body = isSticker ? '' : esc(msg.text || '');
   let media = '';
   let mediaUrl = '';
@@ -693,9 +639,7 @@ function messageHtml(msg) {
   const archiveMarker = msg.deleted
     ? `<svg class="msg-state deleted-icon" viewBox="0 0 24 24" role="img" aria-label="Удалено"><path d="M4 7h16M10 11v6m4-6v6M6 7l1 14h10l1-14M9 7V4h6v3"/></svg>`
     : msg.edited
-      ? `<button class="history-button" type="button" title="История изменений" aria-label="История изменений" data-history="${Number(msg.message_id)}" data-history-connection="${esc(rowConnectionId)}"><svg class="msg-state edit-icon" viewBox="0 0 24 24" role="img" aria-label="Изменено"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg></button>` : '';
-  // Telegram semantics: one tick = sent, two ticks = read by the recipient.
-  // The read flag is supplied by the archive API from the connected account's MTProto session.
+    ? `<button class="history-button" type="button" title="История изменений" aria-label="История изменений" data-history="${Number(msg.message_id)}" data-history-connection="${esc(rowConnectionId)}"><svg class="msg-state edit-icon" viewBox="0 0 24 24" role="img" aria-label="Изменено"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg></button>` : '';
   const isRead = outgoing && (msg.is_read === true || msg.is_read === 1 || msg.is_read === '1');
   const sentTicks = outgoing ? (isRead
     ? `<svg class="telegram-ticks is-read" viewBox="0 0 18 14" role="img" aria-label="Прочитано"><path d="m1 7 4 4L14 2M7 7l4 4 6-7"/></svg>`
@@ -705,16 +649,11 @@ function messageHtml(msg) {
   const dayKey = localDateKey(sentAt);
   return `<article class="${cls}" data-message-id="${Number(msg.message_id)}" data-connection-id="${esc(rowConnectionId)}" data-date-key="${esc(dayKey)}">${replyHtml}${body ? `<div class="message-text">${body.replace(/\n/g,'<br>')}</div>` : ''}${media ? `<div class="message-attachment">${media}</div>` : ''}<footer class="message-footer"><time datetime="${esc(sentAt || '')}">${esc(fmtMessageTime(sentAt))}</time>${archiveMarker}${sentTicks}</footer></article>`;
 }
-
-// Telegram animated stickers use .tgs (gzip-compressed Lottie JSON).
-// Load the lightweight renderer only when a TGS sticker is actually present.
 let lottieLoaderPromise;
 let pakoLoaderPromise;
 function loadExternalScript(src, globalName) {
   if (window[globalName]) return Promise.resolve(window[globalName]);
   return new Promise((resolve, reject) => {
-    // Always create a new tag: the second CDN is a real retry, not another
-    // listener attached to the first failed script element.
     const script = document.createElement('script');
     script.src = src;
     script.async = true;
@@ -785,7 +724,6 @@ async function hydrateTgsStickers(root = document) {
     }
   }
 }
-
 function renderMessageBatch(rows) {
   let previousDay = '';
   return rows.map(msg => {
@@ -799,7 +737,6 @@ function renderMessageBatch(rows) {
     return divider + messageHtml(msg);
   }).join('');
 }
-
 async function loadMessages(append = false) {
   if (!state.activeChat || state.loadingMessages) return;
   state.loadingMessages = true;
@@ -838,7 +775,6 @@ async function loadMessages(append = false) {
     if (!append) list.innerHTML = `<div class="empty-state">${esc(apiError(error))}</div>`;
   } finally { state.loadingMessages = false; }
 }
-
 async function showEditHistory(messageId, connectionId = state.activeChat?.connection_id) {
   if (!state.activeChat || !connectionId) return;
   try {
@@ -851,7 +787,6 @@ async function showEditHistory(messageId, connectionId = state.activeChat?.conne
   } catch (error) { alertUser(`Не удалось загрузить историю: ${apiError(error)}`); }
 }
 window.closeHistory = () => $('history-modal').classList.remove('active');
-
 $('messages-list')?.addEventListener('error', (event) => {
   const target = event.target;
   if (target instanceof HTMLImageElement && target.classList.contains('message-sticker-image')) {
@@ -866,7 +801,6 @@ $('messages-list')?.addEventListener('error', (event) => {
     target.replaceWith(fallback);
   }
 }, true);
-
 $('messages-list')?.addEventListener('scroll', () => {
   if ($('messages-list').scrollTop < 70 && state.hasMoreMessages && !state.loadingMessages) loadMessages(true);
 });
@@ -893,7 +827,6 @@ $('close-message-search')?.addEventListener('click', () => {
   state.messageSearch = '';
   loadMessages(false);
 });
-
 let messageSearchTimer;
 $('message-search')?.addEventListener('input', () => {
   clearTimeout(messageSearchTimer); messageSearchTimer = setTimeout(() => { state.messageSearch = $('message-search').value; loadMessages(false); }, 350);
@@ -931,8 +864,6 @@ $('messages-list')?.addEventListener('click', async (event) => {
   const mediaTarget = event.target.closest('[data-media-url]');
   if (mediaTarget && !event.target.closest('audio')) openLightbox(mediaTarget.dataset.mediaUrl, mediaTarget.dataset.mediaType, Number(mediaTarget.dataset.mid));
 });
-
-// MEDIA VIEWER ------------------------------------------------------------
 function openLightbox(url, type, messageId) {
   state.currentMedia = {messageId, chat:state.activeChat};
   const box = $('lightbox-media-container'); box.innerHTML = '';
@@ -948,7 +879,6 @@ window.closeLightbox = (event) => {
   $('lightbox-media-container').querySelectorAll('video,audio').forEach(m => {m.pause();m.removeAttribute('src');m.load();});
   $('lightbox-media-container').innerHTML = ''; $('media-lightbox').classList.remove('active'); state.currentMedia = null;
 };
-// SETTINGS / ARCHIVE ------------------------------------------------------
 async function loadSettings() {
   try {
     const {data} = await miniAppClient.get('/api/miniapp/settings');
@@ -967,8 +897,6 @@ window.clearArchive = () => {
   if (tg?.showPopup) tg.showPopup({title:'Очистить архив?',message:'Все сообщения и сохранённые медиа будут удалены без возможности восстановления.',buttons:[{id:'cancel',type:'cancel'},{id:'delete',type:'destructive',text:'Удалить'}]}, id => {if(id==='delete') confirmClear();});
   else if (window.confirm('Удалить весь архив без возможности восстановления?')) confirmClear();
 };
-
-// PREMIUM / REFERRALS -----------------------------------------------------
 const PREMIUM_PLAN_VIEW = {
   7: {price:45, regular:100, discount:55, saving:55},
   14: {price:69, regular:150, discount:54, saving:81},
@@ -979,7 +907,7 @@ window.selectPremiumPlan = (days) => {
   if (!PREMIUM_PLAN_VIEW[days]) return;
   state.selectedPremiumDays = days;
   const plan = PREMIUM_PLAN_VIEW[days];
-  const daysLabel = `${days} ${days === 7 ? 'дней' : days === 14 ? 'дней' : 'дней'}`;
+  const daysLabel = `${days} дней`;
   if ($('premium-payment-days')) $('premium-payment-days').textContent = daysLabel;
   if ($('premium-payment-old')) $('premium-payment-old').textContent = `${plan.regular} ₽`;
   if ($('premium-payment-price')) $('premium-payment-price').textContent = `${plan.price} ₽`;
@@ -987,7 +915,7 @@ window.selectPremiumPlan = (days) => {
   const button = $('premium-action-btn');
   if (button && !button.disabled) {
     const method = Number($('premium-payment-method')?.value || 2);
-    button.innerHTML = `Перейти к оплате ${plan.price} ₽ <svg class="icon"><use href="#arrow-up-right"></use></svg>`;
+    button.innerHTML = `Оплатить ${plan.price} ₽ <svg class="icon"><use href="#icon-arrow-up-right"></use></svg>`;
     button.dataset.methodLabel = method === 13 ? 'crypto' : 'sbp';
   }
   document.querySelectorAll('.premium-plan-row').forEach(card => {
@@ -998,7 +926,6 @@ window.selectPremiumPlan = (days) => {
   haptic('light');
   setPage('premium-payment');
 };
-
 function updatePremiumPaymentSummary() {
   const days = Number(state.selectedPremiumDays || 30);
   const plan = PREMIUM_PLAN_VIEW[days] || PREMIUM_PLAN_VIEW[30];
@@ -1007,9 +934,8 @@ function updatePremiumPaymentSummary() {
   if ($('premium-payment-price')) $('premium-payment-price').textContent = `${plan.price} ₽`;
   if ($('premium-payment-saving')) $('premium-payment-saving').textContent = `Твоя экономия — ${plan.saving} ₽ · скидка ${plan.discount}%`;
   const button = $('premium-action-btn');
-  if (button && !button.disabled) button.innerHTML = `Перейти к оплате ${plan.price} ₽ <svg class="icon"><use href="#arrow-up-right"></use></svg>`;
+  if (button && !button.disabled) button.innerHTML = `Оплатить ${plan.price} ₽ <svg class="icon"><use href="#icon-arrow-up-right"></use></svg>`;
 }
-
 async function loadPremium() {
   try {
     const {data} = await miniAppClient.get('/api/miniapp/stats');
@@ -1018,15 +944,15 @@ async function loadPremium() {
     const statusText = data.has_permanent_access
       ? 'Все возможности доступны этому аккаунту'
       : data.is_premium
-        ? 'Premium активен'
-        : 'Выбери срок — доступ включится после подтверждения оплаты';
+      ? 'Premium активен'
+      : 'Выбери срок — доступ включится после подтверждения оплаты';
     if ($('premium-status-text')) $('premium-status-text').textContent = statusText;
     if ($('premium-checkout-status')) {
       $('premium-checkout-status').textContent = data.has_permanent_access
         ? 'Все функции уже доступны'
         : data.is_premium
-          ? 'Подписка активна — новый срок добавится к текущему'
-          : 'Разовая оплата · без автоматического продления';
+        ? 'Подписка активна — новый срок добавится к текущему'
+        : 'Разовая оплата · без автоматического продления';
     }
     const cryptoOption = $('premium-payment-method')?.querySelector('option[value="13"]');
     if (cryptoOption) cryptoOption.disabled = !data.premium_crypto_enabled;
@@ -1035,18 +961,18 @@ async function loadPremium() {
       const plan = PREMIUM_PLAN_VIEW[state.selectedPremiumDays] || PREMIUM_PLAN_VIEW[30];
       if (data.has_permanent_access) {
         button.disabled = true;
-        button.innerHTML = 'Все возможности уже доступны <svg class="icon"><use href="#check-circle-2"></use></svg>';
+        button.innerHTML = 'Все возможности уже доступны <svg class="icon"><use href="#icon-check-circle"></use></svg>';
       } else {
         button.disabled = !data.premium_payment_ready;
         const method = Number($('premium-payment-method')?.value || 2);
         button.innerHTML = data.premium_payment_ready
-          ? `Оплатить ${plan.price} ₽ ${method === 13 ? 'криптовалютой' : 'через СБП'} <svg class="icon"><use href="#arrow-up-right"></use></svg>`
+          ? `Оплатить ${plan.price} ₽ ${method === 13 ? 'криптовалютой' : 'через СБП'} <svg class="icon"><use href="#icon-arrow-up-right"></use></svg>`
           : 'Оплата временно недоступна';
       }
     }
     const timer = $('premium-timer');
     if (timer) {
-      if (!data.has_permanent_access && data.premium_expires_at) {
+      if (!data.has_permanentAccess && data.premium_expires_at) {
         timer.classList.remove('hidden');
         startPremiumTimer(data.premium_expires_at);
       } else timer.classList.add('hidden');
@@ -1054,13 +980,11 @@ async function loadPremium() {
     updatePremiumPaymentSummary();
     if (button && data.has_permanent_access) {
       button.disabled = true;
-      button.innerHTML = 'Все возможности уже доступны <svg class="icon"><use href="#check-circle-2"></use></svg>';
+      button.innerHTML = 'Все возможности уже доступны <svg class="icon"><use href="#icon-check-circle"></use></svg>';
     }
   } catch (error) { console.warn('Premium info:', error); }
 }
-
 $('premium-payment-method')?.addEventListener('change', updatePremiumPaymentSummary);
-
 window.startPremiumPayment = async () => {
   const emailInput = $('premium-email');
   const button = $('premium-action-btn');
@@ -1098,21 +1022,16 @@ window.copyRefLink = async () => {
   catch (_) { alertUser(state.refLink); }
 };
 const FEATURE_INFO = {
-  archive:{title:'Архив до 30 дней',desc:'HadesSave автоматически сохраняет доступные события переписки, пока профиль подключён. Premium увеличивает срок хранения с базовых 3 до 30 дней. Уже сохранённые записи можно открыть во вкладке «Чаты».',commands:'Работает автоматически · для HTML-выгрузки используй .архив'},
-  'media-limit':{title:'Медиа до 50 МБ',desc:'Повышенный лимит размера одного медиафайла, который HadesSave может загрузить в архив: до 50 МБ вместо 20 МБ. Сохранение зависит от того, передал ли Telegram файл и разрешён ли к нему доступ.',commands:'Работает автоматически при получении медиа'},
-  export:{title:'Экспорт архива в HTML',desc:'Создаёт отдельный HTML-файл с перепиской выбранного чата. Файл приходит в личный диалог с HadesSave — его можно открыть в браузере, хранить или распечатать.',commands:'.архив — отправь команду прямо в нужном чате'},
-  folders:{title:'Категории архива',desc:'Показывает сводку по сообщениям: текст, медиа, удалённые и изменённые записи. Это автоматические категории и статистика, а не папки для ручного перемещения файлов.',commands:'.папки — статистика текущего чата'},
-  find:{title:'Глобальный поиск',desc:'Ищет слова и фразы по сохранённой истории во всех подключённых переписках. В результатах показывает чат, дату, фрагмент сообщения и отметки об изменениях или удалении.',commands:'.найти нужная фраза'},
-  mediasearch:{title:'Поиск по медиа',desc:'Показывает сохранённые медиафайлы и записи в текущем чате, сгруппированные по типу: фото, видео, голосовые, документы и другое. Это список найденных записей, не галерея для повторной отправки.',commands:'.медиа — сводка медиа в текущем чате'},
-  spam:{title:'Расширенная команда',desc:'Отправляет несколько одинаковых сообщений в выбранный диалог. С Premium лимит — до 50 за один запуск вместо 20. Используй аккуратно и только там, где это уместно.',commands:'.спам 5 Текст сообщения'},
-  watch:{title:'Уведомления по ключевым словам',desc:'Добавь слова или фразы, за которыми HadesSave будет следить во входящих сообщениях. При совпадении бот отправит тебе уведомление. Можно хранить до 20 активных фраз.',commands:'.слова список · .слова добавить фраза · .слова удалить фраза'},
-  mutelist:{title:'Список активных MUTE',desc:'Показывает чаты, в которых включено автоматическое удаление входящих сообщений. Сам список ничего не включает и не выключает. Для управления открой нужный чат.',commands:'.мут — включить · .аньмут — выключить · .мутлист — показать список'}
+  archive:['Расширенный архив','Больше возможностей для хранения и просмотра переписки.'],
+  priority:['Приоритетное сохранение','Твои важные материалы получают повышенный приоритет.'],
+  mirrors:['Несколько подключений','Все подключённые переписки собраны в одном архиве.'],
+  spam:['Расширенные команды','Дополнительные возможности и повышенные лимиты.'],
+  badge:['Отметка профиля','Цветной акцент рядом с именем в профиле.'],
+  support:['Приоритетная поддержка','Быстрее получай помощь по вопросам сервиса.'],
+  media:['Больше медиа','Больше возможностей для сохранения файлов.']
 };
-window.openFeatureModal = (key) => { const row=FEATURE_INFO[key]; if(!row)return; $('feature-title').textContent=row.title; $('feature-desc').textContent=row.desc; const commands=$('feature-commands'); if(commands){commands.innerHTML=`<b>Как пользоваться</b><code>${esc(row.commands)}</code>`;} $('feature-modal').classList.add('active'); };
+window.openFeatureModal = (key) => { const row=FEATURE_INFO[key]; if(!row)return; $('feature-title').textContent=row[0]; $('feature-desc').textContent=row[1]; $('feature-modal').classList.add('active'); };
 window.closeFeatureModal = (event) => { if(event && event.target!==$('feature-modal') && !event.target.closest('button')) return; $('feature-modal').classList.remove('active'); };
-
-
-// ADMIN PANEL -------------------------------------------------------------
 async function loadAdminStats() {
   if (!state.isAdmin) return;
   try {
@@ -1123,7 +1042,6 @@ async function loadAdminStats() {
     $('adm-stat-week').textContent = data.week_premium || 0;
   } catch (error) { alertUser(apiError(error)); }
 }
-
 async function loadAdminStatistics() {
   if (!state.isAdmin) return;
   const chart = $('admin-daily-chart');
@@ -1173,7 +1091,6 @@ async function loadAdminStatistics() {
   }
 }
 $('stats-refresh')?.addEventListener('click', loadAdminStatistics);
-
 window.openAdminModal = async (action) => {
   if (!state.isAdmin) return;
   state.adminAction = action;
@@ -1210,8 +1127,6 @@ window.executeAdminAction = async () => {
   } catch(error) { alertUser(apiError(error)); }
   finally {btn.disabled=false;btn.textContent=old;}
 };
-
-// CONNECTION GUIDE IMAGE MANAGEMENT ---------------------------------------
 async function loadConnectionGuide() {
   if (!state.isAdmin) return;
   const image = $('connection-guide-preview');
@@ -1235,7 +1150,6 @@ async function loadConnectionGuide() {
     if (empty) { empty.style.display = 'block'; empty.textContent = 'Не удалось загрузить изображение'; }
   }
 }
-
 window.uploadConnectionGuide = async () => {
   if (!state.isAdmin) return;
   const input = $('connection-guide-file');
@@ -1256,12 +1170,9 @@ window.uploadConnectionGuide = async () => {
   } catch (error) {
     alertUser(apiError(error));
   } finally {
-    if (button) { button.disabled = false; button.textContent = old || 'Загрузить / заменить фото'; }
+    if (button) { button.disabled = false; button.textContent = old || 'Загрузить'; }
   }
 };
-
-
-// PROFILE PREFIX MANAGEMENT ------------------------------------------------
 async function loadPrefixes() {
   if (!state.isAdmin) return;
   try {
@@ -1308,7 +1219,7 @@ window.savePrefix = async () => {
   try {
     const {data} = await miniAppClient.post('/api/miniapp/admin/prefixes',{action:'save',id:state.editingPrefixId||0,name,color});
     alertUser(data.message || 'Префикс сохранён.');
-    state.editingPrefixId = 0; $('prefix-name').value=''; $('prefix-save-btn').textContent='Создать префикс'; updatePrefixPreview(); await loadPrefixes();
+    state.editingPrefixId = 0; $('prefix-name').value=''; $('prefix-save-btn').textContent='Создать'; updatePrefixPreview(); await loadPrefixes();
   } catch(error) { alertUser(apiError(error)); }
 };
 window.deletePrefix = async () => {
@@ -1319,7 +1230,7 @@ window.deletePrefix = async () => {
   if (!yes) return;
   try {
     const {data} = await miniAppClient.post('/api/miniapp/admin/prefixes',{action:'delete',id});
-    alertUser(data.message || 'Префикс удалён.'); state.editingPrefixId=0; $('prefix-name').value=''; $('prefix-save-btn').textContent='Создать префикс'; await loadPrefixes();
+    alertUser(data.message || 'Префикс удалён.'); state.editingPrefixId=0; $('prefix-name').value=''; $('prefix-save-btn').textContent='Создать'; await loadPrefixes();
   } catch(error) { alertUser(apiError(error)); }
 };
 window.assignPrefix = async () => {
@@ -1342,8 +1253,6 @@ window.removeUserPrefix = async () => {
     alertUser(data.message || 'Префикс снят.'); await loadPrefixes();
   } catch(error) { alertUser(apiError(error)); }
 };
-
-// Global browser Back button in Telegram
 try { tg?.BackButton?.onClick(() => { if ($('history-modal').classList.contains('active')) closeHistory(); else if ($('media-lightbox').classList.contains('active')) closeLightbox(); else if ($('view-messages')?.classList.contains('active')) setPage('chats'); else if ($('view-chats')?.classList.contains('active')) setPage('home'); else if ($('view-statistics')?.classList.contains('active')) setPage('admin'); else if ($('view-admin')?.classList.contains('active')) setPage('profile'); else setPage('home'); }); } catch (_) {}
 updatePrefixPreview();
 initApp();

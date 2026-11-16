@@ -25,6 +25,7 @@ async function request(method, path, options = {}) {
   if (telegramInitData) headers.set('X-Telegram-Init-Data', telegramInitData);
   let body;
   if (options.formData !== undefined) {
+    // Let fetch set the multipart boundary automatically.
     body = options.formData;
   } else if (options.data !== undefined) {
     headers.set('Content-Type', 'application/json');

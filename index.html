@@ -1,301 +1,568 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>HadesSave</title>
-    <link rel="stylesheet" href="mini-app.css">
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#070a12">
+<title>HadesSave — архив переписок</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="mini-app.css">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
-<body class="mini-app-body">
+<body class="mini-app-body" data-accent="sapphire" data-density="cozy">
 
-<svg class="svg-defs" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-        <symbol id="icon-home" viewBox="0 0 24 24"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 001 1h3v-6h6v6h3a1 1 0 001-1V10"/></symbol>
-        <symbol id="icon-chat" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></symbol>
-        <symbol id="icon-premium" viewBox="0 0 24 24"><path d="M6 3h12l4 6-10 13L2 9z"/><path d="M2 9h20M12 22L6 9l6-6 6 6"/></symbol>
-        <symbol id="icon-profile" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/></symbol>
-        <symbol id="icon-crown" viewBox="0 0 24 24"><path d="M2 20h20M4 17l2-11 4 4 2-6 2 6 4-4 2 11"/></symbol>
-        <symbol id="icon-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></symbol>
-        <symbol id="icon-back" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></symbol>
-        <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></symbol>
-        <symbol id="icon-trash" viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></symbol>
-        <symbol id="icon-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></symbol>
-        <symbol id="icon-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></symbol>
-        <symbol id="icon-users" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></symbol>
-        <symbol id="icon-gift" viewBox="0 0 24 24"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></symbol>
-        <symbol id="icon-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol>
-        <symbol id="icon-check-circle" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></symbol>
-        <symbol id="icon-arrow-right" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></symbol>
-        <symbol id="icon-arrow-up-right" viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></symbol>
-        <symbol id="icon-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></symbol>
-        <symbol id="icon-edit" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></symbol>
-        <symbol id="icon-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></symbol>
-        <symbol id="icon-zap" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></symbol>
-        <symbol id="icon-database" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></symbol>
-        <symbol id="icon-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></symbol>
-        <symbol id="icon-search-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><circle cx="11" cy="15" r="3"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol>
-        <symbol id="icon-list" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></symbol>
-        <symbol id="icon-ban" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></symbol>
-        <symbol id="icon-send" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></symbol>
-        <symbol id="icon-tag" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></symbol>
-    </defs>
-</svg>
+<svg class="svg-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><defs>
+<symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11.4 12 4l9 7.4"/><path d="M5.6 10.4V20h4.6v-5.4h3.6V20h4.6v-9.6"/></symbol>
+<symbol id="i-chat" viewBox="0 0 24 24"><path d="M20.5 14.2a2.6 2.6 0 0 1-2.6 2.6H8.4L4 20.6V6.4a2.6 2.6 0 0 1 2.6-2.6h11.3a2.6 2.6 0 0 1 2.6 2.6z"/><path d="M8.4 8.6h7.6M8.4 12h5"/></symbol>
+<symbol id="i-gem" viewBox="0 0 24 24"><path d="M7.2 3.6h9.6l3.9 5.3-8.7 11.5L3.3 8.9z"/><path d="M3.3 8.9h17.4M12 20.4 8.6 8.9l2.1-5.3M12 20.4l3.4-11.5-2.1-5.3"/></symbol>
+<symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8.2" r="3.7"/><path d="M4.8 20.2c.9-3.6 3.8-5.4 7.2-5.4s6.3 1.8 7.2 5.4"/></symbol>
+<symbol id="i-crown" viewBox="0 0 24 24"><path d="M3.4 18.6h17.2M4.4 16.2 6 6.9l4.3 3.9L12 4.6l1.7 6.2L18 6.9l1.6 9.3z"/></symbol>
+<symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.1"/><path d="m12 2.9 1.3 2.5 2.8-.5.9 2.7 2.7.9-.5 2.8 2.5 1.3-2.5 1.3.5 2.8-2.7.9-.9 2.7-2.8-.5L12 21.1l-1.3-2.5-2.8.5-.9-2.7-2.7-.9.5-2.8L2.3 12l2.5-1.3-.5-2.8 2.7-.9.9-2.7 2.8.5z"/></symbol>
+<symbol id="i-back" viewBox="0 0 24 24"><path d="M19.5 12H4.8M11.4 18.6 4.8 12l6.6-6.6"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.9"/><path d="m20.4 20.4-4.7-4.7"/></symbol>
+<symbol id="i-bell" viewBox="0 0 24 24"><path d="M18.2 9.2a6.2 6.2 0 1 0-12.4 0c0 6.2-2.6 7.7-2.6 7.7h17.6s-2.6-1.5-2.6-7.7"/><path d="M10 20.2a2.3 2.3 0 0 0 4 0"/></symbol>
+<symbol id="i-trash" viewBox="0 0 24 24"><path d="M3.8 6.8h16.4M9.4 6.8V4.3h5.2v2.5M6.3 6.8l1 13.4h9.4l1-13.4M10.2 10.8v5.8M13.8 10.8v5.8"/></symbol>
+<symbol id="i-image" viewBox="0 0 24 24"><rect x="3.4" y="3.4" width="17.2" height="17.2" rx="3.2"/><circle cx="8.9" cy="8.9" r="1.7"/><path d="m20.6 15.2-4.8-4.6L5.6 20.6"/></symbol>
+<symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3.4v11.4M7.4 10.4 12 15l4.6-4.6M4.4 17v2.6a1 1 0 0 0 1 1h13.2a1 1 0 0 0 1-1V17"/></symbol>
+<symbol id="i-users" viewBox="0 0 24 24"><circle cx="9.2" cy="8.2" r="3.5"/><path d="M3 19.6c.8-3.1 3.1-4.8 6.2-4.8s5.4 1.7 6.2 4.8M15.6 5a3.5 3.5 0 0 1 0 6.4M17.7 15.2c2 .7 3.2 2.1 3.7 4.4"/></symbol>
+<symbol id="i-gift" viewBox="0 0 24 24"><rect x="3.4" y="7.9" width="17.2" height="4.2" rx="1"/><path d="M5.2 12.1v8.1h13.6v-8.1M12 7.9v12.3M12 7.9S7.4 8.1 6.4 6.4C5.5 4.9 6.9 3.2 8.5 3.8c2 .7 3.5 4.1 3.5 4.1zM12 7.9s4.6.2 5.6-1.5c.9-1.5-.5-3.2-2.1-2.6-2 .7-3.5 4.1-3.5 4.1z"/></symbol>
+<symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3.2 5.2 5.9v5.4c0 4.6 2.9 7.7 6.8 9.5 3.9-1.8 6.8-4.9 6.8-9.5V5.9z"/><path d="m9.2 11.9 2.2 2.2 3.9-4.3"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.6 4.6 4.6L19 7.4"/></symbol>
+<symbol id="i-check-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="m8.4 12.3 2.4 2.4 4.8-5.1"/></symbol>
+<symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M4.6 12h14.8M13.4 6l6 6-6 6"/></symbol>
+<symbol id="i-arrow-up-right" viewBox="0 0 24 24"><path d="M7 17 17 7M9.2 7H17v7.8"/></symbol>
+<symbol id="i-arrow-down" viewBox="0 0 24 24"><path d="M12 4.6v14.8M6 13.4l6 6 6-6"/></symbol>
+<symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11.4" height="11.4" rx="2.6"/><path d="M5.6 15H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v.6"/></symbol>
+<symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4.4L20 8.4a2.1 2.1 0 0 0-3-3L5.6 17z"/><path d="m14.6 6.9 3 3"/></symbol>
+<symbol id="i-lock" viewBox="0 0 24 24"><rect x="4.8" y="10.4" width="14.4" height="9.8" rx="2.6"/><path d="M8 10.4V7.9a4 4 0 0 1 8 0v2.5"/><circle cx="12" cy="15.2" r="1.3"/></symbol>
+<symbol id="i-zap" viewBox="0 0 24 24"><path d="M13.2 2.6 4.6 13.6h6.3l-1 7.8 8.5-11h-6.2z"/></symbol>
+<symbol id="i-archive" viewBox="0 0 24 24"><rect x="3.4" y="4" width="17.2" height="4.4" rx="1.2"/><path d="M5.2 8.4v10.4a1.2 1.2 0 0 0 1.2 1.2h11.2a1.2 1.2 0 0 0 1.2-1.2V8.4M9.8 12.4h4.4"/></symbol>
+<symbol id="i-file" viewBox="0 0 24 24"><path d="M13.4 3.2H7a1.6 1.6 0 0 0-1.6 1.6v14.4A1.6 1.6 0 0 0 7 20.8h10a1.6 1.6 0 0 0 1.6-1.6V8.2z"/><path d="M13.4 3.2v5h5.2"/></symbol>
+<symbol id="i-file-search" viewBox="0 0 24 24"><path d="M13.4 3.2H7a1.6 1.6 0 0 0-1.6 1.6v14.4A1.6 1.6 0 0 0 7 20.8h10a1.6 1.6 0 0 0 1.6-1.6V8.2z"/><path d="M13.4 3.2v5h5.2"/><circle cx="10.9" cy="14.1" r="2.4"/><path d="m14.5 17.7 1.9 1.9"/></symbol>
+<symbol id="i-list" viewBox="0 0 24 24"><path d="M8.6 6.2h11.8M8.6 12h11.8M8.6 17.8h11.8"/><circle cx="4.2" cy="6.2" r="1.1"/><circle cx="4.2" cy="12" r="1.1"/><circle cx="4.2" cy="17.8" r="1.1"/></symbol>
+<symbol id="i-ban" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="m6 6 12 12"/></symbol>
+<symbol id="i-send" viewBox="0 0 24 24"><path d="M21 3.4 3.4 10.7l6.7 2.6 2.6 6.7z"/><path d="M21 3.4 10.1 13.3"/></symbol>
+<symbol id="i-tag" viewBox="0 0 24 24"><path d="M3.6 11.2V4.8a1.2 1.2 0 0 1 1.2-1.2h6.4l9.2 9.2a1.5 1.5 0 0 1 0 2.1l-5.5 5.5a1.5 1.5 0 0 1-2.1 0z"/><circle cx="8" cy="8" r="1.4"/></symbol>
+<symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20.2 12a8.2 8.2 0 1 1-2.4-5.8M20.2 3.6v4.6h-4.6"/></symbol>
+<symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20.2V3.8M4 20.2h16.2"/><path d="M8.4 16.4v-4.8M12.6 16.4V7.6M16.8 16.4v-3.2"/></symbol>
+<symbol id="i-pin" viewBox="0 0 24 24"><path d="M9.4 3.6h5.2l-.7 5.2 3.1 3.1H7l3.1-3.1z"/><path d="M12 11.9v8.5"/></symbol>
+<symbol id="i-eye-off" viewBox="0 0 24 24"><path d="M3.2 3.2 20.8 20.8"/><path d="M10.2 5.4A9.6 9.6 0 0 1 12 5.2c5 0 8.6 4 9.6 6.8-.4 1.1-1.2 2.4-2.4 3.6M6.5 7.1C4.6 8.4 3.2 10.3 2.4 12c1 2.8 4.6 6.8 9.6 6.8 1.4 0 2.6-.3 3.7-.8"/><path d="M9.6 9.8a3.3 3.3 0 0 0 4.6 4.6"/></symbol>
+<symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.4 12C3.4 9.2 7 5.2 12 5.2s8.6 4 9.6 6.8c-1 2.8-4.6 6.8-9.6 6.8S3.4 14.8 2.4 12"/><circle cx="12" cy="12" r="3.2"/></symbol>
+<symbol id="i-sort" viewBox="0 0 24 24"><path d="M6.4 4.6v14.8M3 16l3.4 3.4L9.8 16M17.6 19.4V4.6M14.2 8l3.4-3.4L21 8"/></symbol>
+<symbol id="i-filter" viewBox="0 0 24 24"><path d="M3.6 5.2h16.8l-6.6 7.6v6.2l-3.6 1.8v-8z"/></symbol>
+<symbol id="i-bookmark" viewBox="0 0 24 24"><path d="M6.4 3.8h11.2v16.4L12 16.2l-5.6 4z"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 4.8v14.4M4.8 12h14.4"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M5.6 5.6 18.4 18.4M18.4 5.6 5.6 18.4"/></symbol>
+<symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="M12 11v5.4"/><circle cx="12" cy="7.9" r=".9" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="M12 7.2V12l3.2 2"/></symbol>
+<symbol id="i-mic" viewBox="0 0 24 24"><rect x="9.2" y="3.2" width="5.6" height="10.4" rx="2.8"/><path d="M5.6 11.4a6.4 6.4 0 0 0 12.8 0M12 17.8v3"/></symbol>
+<symbol id="i-video" viewBox="0 0 24 24"><rect x="3" y="6.2" width="12.6" height="11.6" rx="2.4"/><path d="m15.6 11 5.4-3.2v8.4L15.6 13z"/></symbol>
+<symbol id="i-sticker" viewBox="0 0 24 24"><path d="M20.4 12a8.4 8.4 0 1 0-8.4 8.4c1.2 0 8.4-7.2 8.4-8.4"/><path d="M12 20.4c0-4.6 3.8-8.4 8.4-8.4"/><circle cx="9.2" cy="10" r=".9" fill="currentColor" stroke="none"/><circle cx="14" cy="9.4" r=".9" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-sparkles" viewBox="0 0 24 24"><path d="m12 3.4 1.7 4.3 4.3 1.7-4.3 1.7L12 15.4l-1.7-4.3L6 9.4l4.3-1.7z"/><path d="m18.4 15.2.9 2.2 2.2.9-2.2.9-.9 2.2-.9-2.2-2.2-.9 2.2-.9z"/></symbol>
+<symbol id="i-grid" viewBox="0 0 24 24"><rect x="3.6" y="3.6" width="7" height="7" rx="1.6"/><rect x="13.4" y="3.6" width="7" height="7" rx="1.6"/><rect x="3.6" y="13.4" width="7" height="7" rx="1.6"/><rect x="13.4" y="13.4" width="7" height="7" rx="1.6"/></symbol>
+<symbol id="i-undo" viewBox="0 0 24 24"><path d="M4.2 9.4h9.6a5.6 5.6 0 0 1 0 11.2H8.4"/><path d="M7.6 5.4 3.6 9.4l4 4"/></symbol>
+</defs></svg>
 
 <div id="preloader" class="preloader">
-    <div class="spinner"></div>
-    <div>Загружаем HadesSave…</div>
+  <div class="preloader-mark"><svg class="icon"><use href="#i-archive"></use></svg></div>
+  <div class="spinner"></div>
+  <div class="preloader-text">Открываем архив…</div>
 </div>
 
 <div id="subscription-gate" class="subscription-gate hidden">
-    <div class="subscription-gate-card">
-        <div class="subscription-gate-mark">🔒</div>
-        <h1 id="subscription-gate-title">Подписка для доступа</h1>
-        <p id="subscription-gate-lead" class="subscription-gate-lead">Подпишитесь на обязательные каналы, чтобы открыть доступ к HadesSave.</p>
-        <div id="subscription-gate-list" class="subscription-gate-list"></div>
-        <div id="subscription-gate-status" class="subscription-gate-status">Проверяем подписки…</div>
-        <button id="subscription-gate-refresh" class="subscription-gate-button">Я подписался · Проверить</button>
-        <small>Если проверка не проходит, напиши в поддержку HadesSave.</small>
-    </div>
+  <div class="subscription-gate-card">
+    <div class="subscription-gate-mark"><svg class="icon"><use href="#i-lock"></use></svg></div>
+    <h1 id="subscription-gate-title">Подписка для доступа</h1>
+    <p id="subscription-gate-lead" class="subscription-gate-lead">Подпишись на каналы ниже, чтобы открыть HadesSave.</p>
+    <div id="subscription-gate-list" class="subscription-gate-list"></div>
+    <div id="subscription-gate-status" class="subscription-gate-status">Проверяем подписки…</div>
+    <button id="subscription-gate-refresh" class="subscription-gate-button">Я подписался — проверить</button>
+    <small>Не проходит проверка? Напиши в поддержку HadesSave.</small>
+  </div>
 </div>
 
 <div class="hs-app">
-    <div id="view-home" class="page">
-        <div class="home-brandbar">
-            <div class="home-brand-mark"><svg class="icon"><use href="#icon-database"></use></svg></div>
-            <div class="home-brand-copy"><b>HadesSave</b><small>Твои переписки. В одном месте.</small></div>
-            <div class="home-brand-status"><i></i>АРХИВ</div>
+
+  <!-- ══════════ ГЛАВНАЯ ══════════ -->
+  <section id="view-home" class="page">
+    <header class="home-brandbar">
+      <div class="home-brand-mark"><svg class="icon"><use href="#i-archive"></use></svg></div>
+      <div class="home-brand-copy"><b>HadesSave</b><small>Архив твоих переписок</small></div>
+      <div class="home-brand-status"><i></i><span id="brand-status-text">ONLINE</span></div>
+    </header>
+
+    <div class="home-hero" data-reveal>
+      <div class="hero-mesh"></div>
+      <div class="hero-grain"></div>
+      <div class="home-hero-copy">
+        <span class="home-hero-kicker">ЛИЧНЫЙ АРХИВ</span>
+        <h1>Твоя история<br><em>сохранена.</em></h1>
+        <p>Сообщения, фото и удалённые сообщения из подключённых чатов — в одном месте.</p>
+        <div class="hero-actions">
+          <button class="home-hero-button" onclick="switchTab('chats')">Открыть архив<svg class="icon"><use href="#i-arrow-right"></use></svg></button>
+          <button class="hero-ghost-button" onclick="focusArchiveSearch()" aria-label="Поиск по архиву"><svg class="icon"><use href="#i-search"></use></svg></button>
         </div>
-        <div class="home-hero">
-            <div class="home-hero-copy">
-                <span class="home-hero-kicker">ЛИЧНЫЙ АРХИВ</span>
-                <h1>Твоя история<br><em>сохранена.</em></h1>
-                <p>Сообщения, фото и видео из подключённых чатов собраны в твоём архиве.</p>
-                <button class="home-hero-button" onclick="switchTab('chats')">Открыть архив<span>›</span></button>
-            </div>
-            <div class="home-hero-art">
-                <div class="hero-orbit hero-orbit-one"></div>
-                <div class="hero-orbit hero-orbit-two"></div>
-                <div class="hero-crown"><svg class="icon"><use href="#icon-crown"></use></svg></div>
-                <div class="hero-art-glow"></div>
-            </div>
-        </div>
-        <div class="user-header">
-            <div class="avatar"><span id="user-avatar-text">H</span><img id="user-avatar-img" class="avatar-img" alt="" style="display:none"></div>
-            <div class="user-info">
-                <div class="name-row"><h2 id="user-name">Загрузка…</h2><span id="premium-badge" class="premium-badge hidden">PREMIUM</span></div>
-                <div id="user-id" class="user-id">ID: …</div>
-                <div id="premium-timer" class="premium-timer hidden"><span id="premium-timer-text">0д 0ч 0м 0с</span></div>
-            </div>
-        </div>
-        <div class="stats-grid">
-            <div class="stat-card"><strong id="stat-total">0</strong><span>Сообщений</span></div>
-            <div class="stat-card"><strong id="stat-deleted">0</strong><span>Удалено</span></div>
-            <div class="stat-card"><strong id="stat-chats">0</strong><span>Чатов</span></div>
-            <div class="stat-card"><strong id="stat-media">0</strong><span>Медиа</span></div>
-        </div>
-        <div class="home-section-heading">
-            <span class="section-label">ВОЗМОЖНОСТИ</span>
-            <button id="home-prefix-pencil" class="home-prefix-pencil hidden"><svg class="icon"><use href="#icon-edit"></use></svg></button>
-        </div>
-        <div class="menu-group">
-            <button class="menu-item" onclick="switchTab('premium')">
-                <div class="menu-icon red"><svg class="icon"><use href="#icon-premium"></use></svg></div>
-                <div class="menu-text"><b>Что даёт Premium</b><small>Больше функций для твоего архива</small></div>
-                <svg class="icon chevron"><use href="#icon-arrow-right"></use></svg>
-            </button>
-            <button class="menu-item" onclick="switchTab('referrals')">
-                <div class="menu-icon green"><svg class="icon"><use href="#icon-gift"></use></svg></div>
-                <div class="menu-text"><b>Пригласить друзей</b><small>+1 день Premium за каждого</small></div>
-                <svg class="icon chevron"><use href="#icon-arrow-right"></use></svg>
-            </button>
-        </div>
+      </div>
+      <div class="home-hero-art" aria-hidden="true">
+        <div class="hero-orbit hero-orbit-one"></div>
+        <div class="hero-orbit hero-orbit-two"></div>
+        <div class="hero-orbit hero-orbit-three"></div>
+        <div class="hero-crown"><svg class="icon"><use href="#i-crown"></use></svg></div>
+        <div class="hero-art-glow"></div>
+        <span class="hero-spark s1"></span><span class="hero-spark s2"></span><span class="hero-spark s3"></span>
+      </div>
     </div>
 
-    <div id="view-chats" class="page">
-        <div class="chats-titlebar"><div><h2>Твой архив</h2><small>Все твои переписки</small></div><div class="chats-title-icon"><svg class="icon"><use href="#icon-chat"></use></svg></div></div>
-        <div class="search-bar chats-search"><svg class="icon"><use href="#icon-search"></use></svg><input id="chat-search" type="text" placeholder="Поиск по перепискам…"></div>
-        <div id="chats-list" class="chats-list"><div class="empty-state">Загружаем…</div></div>
+    <div class="user-header" data-reveal>
+      <div class="avatar"><span id="user-avatar-text">H</span><img id="user-avatar-img" class="avatar-img" alt="" style="display:none"></div>
+      <div class="user-info">
+        <div class="name-row"><h2 id="user-name">Загрузка…</h2><span id="premium-badge" class="premium-badge hidden">PREMIUM</span></div>
+        <div id="user-id" class="user-id">ID: …</div>
+        <div id="premium-timer" class="premium-timer hidden"><svg class="icon"><use href="#i-crown"></use></svg><span id="premium-timer-text">0д 0ч 0м 0с</span></div>
+      </div>
+      <button class="user-header-go" onclick="switchTab('profile')" aria-label="Профиль"><svg class="icon"><use href="#i-arrow-right"></use></svg></button>
     </div>
 
-    <div id="view-messages" class="page messages-page">
-        <div class="telegram-chat-header">
-            <button class="telegram-back" onclick="switchTab('chats')"><svg class="icon"><use href="#icon-back"></use></svg></button>
-            <div class="telegram-peer">
-                <div id="chat-header-avatar" class="telegram-avatar"><span id="chat-header-initial">?</span><img id="chat-header-avatar-image" alt="" style="display:none"></div>
-                <div class="telegram-peer-copy"><strong id="chat-title">Чат</strong><small id="chat-subtitle">Сохранённая переписка</small></div>
-            </div>
-            <div class="telegram-header-actions"><button id="toggle-message-search" class="telegram-icon-button"><svg class="icon"><use href="#icon-search"></use></svg></button></div>
-        </div>
-        <div class="telegram-search-wrap hidden" id="message-search-wrap">
-            <svg class="icon"><use href="#icon-search"></use></svg>
-            <input id="message-search" type="text" placeholder="Поиск по сообщениям…">
-            <button id="close-message-search">×</button>
-        </div>
-        <div id="messages-list" class="messages-list"><div class="empty-state">Выбери переписку</div></div>
+    <div class="stats-grid" data-reveal>
+      <button class="stat-card tone-sapphire" onclick="openArchivePreset('all')"><strong id="stat-total">0</strong><span>Сообщений</span><svg class="icon stat-glyph"><use href="#i-chat"></use></svg></button>
+      <button class="stat-card tone-rose" onclick="openArchivePreset('deleted')"><strong id="stat-deleted">0</strong><span>Удалено</span><svg class="icon stat-glyph"><use href="#i-trash"></use></svg></button>
+      <button class="stat-card tone-cyan" onclick="openArchivePreset('groups')"><strong id="stat-chats">0</strong><span>Чатов</span><svg class="icon stat-glyph"><use href="#i-users"></use></svg></button>
+      <button class="stat-card tone-gold" onclick="openArchivePreset('media')"><strong id="stat-media">0</strong><span>Медиа</span><svg class="icon stat-glyph"><use href="#i-image"></use></svg></button>
     </div>
 
-    <div id="view-settings" class="page">
-        <div class="page-header"><button class="back-btn" onclick="switchTab('profile')"><svg class="icon"><use href="#icon-back"></use></svg></button><div><h2>Настройки</h2><small>Настрой под себя</small></div></div>
-        <div class="section-label">УВЕДОМЛЕНИЯ</div>
-        <div class="menu-group settings-group">
-            <div class="setting-row"><span><b>Редактирования</b><small>Показывать когда сообщение изменено</small></span><input type="checkbox" id="toggle-edits" onchange="updateSetting('edits', this.checked)"></div>
-            <div class="setting-row"><span><b>Удаления</b><small>Показывать когда сообщение удалено</small></span><input type="checkbox" id="toggle-deletions" onchange="updateSetting('deletions', this.checked)"></div>
-        </div>
-        <div class="section-label">МЕДИАФАЙЛЫ</div>
-        <div class="menu-group settings-group">
-            <div class="setting-row"><span><b>Автосохранение</b><small>Сохранять фото, видео и аудио</small></span><input type="checkbox" id="toggle-media" onchange="updateSetting('deleted_media', this.checked)"></div>
-        </div>
-        <div class="section-label">ДАННЫЕ</div>
-        <div class="menu-group settings-group">
-            <button class="menu-item danger-action" onclick="clearArchive()"><div class="menu-icon red"><svg class="icon"><use href="#icon-trash"></use></svg></div><div class="menu-text"><b>Удалить архив</b><small>Всё удалится без возможности восстановления</small></div></button>
-        </div>
+    <div class="home-section-heading">
+      <span class="section-label">БЫСТРЫЙ ДОСТУП</span>
+      <button id="home-prefix-pencil" class="home-prefix-pencil hidden" onclick="switchTab('admin')" aria-label="Бейджи"><svg class="icon"><use href="#i-edit"></use></svg></button>
     </div>
 
-    <div id="view-premium" class="page">
-        <div class="page-header"><button class="back-btn" onclick="switchTab('home')"><svg class="icon"><use href="#icon-back"></use></svg></button><div><h2>Premium</h2><small id="premium-status-text">Проверяем…</small></div></div>
-        <div class="premium-hero"><div class="premium-logo"><svg class="icon"><use href="#icon-premium"></use></svg></div><h2>ЧТО ДАЁТ PREMIUM</h2><p>Больше функций для твоего архива</p></div>
-        <div class="menu-group feature-list">
-            <button class="feature-row" onclick="openFeatureModal('archive')"><div class="menu-icon purple"><svg class="icon"><use href="#icon-database"></use></svg></div><span><b>Хранение 30 дней</b><small>вместо 3 дней</small></span></button>
-            <button class="feature-row" onclick="openFeatureModal('media')"><div class="menu-icon blue"><svg class="icon"><use href="#icon-image"></use></svg></div><span><b>Файлы до 50 МБ</b><small>вместо 20 МБ</small></span></button>
-            <button class="feature-row" onclick="openFeatureModal('priority')"><div class="menu-icon green"><svg class="icon"><use href="#icon-download"></use></svg></div><span><b>Экспорт в HTML и JSON</b><small>Скачай переписки</small></span></button>
-            <button class="feature-row" onclick="openFeatureModal('spam')"><div class="menu-icon cyan"><svg class="icon"><use href="#icon-search-file"></use></svg></div><span><b>Команда .spam до 50 сообщений</b><small>вместо 20</small></span></button>
-            <button class="feature-row" onclick="openFeatureModal('badge')"><div class="menu-icon yellow"><svg class="icon"><use href="#icon-tag"></use></svg></div><span><b>Отметка профиля</b><small>Цветной акцент рядом с именем</small></span></button>
-            <button class="feature-row" onclick="openFeatureModal('support')"><div class="menu-icon gray"><svg class="icon"><use href="#icon-list"></use></svg></div><span><b>Приоритетная поддержка</b><small>Быстрее получай помощь</small></span></button>
-        </div>
-        <button class="primary-button" onclick="switchTab('premium-buy')">Оформить<svg class="icon"><use href="#icon-arrow-right"></use></svg></button>
+    <div class="menu-group" data-reveal>
+      <button class="menu-item" onclick="switchTab('premium')">
+        <div class="menu-icon yellow"><svg class="icon"><use href="#i-gem"></use></svg></div>
+        <div class="menu-text"><b>Premium</b><small>Больше лимитов и инструментов</small></div>
+        <span class="menu-tag tone-gold">−60%</span>
+        <svg class="icon chevron"><use href="#i-arrow-right"></use></svg>
+      </button>
+      <button class="menu-item" onclick="switchTab('referrals')">
+        <div class="menu-icon green"><svg class="icon"><use href="#i-gift"></use></svg></div>
+        <div class="menu-text"><b>Пригласить друга</b><small>+1 день Premium за каждого</small></div>
+        <svg class="icon chevron"><use href="#i-arrow-right"></use></svg>
+      </button>
+      <button class="menu-item" onclick="openArchivePreset('unread')">
+        <div class="menu-icon violet"><svg class="icon"><use href="#i-bell"></use></svg></div>
+        <div class="menu-text"><b>Непрочитанное</b><small>Чаты, где есть новые сообщения</small></div>
+        <span class="menu-tag tone-violet" id="home-unread-tag">0</span>
+        <svg class="icon chevron"><use href="#i-arrow-right"></use></svg>
+      </button>
     </div>
 
-    <div id="view-premium-buy" class="page">
-        <div class="page-header"><button class="back-btn" onclick="switchTab('premium')"><svg class="icon"><use href="#icon-back"></use></svg></button><div><h2>Тарифы</h2><small>Выбери срок</small></div></div>
-        <div class="premium-sale-banner"><div class="premium-sale-spark">⚡</div><span><b>СКИДКИ</b><small>Оплата на следующем шаге</small></span></div>
-        <div class="premium-plans">
-            <button class="premium-plan" data-days="7" onclick="selectPremiumPlan(7)"><span class="premium-plan-days">7 дней</span><span class="premium-plan-price">45 ₽</span><span class="premium-plan-old">100 ₽</span><span class="premium-plan-discount">−55%</span></button>
-            <button class="premium-plan is-selected" data-days="14" onclick="selectPremiumPlan(14)"><span class="premium-plan-ribbon">ПОПУЛЯРНЫЙ</span><span class="premium-plan-days">14 дней</span><span class="premium-plan-price">69 ₽</span><span class="premium-plan-old">150 ₽</span><span class="premium-plan-discount">−54%</span></button>
-            <button class="premium-plan" data-days="30" onclick="selectPremiumPlan(30)"><span class="premium-plan-ribbon">ВЫГОДНО</span><span class="premium-plan-days">30 дней</span><span class="premium-plan-price">120 ₽</span><span class="premium-plan-old">300 ₽</span><span class="premium-plan-discount">−60%</span></button>
-        </div>
-        <small style="color:var(--text-muted);font-size:11px;display:block;text-align:center;margin-top:14px">Без автопродления</small>
+    <div class="home-premium-preview" data-reveal>
+      <div class="home-premium-preview-head">
+        <div class="home-premium-gem"><svg class="icon"><use href="#i-gem"></use></svg></div>
+        <div><b>Что даёт Premium</b><small>Коротко о главном</small></div>
+        <button class="home-premium-more" onclick="switchTab('premium')" aria-label="Подробнее"><svg class="icon"><use href="#i-arrow-right"></use></svg></button>
+      </div>
+      <div class="home-premium-preview-grid">
+        <div class="home-premium-preview-item"><svg class="icon"><use href="#i-archive"></use></svg>Архив 30 дней</div>
+        <div class="home-premium-preview-item"><svg class="icon"><use href="#i-image"></use></svg>Файлы до 50 МБ</div>
+        <div class="home-premium-preview-item"><svg class="icon"><use href="#i-download"></use></svg>Экспорт HTML / JSON</div>
+        <div class="home-premium-preview-item"><svg class="icon"><use href="#i-zap"></use></svg>.spam до 50</div>
+      </div>
+      <button class="home-premium-details" onclick="switchTab('premium')">Все функции<svg class="icon"><use href="#i-arrow-right"></use></svg></button>
     </div>
 
-    <div id="view-premium-payment" class="page premium-payment-page">
-        <div class="page-header"><button class="back-btn" onclick="switchTab('premium-buy')"><svg class="icon"><use href="#icon-back"></use></svg></button><div><h2>Оплата</h2><small id="premium-checkout-status">Разовый платёж</small></div></div>
-        <div class="premium-payment-hero"><span class="premium-eyebrow">ОПЛАТА</span><h2>Почти готово</h2><p>Укажи email для чека</p></div>
-        <div class="premium-selected-order">
-            <div class="premium-selected-order-top"><span>ТАРИФ</span><b id="premium-payment-days">14 дней</b></div>
-            <div class="premium-selected-order-price"><span id="premium-payment-old">150 ₽</span><strong id="premium-payment-price">69 ₽</strong></div>
-            <div id="premium-payment-saving" class="premium-selected-order-saving">Экономия 81 ₽</div>
-            <div class="premium-selected-order-note">Разовый платёж</div>
-        </div>
-        <div class="premium-payment-box">
-            <label class="premium-email-label">Email для чека</label>
-            <input type="email" id="premium-email" class="premium-email-input" placeholder="your@email.com">
-            <label class="premium-email-label" style="margin-top:16px">Способ оплаты</label>
-            <div class="premium-payment-method-wrap">
-                <svg class="icon"><use href="#icon-shield"></use></svg>
-                <select id="premium-payment-method" class="admin-input"><option value="2">СБП</option><option value="13" disabled>Крипто (скоро)</option></select>
-                <svg class="icon"><use href="#icon-arrow-right"></use></svg>
-            </div>
-            <button id="premium-action-btn" class="primary-button premium-pay-button" onclick="startPremiumPayment()">Оплатить 69 ₽<svg class="icon"><use href="#icon-arrow-up-right"></use></svg></button>
-            <div class="premium-payment-secure-note"><svg class="icon"><use href="#icon-lock"></use></svg><span>Оплата через Platega</span></div>
-        </div>
+    <div class="home-section-heading"><span class="section-label">ПОСЛЕДНИЕ СОБЫТИЯ</span></div>
+    <div class="activity-feed" id="home-activity" data-reveal></div>
+  </section>
+
+  <!-- ══════════ ЧАТЫ ══════════ -->
+  <section id="view-chats" class="page">
+    <div class="chats-titlebar">
+      <div>
+        <span class="home-hero-kicker">ТВОЙ АРХИВ</span>
+        <h2>Чаты</h2>
+        <small id="chats-counter">Все подключённые переписки</small>
+      </div>
+      <div class="chats-title-actions">
+        <button class="chats-title-icon" id="bulk-toggle" onclick="toggleBulkMode()" aria-label="Выбрать несколько"><svg class="icon"><use href="#i-grid"></use></svg></button>
+        <button class="chats-title-icon" onclick="reloadChats()" aria-label="Обновить"><svg class="icon"><use href="#i-refresh"></use></svg></button>
+      </div>
     </div>
 
-    <div id="view-referrals" class="page">
-        <div class="page-header"><button class="back-btn" onclick="switchTab('home')"><svg class="icon"><use href="#icon-back"></use></svg></button><div><h2>Друзья</h2><small>Приглашай и получай бонусы</small></div></div>
-        <div class="referral-card">
-            <svg class="icon"><use href="#icon-gift"></use></svg>
-            <h2>+1 день Premium</h2>
-            <p>Пригласи друга — получи день Premium</p>
-            <div class="referral-count"><strong id="ref-count">0</strong><small>друзей</small></div>
-            <button class="primary-button" onclick="copyRefLink()">Скопировать<svg class="icon"><use href="#icon-copy"></use></svg></button>
-            <small style="color:var(--text-muted);font-size:11px;display:block;text-align:center;margin-top:12px">Бонус начисляется автоматически</small>
-        </div>
+    <div class="search-bar chats-search">
+      <svg class="icon"><use href="#i-search"></use></svg>
+      <input id="chat-search" type="search" placeholder="Поиск по чатам и сообщениям…" autocomplete="off">
+      <button class="search-clear hidden" id="chat-search-clear" onclick="clearChatSearch()" aria-label="Очистить"><svg class="icon"><use href="#i-x"></use></svg></button>
     </div>
 
-    <div id="view-profile" class="page">
-        <div class="profile-header">
-            <div class="avatar"><span id="profile-avatar-text">H</span><img id="profile-avatar-img" class="avatar-img" alt="" style="display:none"></div>
-            <div class="user-info">
-                <div class="name-row"><h2 id="profile-name">Загрузка…</h2><span id="profile-premium-badge" class="premium-badge hidden">PREMIUM</span><span id="profile-prefix-badge" class="prefix-badge hidden"></span></div>
-                <div id="profile-id" class="user-id">ID: …</div>
-                <div id="profile-custom-status" class="profile-custom-status hidden"></div>
-            </div>
-            <button id="profile-admin-pencil" class="profile-admin-pencil hidden" onclick="switchTab('admin')"><svg class="icon"><use href="#icon-settings"></use></svg></button>
-        </div>
-        <div class="menu-group">
-            <button class="menu-item" onclick="switchTab('settings')"><div class="menu-icon gray"><svg class="icon"><use href="#icon-settings"></use></svg></div><div class="menu-text"><b>Настройки</b><small>Настрой под себя</small></div><svg class="icon chevron"><use href="#icon-arrow-right"></use></svg></button>
-            <a class="menu-item" href="https://t.me/Hades_save_men" target="_blank"><div class="menu-icon blue"><svg class="icon"><use href="#icon-chat"></use></svg></div><div class="menu-text"><b>Поддержка</b><small>Помощь</small></div><svg class="icon chevron"><use href="#icon-arrow-right"></use></svg></a>
-            <a class="menu-item" href="https://telegra.ph/Polzovatelskoe-soglashenie-HadesSave-11-14" target="_blank"><div class="menu-icon purple"><svg class="icon"><use href="#icon-file"></use></svg></div><div class="menu-text"><b>Соглашение</b><small>Условия</small></div><svg class="icon chevron"><use href="#icon-arrow-right"></use></svg></a>
-        </div>
-        <div id="admin-tab-btn" class="hidden">
-            <div class="section-label">ИНСТРУМЕНТЫ</div>
-            <div class="menu-group">
-                <button class="menu-item" onclick="switchTab('admin')"><div class="menu-icon red"><svg class="icon"><use href="#icon-settings"></use></svg></div><div class="menu-text"><b>Админка</b><small>Управление</small></div><svg class="icon chevron"><use href="#icon-arrow-right"></use></svg></button>
-                <button class="menu-item" onclick="switchTab('statistics')"><div class="menu-icon cyan"><svg class="icon"><use href="#icon-database"></use></svg></div><div class="menu-text"><b>Статистика</b><small>Вся статистика</small></div><svg class="icon chevron"><use href="#icon-arrow-right"></use></svg></button>
-            </div>
-        </div>
+    <div class="archive-toolbar">
+      <div class="archive-filter-tabs" id="archive-filters" role="tablist">
+        <button class="chat-tab active" data-filter="all" role="tab">Все</button>
+        <button class="chat-tab" data-filter="private" role="tab">Личные</button>
+        <button class="chat-tab" data-filter="groups" role="tab">Группы</button>
+        <button class="chat-tab" data-filter="unread" role="tab">Новые</button>
+        <button class="chat-tab" data-filter="media" role="tab">Медиа</button>
+        <button class="chat-tab" data-filter="deleted" role="tab">Удалённые</button>
+        <button class="chat-tab" data-filter="pinned" role="tab">Закреплённые</button>
+      </div>
+      <div class="archive-sort">
+        <svg class="icon"><use href="#i-sort"></use></svg>
+        <select id="chat-sort" aria-label="Сортировка">
+          <option value="recent">Сначала свежие</option>
+          <option value="volume">По объёму</option>
+          <option value="name">По названию</option>
+          <option value="unread">По непрочитанным</option>
+        </select>
+      </div>
     </div>
 
-    <div id="view-admin" class="page admin-page">
-        <div class="page-header"><button class="back-btn" onclick="switchTab('profile')"><svg class="icon"><use href="#icon-back"></use></svg></button><div><h2>Админка</h2><small>Управление</small></div></div>
-        <div class="section-label">СТАТИСТИКА</div>
-        <div class="stats-grid admin-stats"><div class="stat-card"><strong id="adm-stat-users">0</strong><span>Пользователи</span></div><div class="stat-card"><strong id="adm-stat-stars">0</strong><span>Звёзды</span></div><div class="stat-card"><strong id="adm-stat-prem">0</strong><span>Premium</span></div><div class="stat-card"><strong id="adm-stat-week">0</strong><span>За неделю</span></div></div>
-        <div class="section-label">ИНСТРУКЦИЯ</div>
-        <div class="prefix-admin-card connection-guide-admin-card">
-            <p class="prefix-admin-hint">Фото для экрана подключения</p>
-            <div class="connection-guide-preview-wrap"><img id="connection-guide-preview" hidden alt=""><div id="connection-guide-empty" class="empty-state">Загружаем…</div></div>
-            <input type="file" id="connection-guide-file" class="admin-input connection-guide-file" accept="image/png,image/jpeg">
-            <button class="primary-button" onclick="uploadConnectionGuide()" style="margin-top:12px">Загрузить</button>
-            <small id="connection-guide-status" class="connection-guide-status">Показывается при подключении</small>
-        </div>
-        <div class="section-label">ОТМЕТКИ</div>
-        <div class="prefix-admin-card">
-            <p class="prefix-admin-hint">Цветные отметки для пользователей</p>
-            <label class="admin-field-label">Название</label>
-            <input type="text" id="prefix-name" class="admin-input" placeholder="Например: VIP">
-            <div class="prefix-color-row"><label class="admin-field-label">Цвет</label><input type="color" id="prefix-color" value="#ff344f"><div id="prefix-preview" class="prefix-badge prefix-preview">ПРЕФИКС</div></div>
-            <button id="prefix-save-btn" class="primary-button" onclick="savePrefix()">Создать</button>
-            <div class="prefix-admin-divider"></div>
-            <label class="admin-field-label">Список</label>
-            <div id="prefix-list" class="prefix-list"><div class="empty-state">Загружаем…</div></div>
-            <div class="prefix-admin-divider"></div>
-            <label class="admin-field-label">ID пользователя</label>
-            <input type="number" id="prefix-target" class="admin-input" placeholder="123456789">
-            <select id="prefix-select" class="admin-input" style="margin-top:8px"><option value="">Выбери отметку</option></select>
-            <div class="prefix-action-row"><button class="primary-button" onclick="assignPrefix()">Назначить</button><button class="primary-button" onclick="removeUserPrefix()">Снять</button><button class="primary-button danger-outline" onclick="deletePrefix()">Удалить</button></div>
-        </div>
-        <div class="section-label">ДЕЙСТВИЯ</div>
-        <div class="menu-group admin-actions">
-            <button class="menu-item" onclick="openAdminModal('grant')"><div class="menu-icon purple"><svg class="icon"><use href="#icon-premium"></use></svg></div><div class="menu-text"><b>Выдать Premium</b><small>По ID</small></div></button>
-            <button class="menu-item" onclick="openAdminModal('ban')"><div class="menu-icon red"><svg class="icon"><use href="#icon-ban"></use></svg></div><div class="menu-text"><b>Заблокировать</b><small>Закрыть доступ</small></div></button>
-            <button class="menu-item" onclick="openAdminModal('role')"><div class="menu-icon blue"><svg class="icon"><use href="#icon-users"></use></svg></div><div class="menu-text"><b>Роли</b><small>Управляй правами</small></div></button>
-            <button class="menu-item" onclick="openAdminModal('broadcast')"><div class="menu-icon green"><svg class="icon"><use href="#icon-send"></use></svg></div><div class="menu-text"><b>Рассылка</b><small>Отправить всем</small></div></button>
-            <button class="menu-item" onclick="openAdminModal('bans')"><div class="menu-icon gray"><svg class="icon"><use href="#icon-list"></use></svg></div><div class="menu-text"><b>Блокировки</b><small>Список</small></div></button>
-        </div>
+    <div class="views-row" id="views-row">
+      <button class="view-chip view-chip-add" id="save-view-btn" onclick="openSaveViewModal()"><svg class="icon"><use href="#i-plus"></use></svg>Сохранить вид</button>
     </div>
 
-    <div id="view-statistics" class="page statistics-page">
-        <div class="page-header"><button class="back-btn" onclick="switchTab('admin')"><svg class="icon"><use href="#icon-back"></use></svg></button><div><h2>Статистика</h2><small>Сводка</small></div><button id="stats-refresh" class="icon-action"><svg class="icon"><use href="#icon-zap"></use></svg></button></div>
-        <div class="section-label">ПОКАЗАТЕЛИ</div>
-        <div class="stats-grid detailed-stats-grid"><div class="stat-card"><strong id="full-users">0</strong><span>Пользователи</span></div><div class="stat-card"><strong id="full-active-users">0</strong><span>Активные</span></div><div class="stat-card"><strong id="full-connections">0</strong><span>Всего подключений</span></div><div class="stat-card"><strong id="full-active-connections">0</strong><span>Активные сейчас</span></div><div class="stat-card"><strong id="full-messages">0</strong><span>Сообщения</span></div><div class="stat-card"><strong id="full-chats">0</strong><span>Чаты</span></div><div class="stat-card"><strong id="full-media">0</strong><span>Медиа</span></div><div class="stat-card"><strong id="full-deleted">0</strong><span>Удалено</span></div><div class="stat-card"><strong id="full-edited">0</strong><span>Изменено</span></div><div class="stat-card"><strong id="full-premium">0</strong><span>Premium</span></div><div class="stat-card"><strong id="full-referrals">0</strong><span>Приглашения</span></div><div class="stat-card"><strong id="full-referrals-rewarded">0</strong><span>Начислено</span></div><div class="stat-card"><strong id="full-referrals-pending">0</strong><span>Ожидают</span></div><div class="stat-card"><strong id="full-payments">0</strong><span>Платежи</span></div><div class="stat-card"><strong id="full-stars">0</strong><span>Stars</span></div></div>
-        <div class="stats-panel"><div class="stats-panel-heading"><b>За 14 дней</b><small>Рост</small></div><div id="admin-daily-chart" class="admin-daily-chart"><div class="empty-state">Загружаем…</div></div></div>
-        <div class="stats-panel"><div class="stats-panel-heading"><b>Форматы</b><small>Популярное</small></div><div id="admin-media-breakdown" class="admin-breakdown"><div class="empty-state">Загружаем…</div></div></div>
-        <div class="stats-panel"><div class="stats-panel-heading"><b>Топ пользователей</b><small>По активности</small></div><div id="admin-top-users" class="admin-top-users"><div class="empty-state">Загружаем…</div></div></div>
-        <div class="stats-panel"><div class="stats-panel-heading"><b>Последние действия</b><small>Лог</small></div><div id="admin-recent-activity" class="admin-recent-activity"><div class="empty-state">Загружаем…</div></div></div>
-        <div id="statistics-updated-at" class="statistics-updated-at"></div>
+    <div class="bulk-bar hidden" id="bulk-bar">
+      <span class="bulk-count"><b id="bulk-count">0</b> выбрано</span>
+      <div class="bulk-actions">
+        <button class="bulk-btn" onclick="bulkPin()"><svg class="icon"><use href="#i-pin"></use></svg>Закрепить</button>
+        <button class="bulk-btn" onclick="bulkHide()"><svg class="icon"><use href="#i-eye-off"></use></svg>Скрыть</button>
+        <button class="bulk-btn bulk-btn-ghost" onclick="exitBulkMode()">Готово</button>
+      </div>
     </div>
+
+    <div class="hidden-row hidden" id="hidden-row">
+      <svg class="icon"><use href="#i-eye-off"></use></svg>
+      <span>Скрытых чатов: <b id="hidden-count">0</b></span>
+      <button onclick="restoreAllHidden()">Вернуть все</button>
+    </div>
+
+    <div id="chats-list" class="chats-list"><div class="empty-state">Загружаем чаты…</div></div>
+  </section>
+
+  <!-- ══════════ ПЕРЕПИСКА ══════════ -->
+  <section id="view-messages" class="page messages-page">
+    <div class="telegram-chat-header">
+      <button class="telegram-back" onclick="switchTab('chats')" aria-label="Назад"><svg class="icon"><use href="#i-back"></use></svg></button>
+      <button class="telegram-peer" onclick="openChatDrawer()" aria-label="Информация о чате">
+        <span id="chat-header-avatar" class="telegram-avatar"><span id="chat-header-initial">?</span><img id="chat-header-avatar-image" alt=""></span>
+        <span class="telegram-peer-copy"><strong id="chat-title">Чат</strong><small id="chat-subtitle">Сохранённая переписка</small></span>
+      </button>
+      <div class="telegram-header-actions">
+        <button id="toggle-message-search" class="telegram-icon-button" aria-label="Поиск"><svg class="icon"><use href="#i-search"></use></svg></button>
+        <button class="telegram-icon-button" onclick="openChatDrawer()" aria-label="Детали"><svg class="icon"><use href="#i-info"></use></svg></button>
+      </div>
+    </div>
+    <div class="telegram-search-wrap hidden" id="message-search-wrap">
+      <svg class="icon"><use href="#i-search"></use></svg>
+      <input id="message-search" type="search" placeholder="Поиск в переписке…" autocomplete="off">
+      <span class="search-hits" id="message-search-hits"></span>
+      <button id="close-message-search" aria-label="Закрыть поиск"><svg class="icon"><use href="#i-x"></use></svg></button>
+    </div>
+    <div id="messages-list" class="messages-list"><div class="empty-state">Выбери чат</div></div>
+    <button class="jump-bottom hidden" id="jump-bottom" onclick="scrollMessagesToBottom()" aria-label="Вниз"><svg class="icon"><use href="#i-arrow-down"></use></svg></button>
+  </section>
+
+  <!-- ══════════ НАСТРОЙКИ ══════════ -->
+  <section id="view-settings" class="page">
+    <div class="page-header">
+      <button class="back-btn" onclick="switchTab('profile')"><svg class="icon"><use href="#i-back"></use></svg></button>
+      <div><h2>Настройки</h2><small>Подстрой архив под себя</small></div>
+    </div>
+    <div class="section-label">УВЕДОМЛЕНИЯ</div>
+    <div class="menu-group settings-group">
+      <div class="setting-row"><span><b>Удалённые сообщения</b><small>Сообщать, когда что-то удалили</small></span><input type="checkbox" id="toggle-deletions" onchange="updateSetting('deletions', this.checked)"></div>
+      <div class="setting-row"><span><b>Изменения</b><small>Сообщать о правках сообщений</small></span><input type="checkbox" id="toggle-edits" onchange="updateSetting('edits', this.checked)"></div>
+    </div>
+    <div class="section-label">МЕДИА</div>
+    <div class="menu-group settings-group">
+      <div class="setting-row"><span><b>Сохранять медиа</b><small>Фото, видео и голосовые</small></span><input type="checkbox" id="toggle-media" onchange="updateSetting('deleted_media', this.checked)"></div>
+    </div>
+    <div class="section-label">ВНЕШНИЙ ВИД</div>
+    <div class="menu-group settings-group">
+      <div class="setting-row"><span><b>Акцент интерфейса</b><small>Меняется сразу во всём приложении</small></span>
+        <select class="inline-select" id="accent-select" onchange="setAccent(this.value)">
+          <option value="sapphire">Сапфир</option><option value="gold">Золото</option><option value="cyan">Циан</option><option value="magenta">Магента</option><option value="lime">Лайм</option>
+        </select>
+      </div>
+      <div class="setting-row"><span><b>Плотность списка</b><small>Компактно показывает больше чатов</small></span>
+        <select class="inline-select" id="density-select" onchange="setDensity(this.value)">
+          <option value="cozy">Свободно</option><option value="compact">Компактно</option>
+        </select>
+      </div>
+      <div class="setting-row"><span><b>Показывать превью</b><small>Последнее сообщение в списке чатов</small></span><input type="checkbox" id="toggle-preview" checked onchange="setPreviewVisible(this.checked)"></div>
+    </div>
+    <div class="section-label">ДАННЫЕ</div>
+    <div class="menu-group">
+      <button class="menu-item" onclick="resetLocalPreferences()"><div class="menu-icon gray"><svg class="icon"><use href="#i-undo"></use></svg></div><div class="menu-text"><b>Сбросить вид архива</b><small>Закрепления, скрытые чаты и сохранённые виды</small></div></button>
+      <button class="menu-item danger-action" onclick="clearArchive()"><div class="menu-icon red"><svg class="icon"><use href="#i-trash"></use></svg></div><div class="menu-text"><b>Очистить архив</b><small>Удалить всё без восстановления</small></div></button>
+    </div>
+  </section>
+
+  <!-- ══════════ PREMIUM ══════════ -->
+  <section id="view-premium" class="page">
+    <div class="page-header">
+      <button class="back-btn" onclick="switchTab('home')"><svg class="icon"><use href="#i-back"></use></svg></button>
+      <div><h2>Premium</h2><small id="premium-status-text">Проверяем подписку…</small></div>
+    </div>
+    <div class="premium-hero">
+      <div class="premium-hero-mesh"></div>
+      <div class="premium-logo"><svg class="icon"><use href="#i-gem"></use></svg></div>
+      <span class="premium-eyebrow">HADES PREMIUM</span>
+      <h2>Больше, чем просто архив</h2>
+      <p>Длинная история, большие файлы и экспорт — без ограничений базового тарифа.</p>
+      <div class="premium-hero-stats"><span><b>30</b> дней истории</span><span><b>50</b> МБ файл</span><span><b>50</b> в .spam</span></div>
+    </div>
+    <div class="section-label">ЧТО ВНУТРИ</div>
+    <div class="menu-group feature-list">
+      <button class="feature-row" onclick="openFeatureModal('archive')"><div class="menu-icon blue"><svg class="icon"><use href="#i-archive"></use></svg></div><span><b>Архив 30 дней</b><small>вместо 3 дней</small></span><svg class="icon feature-check"><use href="#i-check-circle"></use></svg></button>
+      <button class="feature-row" onclick="openFeatureModal('media')"><div class="menu-icon violet"><svg class="icon"><use href="#i-image"></use></svg></div><span><b>Файлы до 50 МБ</b><small>вместо 20 МБ</small></span><svg class="icon feature-check"><use href="#i-check-circle"></use></svg></button>
+      <button class="feature-row" onclick="openFeatureModal('priority')"><div class="menu-icon green"><svg class="icon"><use href="#i-download"></use></svg></div><span><b>Экспорт переписок</b><small>HTML и JSON одним файлом</small></span><svg class="icon feature-check"><use href="#i-check-circle"></use></svg></button>
+      <button class="feature-row" onclick="openFeatureModal('spam')"><div class="menu-icon cyan"><svg class="icon"><use href="#i-zap"></use></svg></div><span><b>.spam до 50 сообщений</b><small>вместо 20 за раз</small></span><svg class="icon feature-check"><use href="#i-check-circle"></use></svg></button>
+      <button class="feature-row" onclick="openFeatureModal('badge')"><div class="menu-icon yellow"><svg class="icon"><use href="#i-tag"></use></svg></div><span><b>Отметка в профиле</b><small>цветной бейдж рядом с именем</small></span><svg class="icon feature-check"><use href="#i-check-circle"></use></svg></button>
+      <button class="feature-row" onclick="openFeatureModal('support')"><div class="menu-icon gray"><svg class="icon"><use href="#i-shield"></use></svg></div><span><b>Быстрая поддержка</b><small>отвечаем вне очереди</small></span><svg class="icon feature-check"><use href="#i-check-circle"></use></svg></button>
+    </div>
+    <button class="primary-button" onclick="switchTab('premium-buy')">Выбрать тариф<svg class="icon"><use href="#i-arrow-right"></use></svg></button>
+  </section>
+
+  <!-- ══════════ ТАРИФЫ ══════════ -->
+  <section id="view-premium-buy" class="page">
+    <div class="page-header">
+      <button class="back-btn" onclick="switchTab('premium')"><svg class="icon"><use href="#i-back"></use></svg></button>
+      <div><h2>Тарифы</h2><small>Оплата — на следующем шаге</small></div>
+    </div>
+    <div class="premium-sale-banner">
+      <div class="premium-sale-spark"><svg class="icon"><use href="#i-zap"></use></svg></div>
+      <span><b>Скидки до −60%</b><small>Действуют на все тарифы</small></span>
+      <strong>−60%</strong>
+    </div>
+    <div class="premium-plans">
+      <button class="premium-plan" data-days="7" onclick="selectPremiumPlan(7)"><span class="premium-plan-days">7 дней</span><span class="premium-plan-price">45 ₽</span><span class="premium-plan-old">100 ₽</span><span class="premium-plan-discount">−55%</span></button>
+      <button class="premium-plan is-selected" data-days="14" onclick="selectPremiumPlan(14)"><span class="premium-plan-ribbon">ХИТ</span><span class="premium-plan-days">14 дней</span><span class="premium-plan-price">69 ₽</span><span class="premium-plan-old">150 ₽</span><span class="premium-plan-discount">−54%</span></button>
+      <button class="premium-plan" data-days="30" onclick="selectPremiumPlan(30)"><span class="premium-plan-ribbon">ВЫГОДНО</span><span class="premium-plan-days">30 дней</span><span class="premium-plan-price">120 ₽</span><span class="premium-plan-old">300 ₽</span><span class="premium-plan-discount">−60%</span></button>
+    </div>
+    <div class="premium-plan-list" id="premium-plan-list"></div>
+    <div class="premium-selection-hint"><svg class="icon"><use href="#i-shield"></use></svg><span>Разовый платёж. Без автопродления и скрытых списаний.</span></div>
+    <div class="legal-links">
+      <a href="https://telegra.ph/Polzovatelskoe-soglashenie-HadesSave-11-14" target="_blank" rel="noopener">Пользовательское соглашение</a>
+      <a href="https://telegra.ph/Polzovatelskoe-soglashenie-HadesSave-11-14" target="_blank" rel="noopener">Условия оплаты</a>
+    </div>
+  </section>
+
+  <!-- ══════════ ОПЛАТА ══════════ -->
+  <section id="view-premium-payment" class="page premium-payment-page">
+    <div class="page-header">
+      <button class="back-btn" onclick="switchTab('premium-buy')"><svg class="icon"><use href="#i-back"></use></svg></button>
+      <div><h2>Оплата</h2><small id="premium-checkout-status">Разовый платёж · без автопродления</small></div>
+    </div>
+    <div class="premium-payment-hero">
+      <span class="premium-eyebrow">БЕЗОПАСНАЯ ОПЛАТА</span>
+      <h2>Почти готово</h2>
+      <p>Проверь тариф и укажи email — на него придёт чек.</p>
+    </div>
+    <div class="premium-selected-order">
+      <div class="premium-selected-order-top"><span>ТАРИФ</span><b id="premium-payment-days">14 дней</b></div>
+      <div class="premium-selected-order-price"><span id="premium-payment-old">150 ₽</span><strong id="premium-payment-price">69 ₽</strong></div>
+      <div id="premium-payment-saving" class="premium-selected-order-saving">Экономия 81 ₽ · скидка 54%</div>
+      <div class="premium-selected-order-note">Разовый платёж · без автопродления</div>
+    </div>
+    <div class="premium-payment-box">
+      <label class="premium-email-label" for="premium-email">Email для чека</label>
+      <input type="email" id="premium-email" class="premium-email-input" placeholder="you@example.com" autocomplete="email" inputmode="email">
+      <label class="premium-email-label" for="premium-payment-method">Способ оплаты</label>
+      <div class="premium-payment-method-wrap">
+        <svg class="icon"><use href="#i-shield"></use></svg>
+        <select id="premium-payment-method" class="admin-input"><option value="2">СБП — по QR-коду</option><option value="13" disabled>Криптовалюта — скоро</option></select>
+        <svg class="icon"><use href="#i-arrow-right"></use></svg>
+      </div>
+      <button id="premium-action-btn" class="primary-button premium-pay-button" onclick="startPremiumPayment()">Оплатить 69 ₽<svg class="icon"><use href="#i-arrow-up-right"></use></svg></button>
+      <div class="premium-payment-secure-note"><svg class="icon"><use href="#i-lock"></use></svg><span>Платёж через Platega. Premium включится после подтверждения оплаты.</span></div>
+      <p class="premium-legal-note">Оплачивая, ты соглашаешься с <a href="https://telegra.ph/Polzovatelskoe-soglashenie-HadesSave-11-14" target="_blank" rel="noopener">условиями сервиса</a>.</p>
+    </div>
+  </section>
+
+  <!-- ══════════ ДРУЗЬЯ ══════════ -->
+  <section id="view-referrals" class="page">
+    <div class="page-header">
+      <button class="back-btn" onclick="switchTab('home')"><svg class="icon"><use href="#i-back"></use></svg></button>
+      <div><h2>Друзья</h2><small>Зови друзей — получай Premium</small></div>
+    </div>
+    <div class="referral-card">
+      <div class="referral-gift-mark"><svg class="icon"><use href="#i-gift"></use></svg></div>
+      <h2>+1 день Premium</h2>
+      <p>Друг запускает бота и подписывается на канал — тебе падает день Premium.</p>
+      <div class="referral-count"><strong id="ref-count">0</strong><small>друзей подключилось</small></div>
+      <div class="referral-progress"><i id="ref-progress-bar"></i></div>
+      <small class="referral-footnote" id="ref-progress-text">До следующего бонуса — 1 друг</small>
+      <button class="primary-button" onclick="copyRefLink()">Скопировать ссылку<svg class="icon"><use href="#i-copy"></use></svg></button>
+      <button class="secondary-button full-width" onclick="shareRefLink()">Поделиться<svg class="icon"><use href="#i-send"></use></svg></button>
+    </div>
+    <div class="section-label">КАК ЭТО РАБОТАЕТ</div>
+    <div class="steps-list">
+      <div class="step-row"><em>1</em><span><b>Отправь ссылку</b><small>Друг открывает бота по твоей ссылке</small></span></div>
+      <div class="step-row"><em>2</em><span><b>Он подписывается на канал</b><small>Это обязательное условие доступа</small></span></div>
+      <div class="step-row"><em>3</em><span><b>Тебе начисляется день</b><small>Автоматически, без заявок и ожидания</small></span></div>
+    </div>
+  </section>
+
+  <!-- ══════════ ПРОФИЛЬ ══════════ -->
+  <section id="view-profile" class="page">
+    <div class="page-header"><div><h2>Профиль</h2><small>Аккаунт и инструменты</small></div></div>
+    <div class="profile-header">
+      <div class="avatar"><span id="profile-avatar-text">H</span><img id="profile-avatar-img" class="avatar-img" alt="" style="display:none"></div>
+      <div class="user-info">
+        <div class="name-row"><h2 id="profile-name">Загрузка…</h2><span id="profile-premium-badge" class="premium-badge hidden">PREMIUM</span><span id="profile-prefix-badge" class="prefix-badge hidden"></span></div>
+        <div class="profile-meta-row"><span id="profile-id" class="user-id">ID: …</span><span id="profile-custom-status" class="profile-custom-status hidden"></span></div>
+      </div>
+      <button id="profile-admin-pencil" class="profile-admin-pencil hidden" onclick="switchTab('admin')" aria-label="Админка"><svg class="icon"><use href="#i-gear"></use></svg></button>
+    </div>
+    <div class="profile-metrics" id="profile-metrics"></div>
+    <div class="menu-group">
+      <button class="menu-item" onclick="switchTab('settings')"><div class="menu-icon gray"><svg class="icon"><use href="#i-gear"></use></svg></div><div class="menu-text"><b>Настройки</b><small>Уведомления, медиа, внешний вид</small></div><svg class="icon chevron"><use href="#i-arrow-right"></use></svg></button>
+      <a class="menu-item" href="https://t.me/Hades_save_men" target="_blank" rel="noopener"><div class="menu-icon blue"><svg class="icon"><use href="#i-chat"></use></svg></div><div class="menu-text"><b>Поддержка</b><small>Ответим и поможем</small></div><svg class="icon chevron"><use href="#i-arrow-up-right"></use></svg></a>
+      <a class="menu-item" href="https://telegra.ph/Polzovatelskoe-soglashenie-HadesSave-11-14" target="_blank" rel="noopener"><div class="menu-icon violet"><svg class="icon"><use href="#i-file"></use></svg></div><div class="menu-text"><b>Соглашение</b><small>Условия и оплата</small></div><svg class="icon chevron"><use href="#i-arrow-up-right"></use></svg></a>
+    </div>
+    <div id="admin-tab-btn" class="hidden">
+      <div class="section-label">ИНСТРУМЕНТЫ</div>
+      <div class="menu-group">
+        <button class="menu-item" onclick="switchTab('admin')"><div class="menu-icon yellow"><svg class="icon"><use href="#i-gear"></use></svg></div><div class="menu-text"><b>Админка</b><small>Управление сервисом</small></div><svg class="icon chevron"><use href="#i-arrow-right"></use></svg></button>
+        <button class="menu-item" onclick="switchTab('statistics')"><div class="menu-icon cyan"><svg class="icon"><use href="#i-chart"></use></svg></div><div class="menu-text"><b>Статистика</b><small>Цифры и активность</small></div><svg class="icon chevron"><use href="#i-arrow-right"></use></svg></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ АДМИНКА ══════════ -->
+  <section id="view-admin" class="page admin-page">
+    <div class="page-header">
+      <button class="back-btn" onclick="switchTab('profile')"><svg class="icon"><use href="#i-back"></use></svg></button>
+      <div><h2>Админка</h2><small>Управление сервисом</small></div>
+    </div>
+    <div class="section-label">СВОДКА</div>
+    <div class="stats-grid admin-stats">
+      <div class="stat-card tone-sapphire"><strong id="adm-stat-users">0</strong><span>Пользователи</span></div>
+      <div class="stat-card tone-gold"><strong id="adm-stat-stars">0</strong><span>Звёзды</span></div>
+      <div class="stat-card tone-violet"><strong id="adm-stat-prem">0</strong><span>Premium</span></div>
+      <div class="stat-card tone-green"><strong id="adm-stat-week">0</strong><span>За неделю</span></div>
+    </div>
+    <button class="statistics-entry" onclick="switchTab('statistics')">
+      <span class="statistics-entry-icon"><svg class="icon"><use href="#i-chart"></use></svg></span>
+      <span><b>Полная статистика</b><small>Пользователи, архив, подключения</small></span>
+      <svg class="icon statistics-chevron"><use href="#i-arrow-right"></use></svg>
+    </button>
+    <div class="section-label">ФОТО ПОДКЛЮЧЕНИЯ</div>
+    <div class="prefix-admin-card connection-guide-admin-card">
+      <p class="prefix-admin-hint">Эту картинку бот отправляет при подключении. Меняется здесь, без правок кода.</p>
+      <div class="connection-guide-preview-wrap"><img id="connection-guide-preview" hidden alt=""><div id="connection-guide-empty" class="empty-state">Загружаем…</div></div>
+      <label class="admin-field-label" for="connection-guide-file">Новое фото · PNG или JPG, до 8 МБ</label>
+      <input type="file" id="connection-guide-file" class="admin-input connection-guide-file" accept="image/png,image/jpeg">
+      <button class="primary-button" onclick="uploadConnectionGuide()">Загрузить фото</button>
+      <small id="connection-guide-status" class="connection-guide-status">Показывается на экране подключения.</small>
+    </div>
+    <div class="section-label">БЕЙДЖИ</div>
+    <div class="prefix-admin-card">
+      <p class="prefix-admin-hint">Цветная отметка рядом с именем пользователя.</p>
+      <label class="admin-field-label" for="prefix-name">Название</label>
+      <input type="text" id="prefix-name" class="admin-input" placeholder="Например: VIP" maxlength="24">
+      <div class="prefix-color-row"><label class="admin-field-label" for="prefix-color">Цвет</label><input type="color" id="prefix-color" value="#f5c451"><div id="prefix-preview" class="prefix-badge prefix-preview">БЕЙДЖ</div></div>
+      <div class="swatch-row" id="swatch-row"></div>
+      <button id="prefix-save-btn" class="primary-button" onclick="savePrefix()">Создать</button>
+      <div class="prefix-admin-divider"></div>
+      <label class="admin-field-label">Готовые бейджи</label>
+      <div id="prefix-list" class="prefix-list"><div class="empty-state">Загружаем…</div></div>
+      <div class="prefix-admin-divider"></div>
+      <label class="admin-field-label" for="prefix-target">Telegram ID пользователя</label>
+      <input type="number" id="prefix-target" class="admin-input" placeholder="123456789" inputmode="numeric">
+      <select id="prefix-select" class="admin-input" style="margin-top:8px"><option value="">Выбери бейдж</option></select>
+      <div class="prefix-action-row">
+        <button class="primary-button" onclick="assignPrefix()">Назначить</button>
+        <button class="secondary-button" onclick="removeUserPrefix()">Снять</button>
+        <button class="danger-outline" onclick="deletePrefix()">Удалить</button>
+      </div>
+    </div>
+    <div class="section-label">ДЕЙСТВИЯ</div>
+    <div class="menu-group admin-actions">
+      <button class="menu-item" onclick="openAdminModal('grant')"><div class="menu-icon yellow"><svg class="icon"><use href="#i-gem"></use></svg></div><div class="menu-text"><b>Выдать Premium</b><small>По ID пользователя</small></div></button>
+      <button class="menu-item" onclick="openAdminModal('ban')"><div class="menu-icon red"><svg class="icon"><use href="#i-ban"></use></svg></div><div class="menu-text"><b>Заблокировать</b><small>Закрыть доступ к сервису</small></div></button>
+      <button class="menu-item" onclick="openAdminModal('role')"><div class="menu-icon blue"><svg class="icon"><use href="#i-users"></use></svg></div><div class="menu-text"><b>Роли</b><small>Выдать или снять права</small></div></button>
+      <button class="menu-item" onclick="openAdminModal('broadcast')"><div class="menu-icon green"><svg class="icon"><use href="#i-send"></use></svg></div><div class="menu-text"><b>Рассылка</b><small>Сообщение всем пользователям</small></div></button>
+      <button class="menu-item" onclick="openAdminModal('bans')"><div class="menu-icon gray"><svg class="icon"><use href="#i-list"></use></svg></div><div class="menu-text"><b>Блокировки</b><small>Список и разблокировка</small></div></button>
+    </div>
+  </section>
+
+  <!-- ══════════ СТАТИСТИКА ══════════ -->
+  <section id="view-statistics" class="page statistics-page">
+    <div class="page-header">
+      <button class="back-btn" onclick="switchTab('admin')"><svg class="icon"><use href="#i-back"></use></svg></button>
+      <div><h2>Статистика</h2><small>Сводка по HadesSave</small></div>
+      <button id="stats-refresh" class="icon-action" aria-label="Обновить"><svg class="icon"><use href="#i-refresh"></use></svg></button>
+    </div>
+    <div class="section-label">ПОКАЗАТЕЛИ</div>
+    <div class="stats-grid detailed-stats-grid">
+      <div class="stat-card tone-sapphire"><strong id="full-users">0</strong><span>Пользователи</span></div>
+      <div class="stat-card tone-cyan"><strong id="full-active-users">0</strong><span>С подключением</span></div>
+      <div class="stat-card tone-violet"><strong id="full-connections">0</strong><span>Все подключения</span></div>
+      <div class="stat-card tone-green"><strong id="full-active-connections">0</strong><span>Активные сейчас</span></div>
+      <div class="stat-card tone-sapphire"><strong id="full-messages">0</strong><span>Сообщения</span></div>
+      <div class="stat-card tone-cyan"><strong id="full-chats">0</strong><span>Чаты</span></div>
+      <div class="stat-card tone-gold"><strong id="full-media">0</strong><span>Медиа</span></div>
+      <div class="stat-card tone-rose"><strong id="full-deleted">0</strong><span>Удалено</span></div>
+      <div class="stat-card tone-amber"><strong id="full-edited">0</strong><span>Изменено</span></div>
+      <div class="stat-card tone-gold"><strong id="full-premium">0</strong><span>Premium</span></div>
+      <div class="stat-card tone-green"><strong id="full-referrals">0</strong><span>Приглашения</span></div>
+      <div class="stat-card tone-lime"><strong id="full-referrals-rewarded">0</strong><span>Начислено</span></div>
+      <div class="stat-card tone-amber"><strong id="full-referrals-pending">0</strong><span>Ожидают</span></div>
+      <div class="stat-card tone-violet"><strong id="full-payments">0</strong><span>Платежи</span></div>
+      <div class="stat-card tone-gold"><strong id="full-stars">0</strong><span>Stars</span></div>
+    </div>
+    <div class="stats-panel"><div class="stats-panel-heading"><b>За 14 дней</b><small>Новые пользователи и сообщения</small></div><div class="chart-legend"><span><i class="lg-users"></i>Пользователи</span><span><i class="lg-messages"></i>Сообщения</span></div><div id="admin-daily-chart" class="admin-daily-chart"><div class="empty-state">Загружаем…</div></div></div>
+    <div class="stats-panel"><div class="stats-panel-heading"><b>Форматы</b><small>Что чаще сохраняется</small></div><div id="admin-media-breakdown" class="admin-breakdown"><div class="empty-state">Загружаем…</div></div></div>
+    <div class="stats-panel"><div class="stats-panel-heading"><b>Топ пользователей</b><small>По числу сообщений</small></div><div id="admin-top-users" class="admin-top-users"><div class="empty-state">Загружаем…</div></div></div>
+    <div class="stats-panel"><div class="stats-panel-heading"><b>Последние действия</b><small>Журнал сервиса</small></div><div id="admin-recent-activity" class="admin-recent-activity"><div class="empty-state">Загружаем…</div></div></div>
+    <div id="statistics-updated-at" class="statistics-updated-at"></div>
+  </section>
 </div>
 
-<div id="history-modal" class="overlay" onclick="closeHistory(event)"><div class="dialog"><button class="dialog-close" onclick="closeHistory()">×</button><h3>История</h3><div id="history-body"></div></div></div>
-<div id="media-lightbox" class="overlay" onclick="closeLightbox(event)"><div class="dialog media-dialog"><button class="dialog-close" onclick="closeLightbox()">×</button><div id="lightbox-media-container" class="lightbox-media-box"></div></div></div>
-<div id="feature-modal" class="overlay" onclick="closeFeatureModal(event)"><div class="dialog"><button class="dialog-close" onclick="closeFeatureModal()">×</button><h3 id="feature-title"></h3><p id="feature-desc"></p></div></div>
-<div id="admin-modal" class="overlay" onclick="closeAdminModal(event)"><div class="dialog"><button class="dialog-close" onclick="closeAdminModal()">×</button><h3 id="admin-modal-title">Действие</h3><div id="admin-input-fields" style="display:none"><input type="text" id="admin-target" class="admin-input" placeholder="ID пользователя" style="margin-bottom:12px"></div><div id="admin-grant-fields" style="display:none"><input type="number" id="admin-days" class="admin-input" placeholder="Дней" value="30"></div><div id="admin-ban-fields" style="display:none"><input type="text" id="admin-reason" class="admin-input" placeholder="Причина"></div><div id="admin-role-fields" style="display:none"><select id="admin-role-select" class="admin-input"><option value="owner">Владелец</option><option value="manager">Модератор</option><option value="helper">Помощник</option><option value="">Без роли</option></select></div><div id="admin-broadcast-fields" style="display:none"><textarea id="admin-broadcast-text" class="admin-input" placeholder="Текст сообщения" rows="4"></textarea></div><div id="admin-list-container" style="display:none"></div><button id="admin-execute-btn" class="primary-button" onclick="executeAdminAction()">Выполнить</button></div></div>
+<!-- ══════════ DRAWER ══════════ -->
+<div id="chat-drawer" class="drawer" onclick="closeChatDrawer(event)">
+  <aside class="drawer-panel" role="dialog" aria-label="Детали чата">
+    <div class="drawer-grip"></div>
+    <button class="drawer-close" onclick="closeChatDrawer()" aria-label="Закрыть"><svg class="icon"><use href="#i-x"></use></svg></button>
+    <div class="drawer-head">
+      <div class="drawer-avatar" id="drawer-avatar">?</div>
+      <div><h3 id="drawer-title">Чат</h3><small id="drawer-sub">—</small></div>
+    </div>
+    <div class="drawer-stats" id="drawer-stats"></div>
+    <div class="drawer-section-label">СОСТАВ АРХИВА</div>
+    <div class="drawer-bars" id="drawer-bars"></div>
+    <div class="drawer-actions" id="drawer-actions"></div>
+  </aside>
+</div>
+
+<!-- ══════════ МОДАЛКИ ══════════ -->
+<div id="history-modal" class="overlay" onclick="closeHistory(event)"><div class="dialog"><button class="dialog-close" onclick="closeHistory()" aria-label="Закрыть"><svg class="icon"><use href="#i-x"></use></svg></button><h3>История правок</h3><div id="history-body"></div></div></div>
+<div id="media-lightbox" class="overlay" onclick="closeLightbox(event)"><div class="dialog media-dialog"><button class="dialog-close" onclick="closeLightbox()" aria-label="Закрыть"><svg class="icon"><use href="#i-x"></use></svg></button><div id="lightbox-media-container" class="lightbox-media-box"></div><div class="lightbox-caption" id="lightbox-caption"></div></div></div>
+<div id="feature-modal" class="overlay" onclick="closeFeatureModal(event)"><div class="dialog"><button class="dialog-close" onclick="closeFeatureModal()" aria-label="Закрыть"><svg class="icon"><use href="#i-x"></use></svg></button><div class="dialog-mark" id="feature-mark"><svg class="icon"><use href="#i-sparkles"></use></svg></div><h3 id="feature-title"></h3><p id="feature-desc"></p><button class="primary-button" onclick="closeFeatureModal()">Понятно</button></div></div>
+<div id="view-modal" class="overlay" onclick="closeSaveViewModal(event)"><div class="dialog"><button class="dialog-close" onclick="closeSaveViewModal()" aria-label="Закрыть"><svg class="icon"><use href="#i-x"></use></svg></button><h3>Сохранить вид</h3><p>Текущий поиск, фильтр и сортировка сохранятся как быстрый пресет.</p><input type="text" id="view-name-input" class="admin-input" placeholder="Например: Работа · непрочитанные" maxlength="32"><div class="view-summary" id="view-summary"></div><button class="primary-button" onclick="saveCurrentView()">Сохранить</button></div></div>
+<div id="admin-modal" class="overlay" onclick="closeAdminModal(event)">
+  <div class="dialog">
+    <button class="dialog-close" onclick="closeAdminModal()" aria-label="Закрыть"><svg class="icon"><use href="#i-x"></use></svg></button>
+    <h3 id="admin-modal-title">Действие</h3>
+    <div id="admin-input-fields" style="display:none"><input type="text" id="admin-target" class="admin-input" placeholder="ID или @username" style="margin-bottom:10px"></div>
+    <div id="admin-grant-fields" style="display:none"><input type="number" id="admin-days" class="admin-input" placeholder="Дней" value="30" inputmode="numeric"></div>
+    <div id="admin-ban-fields" style="display:none"><input type="text" id="admin-reason" class="admin-input" placeholder="Причина"></div>
+    <div id="admin-role-fields" style="display:none"><select id="admin-role-select" class="admin-input"><option value="owner">Владелец</option><option value="manager">Управляющий</option><option value="helper">Помощник</option><option value="">Без роли</option></select></div>
+    <div id="admin-broadcast-fields" style="display:none"><textarea id="admin-broadcast-text" class="admin-input" placeholder="Текст сообщения" rows="4"></textarea></div>
+    <div id="admin-list-container" style="display:none"></div>
+    <button id="admin-execute-btn" class="primary-button" onclick="executeAdminAction()">Выполнить</button>
+  </div>
+</div>
+
+<div id="toast-stack" class="toast-stack" aria-live="polite"></div>
 
 <nav class="bottom-nav">
-    <button class="nav-item" data-tab="home" onclick="switchTab('home')"><svg class="icon"><use href="#icon-home"></use></svg><span>Главная</span></button>
-    <button class="nav-item" data-tab="chats" onclick="switchTab('chats')"><svg class="icon"><use href="#icon-chat"></use></svg><span>Чаты</span></button>
-    <button class="nav-item nav-item-premium" data-tab="premium-buy" onclick="switchTab('premium-buy')"><svg class="icon"><use href="#icon-premium"></use></svg><span>Premium</span></button>
-    <button class="nav-item" data-tab="profile" onclick="switchTab('profile')"><svg class="icon"><use href="#icon-profile"></use></svg><span>Профиль</span></button>
+  <button class="nav-item" data-tab="home" onclick="switchTab('home')"><svg class="icon"><use href="#i-home"></use></svg><span>Главная</span></button>
+  <button class="nav-item" data-tab="chats" onclick="switchTab('chats')"><svg class="icon"><use href="#i-chat"></use></svg><span>Чаты</span><i class="nav-dot hidden" id="nav-unread-dot"></i></button>
+  <button class="nav-item nav-item-premium" data-tab="premium-buy" onclick="switchTab('premium-buy')"><svg class="icon"><use href="#i-gem"></use></svg><span>Premium</span></button>
+  <button class="nav-item" data-tab="profile" onclick="switchTab('profile')"><svg class="icon"><use href="#i-user"></use></svg><span>Профиль</span></button>
 </nav>
 
 <script type="module" src="app.js"></script>

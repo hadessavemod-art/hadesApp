@@ -54,7 +54,6 @@
 <symbol id="i-x" viewBox="0 0 24 24"><path d="M5.6 5.6 18.4 18.4M18.4 5.6 5.6 18.4"/></symbol>
 <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="M12 11v5.4"/><circle cx="12" cy="7.9" r=".9" fill="currentColor" stroke="none"/></symbol>
 <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9.2" y="3.2" width="5.6" height="10.4" rx="2.8"/><path d="M5.6 11.4a6.4 6.4 0 0 0 12.8 0M12 17.8v3"/></symbol>
-<symbol id="i-sticker" viewBox="0 0 24 24"><path d="M20.4 12a8.4 8.4 0 1 0-8.4 8.4c1.2 0 8.4-7.2 8.4-8.4"/><path d="M12 20.4c0-4.6 3.8-8.4 8.4-8.4"/><circle cx="9.2" cy="10" r=".9" fill="currentColor" stroke="none"/><circle cx="14" cy="9.4" r=".9" fill="currentColor" stroke="none"/></symbol>
 <symbol id="i-sparkles" viewBox="0 0 24 24"><path d="m12 3.4 1.7 4.3 4.3 1.7-4.3 1.7L12 15.4l-1.7-4.3L6 9.4l4.3-1.7z"/><path d="m18.4 15.2.9 2.2 2.2.9-2.2.9-.9 2.2-.9-2.2-2.2-.9 2.2-.9z"/></symbol>
 <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3.6" y="3.6" width="7" height="7" rx="1.6"/><rect x="13.4" y="3.6" width="7" height="7" rx="1.6"/><rect x="3.6" y="13.4" width="7" height="7" rx="1.6"/><rect x="13.4" y="13.4" width="7" height="7" rx="1.6"/></symbol>
 <symbol id="i-undo" viewBox="0 0 24 24"><path d="M4.2 9.4h9.6a5.6 5.6 0 0 1 0 11.2H8.4"/><path d="M7.6 5.4 3.6 9.4l4 4"/></symbol>
@@ -85,7 +84,6 @@
 
 <div class="hs-app">
 
-  <!-- ══════════ ГЛАВНАЯ ══════════ -->
   <section id="view-home" class="page">
     <header class="home-brandbar">
       <div class="home-brand-mark"><svg class="icon"><use href="#i-archive"></use></svg></div>
@@ -175,7 +173,6 @@
     <div class="activity-feed" id="home-activity" data-reveal></div>
   </section>
 
-  <!-- ══════════ ЧАТЫ ══════════ -->
   <section id="view-chats" class="page">
     <div class="chats-titlebar">
       <div>
@@ -238,7 +235,6 @@
     <div id="chats-list" class="chats-list"><div class="empty-state">Загружаем чаты…</div></div>
   </section>
 
-  <!-- ══════════ ПЕРЕПИСКА ══════════ -->
   <section id="view-messages" class="page messages-page">
     <div class="telegram-chat-header">
       <button class="telegram-back" onclick="switchTab('chats')" aria-label="Назад"><svg class="icon"><use href="#i-back"></use></svg></button>
@@ -261,7 +257,6 @@
     <button class="jump-bottom hidden" id="jump-bottom" onclick="scrollMessagesToBottom()" aria-label="Вниз"><svg class="icon"><use href="#i-arrow-down"></use></svg></button>
   </section>
 
-  <!-- ══════════ НАСТРОЙКИ ══════════ -->
   <section id="view-settings" class="page">
     <div class="page-header">
       <button class="back-btn" onclick="switchTab('profile')"><svg class="icon"><use href="#i-back"></use></svg></button>
@@ -335,7 +330,6 @@
     </div>
   </section>
 
-  <!-- ══════════ PREMIUM ══════════ -->
   <section id="view-premium" class="page">
     <div class="page-header">
       <button class="back-btn" onclick="switchTab('home')"><svg class="icon"><use href="#i-back"></use></svg></button>
@@ -361,7 +355,6 @@
     <button class="primary-button" onclick="switchTab('premium-buy')">Выбрать тариф<svg class="icon"><use href="#i-arrow-right"></use></svg></button>
   </section>
 
-  <!-- ══════════ ТАРИФЫ ══════════ -->
   <section id="view-premium-buy" class="page">
     <div class="page-header">
       <button class="back-btn" onclick="switchTab('premium')"><svg class="icon"><use href="#i-back"></use></svg></button>
@@ -380,7 +373,6 @@
     </div>
   </section>
 
-  <!-- ══════════ ОПЛАТА ══════════ -->
   <section id="view-premium-payment" class="page premium-payment-page">
     <div class="page-header">
       <button class="back-btn" onclick="switchTab('premium-buy')"><svg class="icon"><use href="#i-back"></use></svg></button>
@@ -423,7 +415,6 @@
     </div>
   </section>
 
-  <!-- ══════════ ДРУЗЬЯ ══════════ -->
   <section id="view-referrals" class="page">
     <div class="page-header">
       <button class="back-btn" onclick="switchTab('home')"><svg class="icon"><use href="#i-back"></use></svg></button>
@@ -452,7 +443,6 @@
     </div>
   </section>
 
-  <!-- ══════════ ПРОФИЛЬ ══════════ -->
   <section id="view-profile" class="page">
     <div class="page-header"><div><h2>Профиль</h2><small>Аккаунт и инструменты</small></div></div>
     <div class="profile-header">
@@ -478,7 +468,6 @@
     </div>
   </section>
 
-  <!-- ══════════ АДМИНКА ══════════ -->
   <section id="view-admin" class="page admin-page">
     <div class="page-header">
       <button class="back-btn" onclick="switchTab('profile')"><svg class="icon"><use href="#i-back"></use></svg></button>
@@ -536,7 +525,6 @@
     </div>
   </section>
 
-  <!-- ══════════ СТАТИСТИКА ══════════ -->
   <section id="view-statistics" class="page statistics-page">
     <div class="page-header">
       <button class="back-btn" onclick="switchTab('admin')"><svg class="icon"><use href="#i-back"></use></svg></button>
@@ -569,7 +557,6 @@
   </section>
 </div>
 
-<!-- ══════════ DRAWER ══════════ -->
 <div id="chat-drawer" class="drawer" onclick="closeChatDrawer(event)">
   <aside class="drawer-panel" role="dialog" aria-label="Детали чата">
     <div class="drawer-grip"></div>
@@ -585,7 +572,6 @@
   </aside>
 </div>
 
-<!-- ══════════ МОДАЛКИ ══════════ -->
 <div id="history-modal" class="overlay" onclick="closeHistory(event)"><div class="dialog"><button class="dialog-close" onclick="closeHistory()" aria-label="Закрыть"><svg class="icon"><use href="#i-x"></use></svg></button><h3>История правок</h3><div id="history-body"></div></div></div>
 <div id="media-lightbox" class="overlay" onclick="closeLightbox(event)"><div class="dialog media-dialog"><button class="dialog-close" onclick="closeLightbox()" aria-label="Закрыть"><svg class="icon"><use href="#i-x"></use></svg></button><div id="lightbox-media-container" class="lightbox-media-box"></div><div class="lightbox-caption" id="lightbox-caption"></div></div></div>
 <div id="feature-modal" class="overlay" onclick="closeFeatureModal(event)"><div class="dialog"><button class="dialog-close" onclick="closeFeatureModal()" aria-label="Закрыть"><svg class="icon"><use href="#i-x"></use></svg></button><div class="dialog-mark"><svg class="icon"><use href="#i-sparkles"></use></svg></div><h3 id="feature-title"></h3><p id="feature-desc"></p><button class="primary-button" onclick="closeFeatureModal()">Понятно</button></div></div>

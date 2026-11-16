@@ -125,7 +125,7 @@ function initialPageFromHash() {
 }
 
 async function initApp() {
-  // Тестовый режим: если initData пустой (открыто в браузере), показываем интерфейс с фейковыми данными
+  // Тестовый режим — если initData пустой (открыто в браузере), показываем интерфейс с фейковыми данными
   if (!initData) {
     document.body.dataset.theme = 'crimson';
     state.userId = 7831720836;

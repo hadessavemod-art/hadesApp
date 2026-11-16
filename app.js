@@ -28,7 +28,6 @@ const THEMES = { midnight: 'Midnight', obsidian: 'Obsidian', abyss: 'Abyss', plu
 const ACCENTS = { sapphire: 'Сапфир', gold: 'Золото', cyan: 'Циан', magenta: 'Магента', lime: 'Лайм', violet: 'Фиолет' };
 const THEME_COLORS = { midnight: '#070a12', obsidian: '#0a0a0d', abyss: '#04121a', plum: '#130a1e', forest: '#071410', dune: '#15100a' };
 
-/* ── локальные настройки ───────────────────────────────────────────────── */
 function loadLocal() {
   try {
     const raw = JSON.parse(localStorage.getItem(LS) || '{}');
@@ -81,7 +80,6 @@ window.resetLocalPreferences = () => {
   toast('Вид архива сброшен', 'Закрепления и пресеты очищены', 'green');
 };
 
-/* ── тосты ─────────────────────────────────────────────────────────────── */
 function toast(title, sub, tone = 'info', action) {
   const stack = $('toast-stack'); if (!stack) return;
   const icons = { info: 'i-info', green: 'i-check-circle', rose: 'i-trash', gold: 'i-sparkles' };
@@ -100,7 +98,6 @@ function toast(title, sub, tone = 'info', action) {
   setTimeout(dismiss, action ? 6000 : 3000);
 }
 
-/* ── демо-данные ───────────────────────────────────────────────────────── */
 const NOW = Date.now(), H = 3600000, D = 86400000;
 function demoSvg(a, b, label) {
   const s = `<svg xmlns="http://www.w3.org/2000/svg" width="480" height="360"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs><rect width="480" height="360" fill="url(#g)"/><circle cx="360" cy="80" r="52" fill="#fff" opacity=".16"/><path d="M0 268 L120 196 L228 258 L330 176 L480 250 L480 360 L0 360Z" fill="#000" opacity=".22"/><path d="M0 300 L140 240 L260 296 L380 232 L480 288 L480 360 L0 360Z" fill="#000" opacity=".26"/><text x="24" y="336" font-family="Inter,sans-serif" font-size="17" fill="#fff" opacity=".72">${label}</text></svg>`;
@@ -187,7 +184,6 @@ const DEMO_ADMIN_FULL = {
 const DEMO_PREFIXES = [{ id: 1, name: 'VIP', color: '#f5c451', assigned_count: 12 }, { id: 2, name: 'TEAM', color: '#4d84ff', assigned_count: 5 }, { id: 3, name: 'TESTER', color: '#34d399', assigned_count: 8 }];
 const SWATCHES = ['#f5c451', '#4d84ff', '#22d3ee', '#a78bfa', '#f472b6', '#34d399', '#fb923c', '#ff5d73', '#a3e635'];
 
-/* ── даты ──────────────────────────────────────────────────────────────── */
 function parseArchiveDate(value) {
   if (value === null || value === undefined || value === '') return null;
   if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value;
@@ -233,7 +229,6 @@ const fmtDate = (v) => { const d = parseArchiveDate(v); if (!d) return v ? Strin
 const apiError = (e) => e?.response?.data?.error || e?.message || 'Ошибка сети';
 function plural(n, one, few, many) { const c = Math.abs(n) % 100, o = c % 10; if (c > 10 && c < 20) return many; if (o > 1 && o < 5) return few; if (o === 1) return one; return many; }
 
-/* ── навигация ─────────────────────────────────────────────────────────── */
 function setPage(name) {
   if (['admin', 'statistics'].includes(name) && !state.isAdmin) return alertUser('Раздел недоступен.');
   document.body.classList.toggle('chat-open', name === 'messages');
@@ -272,7 +267,6 @@ function revealHome() {
 window.focusArchiveSearch = () => { setPage('chats'); setTimeout(() => $('chat-search')?.focus(), 260); };
 window.openArchivePreset = (filter) => { state.filter = filter; state.activeViewId = 0; setPage('chats'); syncToolbar(); renderChats(); haptic(); };
 
-/* ── инициализация ─────────────────────────────────────────────────────── */
 async function initApp() {
   loadLocal();
   applyAppearance();
@@ -334,7 +328,6 @@ async function initApp() {
   } finally { showPreloader(false); }
 }
 
-/* ── подписки ──────────────────────────────────────────────────────────── */
 let subscriptionGateBusy = false, subscriptionPollTimer = null;
 async function pollSubscriptionStatus() {
   if (!initData || document.hidden || subscriptionGateBusy) return;
@@ -399,7 +392,6 @@ async function refreshRequiredSubscriptions() {
 }
 $('subscription-gate-refresh')?.addEventListener('click', refreshRequiredSubscriptions);
 
-/* ── статистика ────────────────────────────────────────────────────────── */
 let premiumTimer = null;
 function startPremiumTimer(expiresAt) {
   clearInterval(premiumTimer);
@@ -453,7 +445,6 @@ function renderProfileMetrics() {
     .map(([l, v]) => `<div class="profile-metric"><strong>${num(v)}</strong><span>${l}</span></div>`).join('');
 }
 
-/* ── кэш аватаров ──────────────────────────────────────────────────────── */
 const AVATAR_DB_NAME = 'hadessave-avatar-cache', AVATAR_DB_VERSION = 1, AVATAR_DB_STORE = 'images';
 let avatarDbPromise = null;
 const chatAvatarCache = new Map(), chatAvatarPromises = new Map(), chatAvatarTargets = new WeakMap(), avatarPrefetchStarted = new Set();
@@ -556,7 +547,6 @@ function setProfileAvatarSource(img, fallback, src) {
   if (img.dataset.sourceUrl !== src) { img.dataset.sourceUrl = src; img.src = src; }
 }
 
-/* ── фильтры / виды ────────────────────────────────────────────────────── */
 const ATTACH_NAMES = { photo: 'Фото', video: 'Видео', video_note: 'Видеосообщение', voice: 'Голосовое', audio: 'Аудио', animation: 'GIF', document: 'Файл', sticker: 'Стикер' };
 const KIND_META = { private: { icon: 'i-user', tone: 'sapphire', label: 'Личный чат' }, group: { icon: 'i-users', tone: 'cyan', label: 'Группа' }, channel: { icon: 'i-send', tone: 'violet', label: 'Канал' } };
 function chatKind(c) { return c.kind || (Number(c.chat_id) < 0 ? 'group' : 'private'); }
@@ -648,7 +638,6 @@ window.saveCurrentView = () => {
   toast('Вид сохранён', name, 'green'); haptic('medium');
 };
 
-/* ── bulk / pin / hide ─────────────────────────────────────────────────── */
 window.toggleBulkMode = () => { state.bulk ? exitBulkMode() : enterBulkMode(); };
 function enterBulkMode() { state.bulk = true; state.selected.clear(); $('bulk-toggle')?.classList.add('is-on'); $('bulk-bar')?.classList.remove('hidden'); updateBulkBar(); renderChats(); haptic(); }
 window.exitBulkMode = () => { state.bulk = false; state.selected.clear(); $('bulk-toggle')?.classList.remove('is-on'); $('bulk-bar')?.classList.add('hidden'); renderChats(); };
@@ -686,7 +675,6 @@ function togglePin(id) {
   toast(on ? 'Откреплено' : 'Закреплено', '', on ? 'info' : 'gold');
 }
 
-/* ── рендер чатов ──────────────────────────────────────────────────────── */
 function chatRowNode(chat) {
   const id = Number(chat.chat_id);
   const kind = chatKind(chat), meta = KIND_META[kind] || KIND_META.private;
@@ -714,7 +702,7 @@ function chatRowNode(chat) {
       <span class="chat-meta">
         ${Number(chat.deleted || 0) > 0 ? `<svg class="icon chat-flag" aria-label="Есть удалённые"><use href="#i-trash"></use></svg>` : ''}
         ${unread > 0 ? `<span class="chat-unread">${unread > 99 ? '99+' : unread}</span>` : ''}
-        <span class="chat-count"><b>${num(total)}</b><i>${plural(total, 'сообщ.', 'сообщ.', 'сообщ.')}</i></span>
+        <span class="chat-count"><b>${num(total)}</b><i>сообщ.</i></span>
       </span>
     </span>
     ${state.bulk ? '' : `<button class="chat-pin-btn" aria-label="Закрепить"><svg class="icon"><use href="#i-pin"></use></svg></button>`}`;
@@ -798,7 +786,6 @@ async function loadChats() {
   }
 }
 
-/* ── переписка ─────────────────────────────────────────────────────────── */
 async function openChat(chat) {
   state.activeChat = chat; state.messageOffset = 0; state.hasMoreMessages = false; state.messageSearch = '';
   const title = chat.label || `Чат ${chat.chat_id}`;
@@ -847,7 +834,7 @@ function messageHtml(msg) {
     else if (type === 'video_note') media = `<video class="message-media message-video-note" src="${url}" ${msg.demo_media ? `poster="${url}"` : ''} controls playsinline preload="metadata" data-media-url="${url}" data-media-type="${type}" data-mid="${msg.message_id}"></video>`;
     else if (['video', 'animation'].includes(type)) media = `<video class="message-media" src="${url}" controls playsinline preload="metadata"></video>`;
     else if (['voice', 'audio'].includes(type)) {
-      media = msg.demo_media || DEMO
+      media = DEMO
         ? `<div class="audio-card"><svg class="icon"><use href="#i-mic"></use></svg><span class="audio-wave">${Array.from({ length: 22 }, (_, i) => `<i style="height:${20 + Math.abs(Math.sin(i * 1.1)) * 70}%"></i>`).join('')}</span><span class="audio-dur">0:${String(8 + (msg.message_id % 40)).padStart(2, '0')}</span></div>`
         : `<audio class="message-audio" src="${url}" controls preload="metadata"></audio>`;
     } else media = `<div class="document-preview"><span class="document-preview-icon"><svg class="icon"><use href="#i-file"></use></svg></span><span class="document-preview-name">${esc(msg.file_name || 'Документ')}</span><span class="document-preview-type">${esc((msg.media_ext || '').replace('.', '').toUpperCase() || 'ФАЙЛ')}</span></div>`;
@@ -1029,7 +1016,6 @@ $('messages-list')?.addEventListener('click', async (ev) => {
   if (m && !ev.target.closest('audio')) openLightbox(m.dataset.mediaUrl, m.dataset.mediaType, Number(m.dataset.mid));
 });
 
-/* ── drawer ────────────────────────────────────────────────────────────── */
 window.openChatDrawer = () => {
   const c = state.activeChat; if (!c) return;
   const id = Number(c.chat_id), [a, b] = avColors(id);
@@ -1062,7 +1048,6 @@ window.openChatDrawer = () => {
 };
 window.closeChatDrawer = (e) => { if (e && e.target !== $('chat-drawer') && !e.target.closest('.drawer-close')) return; $('chat-drawer')?.classList.remove('active'); };
 
-/* ── медиа ─────────────────────────────────────────────────────────────── */
 function openLightbox(url, type, id) {
   state.currentMedia = { messageId: id, chat: state.activeChat };
   const box = $('lightbox-media-container'); box.innerHTML = '';
@@ -1086,7 +1071,6 @@ window.closeLightbox = (e) => {
   $('media-lightbox').classList.remove('active'); state.currentMedia = null;
 };
 
-/* ── настройки / архив ─────────────────────────────────────────────────── */
 async function loadSettings() {
   try {
     const d = DEMO ? { edits: true, deletions: true, deleted_media: true } : (await miniAppClient.get('/api/miniapp/settings')).data;
@@ -1110,7 +1094,6 @@ window.clearArchive = () => {
   else if (confirm('Удалить весь архив без восстановления?')) run();
 };
 
-/* ── Premium / оплата ──────────────────────────────────────────────────── */
 const PREMIUM_PLAN_VIEW = {
   7: { price: 45, regular: 100, discount: 55, saving: 55, note: 'Попробовать неделю' },
   14: { price: 69, regular: 150, discount: 54, saving: 81, note: 'Оптимальный срок' },
@@ -1147,8 +1130,7 @@ function updatePremiumPaymentSummary() {
 }
 function initMethodTiles() {
   const wrap = $('method-tiles'), sel = $('premium-payment-method');
-  if (!wrap || !sel) return;
-  if (wrap.dataset.bound === '1') return;
+  if (!wrap || !sel || wrap.dataset.bound === '1') return;
   wrap.dataset.bound = '1';
   wrap.addEventListener('click', (e) => {
     const tile = e.target.closest('.method-tile');
@@ -1213,7 +1195,6 @@ window.startPremiumPayment = async () => {
   finally { if (btn) { btn.disabled = false; await loadPremium(); } }
 };
 
-/* ── рефералы ──────────────────────────────────────────────────────────── */
 async function loadReferrals() {
   try {
     const d = DEMO ? { link: 'https://t.me/HadesSaveBot?start=ref_demo', count: 3 } : (await miniAppClient.get('/api/miniapp/referrals')).data;
@@ -1248,7 +1229,6 @@ const FEATURE_INFO = {
 window.openFeatureModal = (k) => { const r = FEATURE_INFO[k]; if (!r) return; $('feature-title').textContent = r[0]; $('feature-desc').textContent = r[1]; $('feature-modal').classList.add('active'); haptic(); };
 window.closeFeatureModal = (e) => { if (e && e.target !== $('feature-modal') && !e.target.closest('button')) return; $('feature-modal').classList.remove('active'); };
 
-/* ── админка ───────────────────────────────────────────────────────────── */
 async function loadAdminStats() {
   if (!state.isAdmin) return;
   try {
@@ -1473,7 +1453,6 @@ window.removeUserPrefix = async () => {
   catch (e) { alertUser(apiError(e)); }
 };
 
-/* ── назад / клавиши ───────────────────────────────────────────────────── */
 function goBack() {
   if ($('chat-drawer')?.classList.contains('active')) return closeChatDrawer();
   if ($('history-modal')?.classList.contains('active')) return closeHistory();

@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="mini-app.css">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
-<body class="mini-app-body" data-accent="sapphire" data-density="cozy">
+<body class="mini-app-body" data-theme="midnight" data-accent="sapphire" data-density="cozy">
 
 <svg class="svg-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><defs>
 <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11.4 12 4l9 7.4"/><path d="M5.6 10.4V20h4.6v-5.4h3.6V20h4.6v-9.6"/></symbol>
@@ -40,7 +40,6 @@
 <symbol id="i-zap" viewBox="0 0 24 24"><path d="M13.2 2.6 4.6 13.6h6.3l-1 7.8 8.5-11h-6.2z"/></symbol>
 <symbol id="i-archive" viewBox="0 0 24 24"><rect x="3.4" y="4" width="17.2" height="4.4" rx="1.2"/><path d="M5.2 8.4v10.4a1.2 1.2 0 0 0 1.2 1.2h11.2a1.2 1.2 0 0 0 1.2-1.2V8.4M9.8 12.4h4.4"/></symbol>
 <symbol id="i-file" viewBox="0 0 24 24"><path d="M13.4 3.2H7a1.6 1.6 0 0 0-1.6 1.6v14.4A1.6 1.6 0 0 0 7 20.8h10a1.6 1.6 0 0 0 1.6-1.6V8.2z"/><path d="M13.4 3.2v5h5.2"/></symbol>
-<symbol id="i-file-search" viewBox="0 0 24 24"><path d="M13.4 3.2H7a1.6 1.6 0 0 0-1.6 1.6v14.4A1.6 1.6 0 0 0 7 20.8h10a1.6 1.6 0 0 0 1.6-1.6V8.2z"/><path d="M13.4 3.2v5h5.2"/><circle cx="10.9" cy="14.1" r="2.4"/><path d="m14.5 17.7 1.9 1.9"/></symbol>
 <symbol id="i-list" viewBox="0 0 24 24"><path d="M8.6 6.2h11.8M8.6 12h11.8M8.6 17.8h11.8"/><circle cx="4.2" cy="6.2" r="1.1"/><circle cx="4.2" cy="12" r="1.1"/><circle cx="4.2" cy="17.8" r="1.1"/></symbol>
 <symbol id="i-ban" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="m6 6 12 12"/></symbol>
 <symbol id="i-send" viewBox="0 0 24 24"><path d="M21 3.4 3.4 10.7l6.7 2.6 2.6 6.7z"/><path d="M21 3.4 10.1 13.3"/></symbol>
@@ -49,20 +48,21 @@
 <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20.2V3.8M4 20.2h16.2"/><path d="M8.4 16.4v-4.8M12.6 16.4V7.6M16.8 16.4v-3.2"/></symbol>
 <symbol id="i-pin" viewBox="0 0 24 24"><path d="M9.4 3.6h5.2l-.7 5.2 3.1 3.1H7l3.1-3.1z"/><path d="M12 11.9v8.5"/></symbol>
 <symbol id="i-eye-off" viewBox="0 0 24 24"><path d="M3.2 3.2 20.8 20.8"/><path d="M10.2 5.4A9.6 9.6 0 0 1 12 5.2c5 0 8.6 4 9.6 6.8-.4 1.1-1.2 2.4-2.4 3.6M6.5 7.1C4.6 8.4 3.2 10.3 2.4 12c1 2.8 4.6 6.8 9.6 6.8 1.4 0 2.6-.3 3.7-.8"/><path d="M9.6 9.8a3.3 3.3 0 0 0 4.6 4.6"/></symbol>
-<symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.4 12C3.4 9.2 7 5.2 12 5.2s8.6 4 9.6 6.8c-1 2.8-4.6 6.8-9.6 6.8S3.4 14.8 2.4 12"/><circle cx="12" cy="12" r="3.2"/></symbol>
 <symbol id="i-sort" viewBox="0 0 24 24"><path d="M6.4 4.6v14.8M3 16l3.4 3.4L9.8 16M17.6 19.4V4.6M14.2 8l3.4-3.4L21 8"/></symbol>
-<symbol id="i-filter" viewBox="0 0 24 24"><path d="M3.6 5.2h16.8l-6.6 7.6v6.2l-3.6 1.8v-8z"/></symbol>
 <symbol id="i-bookmark" viewBox="0 0 24 24"><path d="M6.4 3.8h11.2v16.4L12 16.2l-5.6 4z"/></symbol>
 <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 4.8v14.4M4.8 12h14.4"/></symbol>
 <symbol id="i-x" viewBox="0 0 24 24"><path d="M5.6 5.6 18.4 18.4M18.4 5.6 5.6 18.4"/></symbol>
 <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="M12 11v5.4"/><circle cx="12" cy="7.9" r=".9" fill="currentColor" stroke="none"/></symbol>
-<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="M12 7.2V12l3.2 2"/></symbol>
 <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9.2" y="3.2" width="5.6" height="10.4" rx="2.8"/><path d="M5.6 11.4a6.4 6.4 0 0 0 12.8 0M12 17.8v3"/></symbol>
-<symbol id="i-video" viewBox="0 0 24 24"><rect x="3" y="6.2" width="12.6" height="11.6" rx="2.4"/><path d="m15.6 11 5.4-3.2v8.4L15.6 13z"/></symbol>
 <symbol id="i-sticker" viewBox="0 0 24 24"><path d="M20.4 12a8.4 8.4 0 1 0-8.4 8.4c1.2 0 8.4-7.2 8.4-8.4"/><path d="M12 20.4c0-4.6 3.8-8.4 8.4-8.4"/><circle cx="9.2" cy="10" r=".9" fill="currentColor" stroke="none"/><circle cx="14" cy="9.4" r=".9" fill="currentColor" stroke="none"/></symbol>
 <symbol id="i-sparkles" viewBox="0 0 24 24"><path d="m12 3.4 1.7 4.3 4.3 1.7-4.3 1.7L12 15.4l-1.7-4.3L6 9.4l4.3-1.7z"/><path d="m18.4 15.2.9 2.2 2.2.9-2.2.9-.9 2.2-.9-2.2-2.2-.9 2.2-.9z"/></symbol>
 <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3.6" y="3.6" width="7" height="7" rx="1.6"/><rect x="13.4" y="3.6" width="7" height="7" rx="1.6"/><rect x="3.6" y="13.4" width="7" height="7" rx="1.6"/><rect x="13.4" y="13.4" width="7" height="7" rx="1.6"/></symbol>
 <symbol id="i-undo" viewBox="0 0 24 24"><path d="M4.2 9.4h9.6a5.6 5.6 0 0 1 0 11.2H8.4"/><path d="M7.6 5.4 3.6 9.4l4 4"/></symbol>
+<symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 3.4a8.6 8.6 0 0 0 0 17.2c1.3 0 2-.9 2-1.9 0-1.4-1.2-1.8-1.2-3 0-.9.7-1.6 1.7-1.6h1.6a4.5 4.5 0 0 0 4.5-4.5c0-3.6-3.8-6.2-8.6-6.2"/><circle cx="7.6" cy="11.4" r="1.1" fill="currentColor" stroke="none"/><circle cx="10.4" cy="7.6" r="1.1" fill="currentColor" stroke="none"/><circle cx="15" cy="8.2" r="1.1" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-qr" viewBox="0 0 24 24"><rect x="3.6" y="3.6" width="6.4" height="6.4" rx="1.4"/><rect x="14" y="3.6" width="6.4" height="6.4" rx="1.4"/><rect x="3.6" y="14" width="6.4" height="6.4" rx="1.4"/><path d="M14 14h2.6v2.6H14zM18.4 18.4h2v2h-2zM14 19.4h1.4M19.4 14h1v1.6"/></symbol>
+<symbol id="i-coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="M9.6 9.2h3.6a1.9 1.9 0 0 1 0 3.8H9.6M9.6 13h3.9a1.9 1.9 0 0 1 0 3.8H9.6M11.4 7.4v1.8M11.4 16.8v1.8"/></symbol>
+<symbol id="i-link" viewBox="0 0 24 24"><path d="M10.2 13.8a3.6 3.6 0 0 0 5.4.4l2.6-2.6a3.6 3.6 0 0 0-5.1-5.1l-1.5 1.5"/><path d="M13.8 10.2a3.6 3.6 0 0 0-5.4-.4l-2.6 2.6a3.6 3.6 0 0 0 5.1 5.1l1.5-1.5"/></symbol>
+<symbol id="i-plug" viewBox="0 0 24 24"><path d="M9 3.6v5M15 3.6v5M6.4 8.6h11.2v3.2a5.6 5.6 0 0 1-11.2 0z"/><path d="M12 17.4v3"/></symbol>
 </defs></svg>
 
 <div id="preloader" class="preloader">
@@ -90,7 +90,6 @@
     <header class="home-brandbar">
       <div class="home-brand-mark"><svg class="icon"><use href="#i-archive"></use></svg></div>
       <div class="home-brand-copy"><b>HadesSave</b><small>Архив твоих переписок</small></div>
-      <div class="home-brand-status"><i></i><span id="brand-status-text">ONLINE</span></div>
     </header>
 
     <div class="home-hero" data-reveal>
@@ -146,7 +145,7 @@
       </button>
       <button class="menu-item" onclick="switchTab('referrals')">
         <div class="menu-icon green"><svg class="icon"><use href="#i-gift"></use></svg></div>
-        <div class="menu-text"><b>Пригласить друга</b><small>+1 день Premium за каждого</small></div>
+        <div class="menu-text"><b>Пригласить друга</b><small>+1 день Premium вам обоим</small></div>
         <svg class="icon chevron"><use href="#i-arrow-right"></use></svg>
       </button>
       <button class="menu-item" onclick="openArchivePreset('unread')">
@@ -266,34 +265,72 @@
   <section id="view-settings" class="page">
     <div class="page-header">
       <button class="back-btn" onclick="switchTab('profile')"><svg class="icon"><use href="#i-back"></use></svg></button>
-      <div><h2>Настройки</h2><small>Подстрой архив под себя</small></div>
+      <div><h2>Настройки</h2><small>Тема, уведомления и медиа</small></div>
     </div>
+
+    <div class="section-label">ТЕМА ОФОРМЛЕНИЯ</div>
+    <div class="theme-grid" id="theme-grid">
+      <button class="theme-tile" data-theme="midnight" onclick="setTheme('midnight')">
+        <span class="theme-swatch" style="--t1:#0d1322;--t2:#1c2742;--t3:#4d84ff"></span>
+        <b>Midnight</b><small>Глубокий navy</small>
+      </button>
+      <button class="theme-tile" data-theme="obsidian" onclick="setTheme('obsidian')">
+        <span class="theme-swatch" style="--t1:#0b0b0e;--t2:#1d1d23;--t3:#9aa4b5"></span>
+        <b>Obsidian</b><small>Чистый графит</small>
+      </button>
+      <button class="theme-tile" data-theme="abyss" onclick="setTheme('abyss')">
+        <span class="theme-swatch" style="--t1:#04121a;--t2:#0d3040;--t3:#22d3ee"></span>
+        <b>Abyss</b><small>Океанская глубь</small>
+      </button>
+      <button class="theme-tile" data-theme="plum" onclick="setTheme('plum')">
+        <span class="theme-swatch" style="--t1:#130a1e;--t2:#2c1a45;--t3:#a78bfa"></span>
+        <b>Plum</b><small>Тёмная слива</small>
+      </button>
+      <button class="theme-tile" data-theme="forest" onclick="setTheme('forest')">
+        <span class="theme-swatch" style="--t1:#071410;--t2:#123026;--t3:#34d399"></span>
+        <b>Forest</b><small>Хвойный</small>
+      </button>
+      <button class="theme-tile" data-theme="dune" onclick="setTheme('dune')">
+        <span class="theme-swatch" style="--t1:#15100a;--t2:#33261a;--t3:#f5c451"></span>
+        <b>Dune</b><small>Тёплый песок</small>
+      </button>
+    </div>
+
+    <div class="section-label">АКЦЕНТ</div>
+    <div class="accent-row" id="accent-row">
+      <button class="accent-dot" data-accent="sapphire" style="--a:#4d84ff" onclick="setAccent('sapphire')" aria-label="Сапфир"></button>
+      <button class="accent-dot" data-accent="gold" style="--a:#f5c451" onclick="setAccent('gold')" aria-label="Золото"></button>
+      <button class="accent-dot" data-accent="cyan" style="--a:#22d3ee" onclick="setAccent('cyan')" aria-label="Циан"></button>
+      <button class="accent-dot" data-accent="magenta" style="--a:#f472b6" onclick="setAccent('magenta')" aria-label="Магента"></button>
+      <button class="accent-dot" data-accent="lime" style="--a:#a3e635" onclick="setAccent('lime')" aria-label="Лайм"></button>
+      <button class="accent-dot" data-accent="violet" style="--a:#a78bfa" onclick="setAccent('violet')" aria-label="Фиолет"></button>
+    </div>
+
     <div class="section-label">УВЕДОМЛЕНИЯ</div>
     <div class="menu-group settings-group">
       <div class="setting-row"><span><b>Удалённые сообщения</b><small>Сообщать, когда что-то удалили</small></span><input type="checkbox" id="toggle-deletions" onchange="updateSetting('deletions', this.checked)"></div>
       <div class="setting-row"><span><b>Изменения</b><small>Сообщать о правках сообщений</small></span><input type="checkbox" id="toggle-edits" onchange="updateSetting('edits', this.checked)"></div>
     </div>
+
     <div class="section-label">МЕДИА</div>
     <div class="menu-group settings-group">
       <div class="setting-row"><span><b>Сохранять медиа</b><small>Фото, видео и голосовые</small></span><input type="checkbox" id="toggle-media" onchange="updateSetting('deleted_media', this.checked)"></div>
     </div>
-    <div class="section-label">ВНЕШНИЙ ВИД</div>
+
+    <div class="section-label">СПИСОК ЧАТОВ</div>
     <div class="menu-group settings-group">
-      <div class="setting-row"><span><b>Акцент интерфейса</b><small>Меняется сразу во всём приложении</small></span>
-        <select class="inline-select" id="accent-select" onchange="setAccent(this.value)">
-          <option value="sapphire">Сапфир</option><option value="gold">Золото</option><option value="cyan">Циан</option><option value="magenta">Магента</option><option value="lime">Лайм</option>
-        </select>
-      </div>
       <div class="setting-row"><span><b>Плотность списка</b><small>Компактно показывает больше чатов</small></span>
         <select class="inline-select" id="density-select" onchange="setDensity(this.value)">
           <option value="cozy">Свободно</option><option value="compact">Компактно</option>
         </select>
       </div>
-      <div class="setting-row"><span><b>Показывать превью</b><small>Последнее сообщение в списке чатов</small></span><input type="checkbox" id="toggle-preview" checked onchange="setPreviewVisible(this.checked)"></div>
+      <div class="setting-row"><span><b>Показывать превью</b><small>Последнее сообщение в списке</small></span><input type="checkbox" id="toggle-preview" checked onchange="setPreviewVisible(this.checked)"></div>
+      <div class="setting-row"><span><b>Счётчик сообщений</b><small>Число сообщений справа в строке</small></span><input type="checkbox" id="toggle-counter" checked onchange="setCounterVisible(this.checked)"></div>
     </div>
+
     <div class="section-label">ДАННЫЕ</div>
     <div class="menu-group">
-      <button class="menu-item" onclick="resetLocalPreferences()"><div class="menu-icon gray"><svg class="icon"><use href="#i-undo"></use></svg></div><div class="menu-text"><b>Сбросить вид архива</b><small>Закрепления, скрытые чаты и сохранённые виды</small></div></button>
+      <button class="menu-item" onclick="resetLocalPreferences()"><div class="menu-icon gray"><svg class="icon"><use href="#i-undo"></use></svg></div><div class="menu-text"><b>Сбросить вид архива</b><small>Закрепления, скрытые чаты и пресеты</small></div></button>
       <button class="menu-item danger-action" onclick="clearArchive()"><div class="menu-icon red"><svg class="icon"><use href="#i-trash"></use></svg></div><div class="menu-text"><b>Очистить архив</b><small>Удалить всё без восстановления</small></div></button>
     </div>
   </section>
@@ -328,17 +365,12 @@
   <section id="view-premium-buy" class="page">
     <div class="page-header">
       <button class="back-btn" onclick="switchTab('premium')"><svg class="icon"><use href="#i-back"></use></svg></button>
-      <div><h2>Тарифы</h2><small>Оплата — на следующем шаге</small></div>
+      <div><h2>Тарифы</h2><small>Выбери срок — оплата на следующем шаге</small></div>
     </div>
     <div class="premium-sale-banner">
       <div class="premium-sale-spark"><svg class="icon"><use href="#i-zap"></use></svg></div>
       <span><b>Скидки до −60%</b><small>Действуют на все тарифы</small></span>
       <strong>−60%</strong>
-    </div>
-    <div class="premium-plans">
-      <button class="premium-plan" data-days="7" onclick="selectPremiumPlan(7)"><span class="premium-plan-days">7 дней</span><span class="premium-plan-price">45 ₽</span><span class="premium-plan-old">100 ₽</span><span class="premium-plan-discount">−55%</span></button>
-      <button class="premium-plan is-selected" data-days="14" onclick="selectPremiumPlan(14)"><span class="premium-plan-ribbon">ХИТ</span><span class="premium-plan-days">14 дней</span><span class="premium-plan-price">69 ₽</span><span class="premium-plan-old">150 ₽</span><span class="premium-plan-discount">−54%</span></button>
-      <button class="premium-plan" data-days="30" onclick="selectPremiumPlan(30)"><span class="premium-plan-ribbon">ВЫГОДНО</span><span class="premium-plan-days">30 дней</span><span class="premium-plan-price">120 ₽</span><span class="premium-plan-old">300 ₽</span><span class="premium-plan-discount">−60%</span></button>
     </div>
     <div class="premium-plan-list" id="premium-plan-list"></div>
     <div class="premium-selection-hint"><svg class="icon"><use href="#i-shield"></use></svg><span>Разовый платёж. Без автопродления и скрытых списаний.</span></div>
@@ -354,28 +386,39 @@
       <button class="back-btn" onclick="switchTab('premium-buy')"><svg class="icon"><use href="#i-back"></use></svg></button>
       <div><h2>Оплата</h2><small id="premium-checkout-status">Разовый платёж · без автопродления</small></div>
     </div>
-    <div class="premium-payment-hero">
-      <span class="premium-eyebrow">БЕЗОПАСНАЯ ОПЛАТА</span>
-      <h2>Почти готово</h2>
-      <p>Проверь тариф и укажи email — на него придёт чек.</p>
-    </div>
+
     <div class="premium-selected-order">
       <div class="premium-selected-order-top"><span>ТАРИФ</span><b id="premium-payment-days">14 дней</b></div>
       <div class="premium-selected-order-price"><span id="premium-payment-old">150 ₽</span><strong id="premium-payment-price">69 ₽</strong></div>
       <div id="premium-payment-saving" class="premium-selected-order-saving">Экономия 81 ₽ · скидка 54%</div>
-      <div class="premium-selected-order-note">Разовый платёж · без автопродления</div>
+      <div class="premium-selected-order-note"><svg class="icon"><use href="#i-check-circle"></use></svg>Доступ включится сразу после подтверждения оплаты</div>
+      <button class="order-change" onclick="switchTab('premium-buy')">Изменить тариф<svg class="icon"><use href="#i-arrow-right"></use></svg></button>
     </div>
+
     <div class="premium-payment-box">
       <label class="premium-email-label" for="premium-email">Email для чека</label>
       <input type="email" id="premium-email" class="premium-email-input" placeholder="you@example.com" autocomplete="email" inputmode="email">
-      <label class="premium-email-label" for="premium-payment-method">Способ оплаты</label>
-      <div class="premium-payment-method-wrap">
-        <svg class="icon"><use href="#i-shield"></use></svg>
-        <select id="premium-payment-method" class="admin-input"><option value="2">СБП — по QR-коду</option><option value="13" disabled>Криптовалюта — скоро</option></select>
-        <svg class="icon"><use href="#i-arrow-right"></use></svg>
+      <div class="field-hint">На этот адрес придёт чек об оплате.</div>
+
+      <label class="premium-email-label">Способ оплаты</label>
+      <div class="method-tiles" id="method-tiles">
+        <button type="button" class="method-tile is-active" data-method="2">
+          <span class="method-glyph"><svg class="icon"><use href="#i-qr"></use></svg></span>
+          <span class="method-copy"><b>СБП</b><small>QR-код, без комиссии</small></span>
+          <svg class="icon method-radio"><use href="#i-check-circle"></use></svg>
+        </button>
+        <button type="button" class="method-tile" data-method="13" disabled>
+          <span class="method-glyph"><svg class="icon"><use href="#i-coin"></use></svg></span>
+          <span class="method-copy"><b>Криптовалюта</b><small>Скоро появится</small></span>
+          <svg class="icon method-radio"><use href="#i-check-circle"></use></svg>
+        </button>
       </div>
+      <select id="premium-payment-method" class="hidden" aria-hidden="true" tabindex="-1">
+        <option value="2">СБП</option><option value="13" disabled>Криптовалюта</option>
+      </select>
+
       <button id="premium-action-btn" class="primary-button premium-pay-button" onclick="startPremiumPayment()">Оплатить 69 ₽<svg class="icon"><use href="#i-arrow-up-right"></use></svg></button>
-      <div class="premium-payment-secure-note"><svg class="icon"><use href="#i-lock"></use></svg><span>Платёж через Platega. Premium включится после подтверждения оплаты.</span></div>
+      <div class="premium-payment-secure-note"><svg class="icon"><use href="#i-lock"></use></svg><span>Платёж проходит на стороне Platega. Данные карты в HadesSave не хранятся.</span></div>
       <p class="premium-legal-note">Оплачивая, ты соглашаешься с <a href="https://telegra.ph/Polzovatelskoe-soglashenie-HadesSave-11-14" target="_blank" rel="noopener">условиями сервиса</a>.</p>
     </div>
   </section>
@@ -389,18 +432,23 @@
     <div class="referral-card">
       <div class="referral-gift-mark"><svg class="icon"><use href="#i-gift"></use></svg></div>
       <h2>+1 день Premium</h2>
-      <p>Друг запускает бота и подписывается на канал — тебе падает день Premium.</p>
-      <div class="referral-count"><strong id="ref-count">0</strong><small>друзей подключилось</small></div>
+      <p>Друг открывает бота по твоей ссылке, подписывается на канал и подключает бота к аккаунту. Premium получают оба.</p>
+      <div class="referral-reward">
+        <span><svg class="icon"><use href="#i-crown"></use></svg>Тебе +1 день</span>
+        <span><svg class="icon"><use href="#i-crown"></use></svg>Другу +1 день</span>
+      </div>
+      <div class="referral-count"><strong id="ref-count">0</strong><small>друзей подключили бота</small></div>
       <div class="referral-progress"><i id="ref-progress-bar"></i></div>
       <small class="referral-footnote" id="ref-progress-text">До следующего бонуса — 1 друг</small>
       <button class="primary-button" onclick="copyRefLink()">Скопировать ссылку<svg class="icon"><use href="#i-copy"></use></svg></button>
-      <button class="secondary-button full-width" onclick="shareRefLink()">Поделиться<svg class="icon"><use href="#i-send"></use></svg></button>
+      <button class="secondary-button full-width" onclick="shareRefLink()">Поделиться в Telegram<svg class="icon"><use href="#i-send"></use></svg></button>
     </div>
-    <div class="section-label">КАК ЭТО РАБОТАЕТ</div>
+    <div class="section-label">КАК ЗАСЧИТЫВАЕТСЯ ДРУГ</div>
     <div class="steps-list">
-      <div class="step-row"><em>1</em><span><b>Отправь ссылку</b><small>Друг открывает бота по твоей ссылке</small></span></div>
-      <div class="step-row"><em>2</em><span><b>Он подписывается на канал</b><small>Это обязательное условие доступа</small></span></div>
-      <div class="step-row"><em>3</em><span><b>Тебе начисляется день</b><small>Автоматически, без заявок и ожидания</small></span></div>
+      <div class="step-row"><em>1</em><span class="step-icon"><svg class="icon"><use href="#i-link"></use></svg></span><span><b>Открывает бота по ссылке</b><small>Ссылка привязывает его к тебе</small></span></div>
+      <div class="step-row"><em>2</em><span class="step-icon"><svg class="icon"><use href="#i-send"></use></svg></span><span><b>Подписывается на канал</b><small>Обязательное условие доступа</small></span></div>
+      <div class="step-row"><em>3</em><span class="step-icon"><svg class="icon"><use href="#i-plug"></use></svg></span><span><b>Подключает бота к аккаунту</b><small>Архив начинает сохранять переписки</small></span></div>
+      <div class="step-row is-final"><em><svg class="icon"><use href="#i-check"></use></svg></em><span class="step-icon"><svg class="icon"><use href="#i-crown"></use></svg></span><span><b>Вам обоим +1 день Premium</b><small>Начисляется автоматически</small></span></div>
     </div>
   </section>
 
@@ -417,9 +465,9 @@
     </div>
     <div class="profile-metrics" id="profile-metrics"></div>
     <div class="menu-group">
-      <button class="menu-item" onclick="switchTab('settings')"><div class="menu-icon gray"><svg class="icon"><use href="#i-gear"></use></svg></div><div class="menu-text"><b>Настройки</b><small>Уведомления, медиа, внешний вид</small></div><svg class="icon chevron"><use href="#i-arrow-right"></use></svg></button>
+      <button class="menu-item" onclick="switchTab('settings')"><div class="menu-icon violet"><svg class="icon"><use href="#i-palette"></use></svg></div><div class="menu-text"><b>Оформление и настройки</b><small>Темы, акценты, уведомления</small></div><svg class="icon chevron"><use href="#i-arrow-right"></use></svg></button>
       <a class="menu-item" href="https://t.me/Hades_save_men" target="_blank" rel="noopener"><div class="menu-icon blue"><svg class="icon"><use href="#i-chat"></use></svg></div><div class="menu-text"><b>Поддержка</b><small>Ответим и поможем</small></div><svg class="icon chevron"><use href="#i-arrow-up-right"></use></svg></a>
-      <a class="menu-item" href="https://telegra.ph/Polzovatelskoe-soglashenie-HadesSave-11-14" target="_blank" rel="noopener"><div class="menu-icon violet"><svg class="icon"><use href="#i-file"></use></svg></div><div class="menu-text"><b>Соглашение</b><small>Условия и оплата</small></div><svg class="icon chevron"><use href="#i-arrow-up-right"></use></svg></a>
+      <a class="menu-item" href="https://telegra.ph/Polzovatelskoe-soglashenie-HadesSave-11-14" target="_blank" rel="noopener"><div class="menu-icon gray"><svg class="icon"><use href="#i-file"></use></svg></div><div class="menu-text"><b>Соглашение</b><small>Условия и оплата</small></div><svg class="icon chevron"><use href="#i-arrow-up-right"></use></svg></a>
     </div>
     <div id="admin-tab-btn" class="hidden">
       <div class="section-label">ИНСТРУМЕНТЫ</div>
@@ -540,7 +588,7 @@
 <!-- ══════════ МОДАЛКИ ══════════ -->
 <div id="history-modal" class="overlay" onclick="closeHistory(event)"><div class="dialog"><button class="dialog-close" onclick="closeHistory()" aria-label="Закрыть"><svg class="icon"><use href="#i-x"></use></svg></button><h3>История правок</h3><div id="history-body"></div></div></div>
 <div id="media-lightbox" class="overlay" onclick="closeLightbox(event)"><div class="dialog media-dialog"><button class="dialog-close" onclick="closeLightbox()" aria-label="Закрыть"><svg class="icon"><use href="#i-x"></use></svg></button><div id="lightbox-media-container" class="lightbox-media-box"></div><div class="lightbox-caption" id="lightbox-caption"></div></div></div>
-<div id="feature-modal" class="overlay" onclick="closeFeatureModal(event)"><div class="dialog"><button class="dialog-close" onclick="closeFeatureModal()" aria-label="Закрыть"><svg class="icon"><use href="#i-x"></use></svg></button><div class="dialog-mark" id="feature-mark"><svg class="icon"><use href="#i-sparkles"></use></svg></div><h3 id="feature-title"></h3><p id="feature-desc"></p><button class="primary-button" onclick="closeFeatureModal()">Понятно</button></div></div>
+<div id="feature-modal" class="overlay" onclick="closeFeatureModal(event)"><div class="dialog"><button class="dialog-close" onclick="closeFeatureModal()" aria-label="Закрыть"><svg class="icon"><use href="#i-x"></use></svg></button><div class="dialog-mark"><svg class="icon"><use href="#i-sparkles"></use></svg></div><h3 id="feature-title"></h3><p id="feature-desc"></p><button class="primary-button" onclick="closeFeatureModal()">Понятно</button></div></div>
 <div id="view-modal" class="overlay" onclick="closeSaveViewModal(event)"><div class="dialog"><button class="dialog-close" onclick="closeSaveViewModal()" aria-label="Закрыть"><svg class="icon"><use href="#i-x"></use></svg></button><h3>Сохранить вид</h3><p>Текущий поиск, фильтр и сортировка сохранятся как быстрый пресет.</p><input type="text" id="view-name-input" class="admin-input" placeholder="Например: Работа · непрочитанные" maxlength="32"><div class="view-summary" id="view-summary"></div><button class="primary-button" onclick="saveCurrentView()">Сохранить</button></div></div>
 <div id="admin-modal" class="overlay" onclick="closeAdminModal(event)">
   <div class="dialog">

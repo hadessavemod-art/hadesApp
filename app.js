@@ -3,18 +3,18 @@ import { setTelegramInitData, miniAppClient } from './miniAppClient.js';
 const tg = window.Telegram?.WebApp;
 const initData = tg?.initData || '';
 const DEMO = !initData;
-const LS = 'hadessave.ui.v1';
+const LS = 'hadessave.ui.v2';
 
 const state = {
   userId: 0, username: '', refLink: '', hasPermanentAccess: false, role: null,
   isAdmin: false, profilePrefix: null, prefixes: [], adminAction: '', editingPrefixId: 0,
   chats: [], chatSearch: '', activeChat: null, messageSearch: '',
   messageOffset: 0, loadingMessages: false, hasMoreMessages: false,
-  currentMedia: null, selectedPremiumDays: 14,
+  currentMedia: null, selectedPremiumDays: 14, paymentMethod: 2,
   filter: 'all', sort: 'recent', activeViewId: 0,
   bulk: false, selected: new Set(), pinned: [], hidden: [], views: [],
-  prefs: { accent: 'sapphire', density: 'cozy', preview: true },
-  stats: null, undo: null, dragId: null
+  prefs: { theme: 'midnight', accent: 'sapphire', density: 'cozy', preview: true, counter: true },
+  stats: null, dragId: null
 };
 
 const $ = (id) => document.getElementById(id);
@@ -23,6 +23,10 @@ const alertUser = (m) => { try { tg?.showAlert?.(String(m)); } catch (_) { windo
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const num = (v) => Number(v || 0).toLocaleString('ru-RU');
 const demoBlock = () => { if (DEMO) { toast('Демо в браузере', 'Действия с сервером работают в Telegram', 'info'); return true; } return false; };
+
+const THEMES = { midnight: 'Midnight', obsidian: 'Obsidian', abyss: 'Abyss', plum: 'Plum', forest: 'Forest', dune: 'Dune' };
+const ACCENTS = { sapphire: 'Сапфир', gold: 'Золото', cyan: 'Циан', magenta: 'Магента', lime: 'Лайм', violet: 'Фиолет' };
+const THEME_COLORS = { midnight: '#070a12', obsidian: '#0a0a0d', abyss: '#04121a', plum: '#130a1e', forest: '#071410', dune: '#15100a' };
 
 /* ── локальные настройки ───────────────────────────────────────────────── */
 function loadLocal() {
@@ -43,16 +47,41 @@ function saveLocal() {
     }));
   } catch (_) {}
 }
-window.setAccent = (v) => { state.prefs.accent = v; document.body.dataset.accent = v; saveLocal(); haptic(); toast('Акцент обновлён', accentName(v), 'gold'); };
-window.setDensity = (v) => { state.prefs.density = v; document.body.dataset.density = v; saveLocal(); haptic(); };
-window.setPreviewVisible = (v) => { state.prefs.preview = v; document.body.classList.toggle('hide-preview', !v); saveLocal(); };
-function accentName(v) { return ({ sapphire: 'Сапфир', gold: 'Золото', cyan: 'Циан', magenta: 'Магента', lime: 'Лайм' })[v] || v; }
+function applyAppearance() {
+  document.body.dataset.theme = state.prefs.theme;
+  document.body.dataset.accent = state.prefs.accent;
+  document.body.dataset.density = state.prefs.density;
+  document.body.classList.toggle('hide-preview', !state.prefs.preview);
+  document.body.classList.toggle('hide-counter', !state.prefs.counter);
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content', THEME_COLORS[state.prefs.theme] || '#070a12');
+  document.querySelectorAll('.theme-tile').forEach(t => t.classList.toggle('active', t.dataset.theme === state.prefs.theme));
+  document.querySelectorAll('.accent-dot').forEach(t => t.classList.toggle('active', t.dataset.accent === state.prefs.accent));
+  if ($('density-select')) $('density-select').value = state.prefs.density;
+  if ($('toggle-preview')) $('toggle-preview').checked = state.prefs.preview;
+  if ($('toggle-counter')) $('toggle-counter').checked = state.prefs.counter;
+}
+window.setTheme = (v) => {
+  if (!THEMES[v]) return;
+  state.prefs.theme = v; applyAppearance(); saveLocal(); haptic('medium');
+  toast('Тема применена', THEMES[v], 'gold');
+};
+window.setAccent = (v) => {
+  if (!ACCENTS[v]) return;
+  state.prefs.accent = v; applyAppearance(); saveLocal(); haptic();
+  toast('Акцент обновлён', ACCENTS[v], 'gold');
+};
+window.setDensity = (v) => { state.prefs.density = v; applyAppearance(); saveLocal(); haptic(); };
+window.setPreviewVisible = (v) => { state.prefs.preview = v; applyAppearance(); saveLocal(); };
+window.setCounterVisible = (v) => { state.prefs.counter = v; applyAppearance(); saveLocal(); };
 window.resetLocalPreferences = () => {
-  state.pinned = []; state.hidden = []; state.views = []; state.activeViewId = 0; state.filter = 'all'; state.sort = 'recent';
-  saveLocal(); renderViews(); syncToolbar(); renderChats(); toast('Вид архива сброшен', 'Закрепления и пресеты очищены', 'green');
+  state.pinned = []; state.hidden = []; state.views = []; state.activeViewId = 0;
+  state.filter = 'all'; state.sort = 'recent';
+  saveLocal(); renderViews(); syncToolbar(); renderChats();
+  toast('Вид архива сброшен', 'Закрепления и пресеты очищены', 'green');
 };
 
-/* ── тосты + undo ──────────────────────────────────────────────────────── */
+/* ── тосты ─────────────────────────────────────────────────────────────── */
 function toast(title, sub, tone = 'info', action) {
   const stack = $('toast-stack'); if (!stack) return;
   const icons = { info: 'i-info', green: 'i-check-circle', rose: 'i-trash', gold: 'i-sparkles' };
@@ -60,6 +89,7 @@ function toast(title, sub, tone = 'info', action) {
   el.className = `toast tone-${tone}`;
   el.innerHTML = `<span class="toast-icon"><svg class="icon"><use href="#${icons[tone] || 'i-info'}"></use></svg></span>
     <span class="toast-copy">${esc(title)}${sub ? `<small>${esc(sub)}</small>` : ''}</span>`;
+  const dismiss = () => { el.classList.add('leaving'); setTimeout(() => el.remove(), 260); };
   if (action) {
     const btn = document.createElement('button');
     btn.className = 'toast-action'; btn.textContent = action.label;
@@ -67,14 +97,11 @@ function toast(title, sub, tone = 'info', action) {
     el.appendChild(btn);
   }
   stack.appendChild(el);
-  const dismiss = () => { el.classList.add('leaving'); setTimeout(() => el.remove(), 260); };
-  setTimeout(dismiss, action ? 6000 : 3200);
-  return dismiss;
+  setTimeout(dismiss, action ? 6000 : 3000);
 }
 
 /* ── демо-данные ───────────────────────────────────────────────────────── */
-const NOW = Date.now();
-const H = 3600000, D = 86400000;
+const NOW = Date.now(), H = 3600000, D = 86400000;
 function demoSvg(a, b, label) {
   const s = `<svg xmlns="http://www.w3.org/2000/svg" width="480" height="360"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs><rect width="480" height="360" fill="url(#g)"/><circle cx="360" cy="80" r="52" fill="#fff" opacity=".16"/><path d="M0 268 L120 196 L228 258 L330 176 L480 250 L480 360 L0 360Z" fill="#000" opacity=".22"/><path d="M0 300 L140 240 L260 296 L380 232 L480 288 L480 360 L0 360Z" fill="#000" opacity=".26"/><text x="24" y="336" font-family="Inter,sans-serif" font-size="17" fill="#fff" opacity=".72">${label}</text></svg>`;
   return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -107,23 +134,23 @@ function avColors(id) { return AV_COLORS[Math.abs(Number(id)) % AV_COLORS.length
 function demoMessages(chat) {
   const t = chat.chat_id, base = NOW - 2 * D;
   const rows = [
-    { message_id: t * 100 + 1, text: 'Слушай, ты видел что он удалил? 👀', out: false, at: base },
-    { message_id: t * 100 + 2, text: 'Видел. У меня всё сохранено 😎', out: true, at: base + 4 * 60000, read: true },
-    { message_id: t * 100 + 3, text: 'ой, не туда отправил', out: false, at: base + 9 * 60000, deleted: true },
-    { message_id: t * 100 + 4, text: 'Вот так это и работает — архив помнит всё', out: true, at: base + 12 * 60000, read: true, reply: t * 100 + 3, replyName: chat.label, replyText: 'ой, не туда отправил' },
-    { message_id: t * 100 + 5, type: 'photo', text: 'Смотри какой закат вчера был', out: false, at: base + 40 * 60000, media: demoSvg('#f59e0b', '#ec4899', 'sunset.jpg') },
-    { message_id: t * 100 + 6, text: 'Огонь 🔥 где это?', out: true, at: base + 44 * 60000, read: true },
-    { message_id: t * 100 + 7, text: 'На набережной, у моста', out: false, at: base + 47 * 60000 },
-    { message_id: t * 100 + 8, type: 'sticker', out: false, at: base + 50 * 60000, media: DEMO_STICKER },
-    { message_id: t * 100 + 9, text: 'Кстати, скинь фотки с выходных', out: true, at: NOW - 5 * H, edited: true, read: true },
-    { message_id: t * 100 + 10, text: 'Сейчас найду, там их штук двести 📸', out: false, at: NOW - 4.6 * H, reply: t * 100 + 9, replyName: 'FLEX', replyText: 'Кстати, скинь фотки с выходных' },
-    { message_id: t * 100 + 11, type: 'document', text: '', out: false, at: NOW - 4.2 * H, file: 'отчёт-встреча.pdf', ext: '.pdf' },
-    { message_id: t * 100 + 12, type: 'voice', out: false, at: NOW - 3.4 * H },
-    { message_id: t * 100 + 13, type: 'video_note', out: true, at: NOW - 2.2 * H, read: true, media: demoSvg('#4d84ff', '#22d3ee', 'video note') },
-    { message_id: t * 100 + 14, text: chat.last_message || 'До связи!', out: false, at: NOW - 45 * 60000 }
+    { id: t * 100 + 1, text: 'Слушай, ты видел что он удалил? 👀', out: false, at: base },
+    { id: t * 100 + 2, text: 'Видел. У меня всё сохранено 😎', out: true, at: base + 4 * 60000, read: true },
+    { id: t * 100 + 3, text: 'ой, не туда отправил', out: false, at: base + 9 * 60000, deleted: true },
+    { id: t * 100 + 4, text: 'Вот так это и работает — архив помнит всё', out: true, at: base + 12 * 60000, read: true, reply: t * 100 + 3, replyName: chat.label, replyText: 'ой, не туда отправил' },
+    { id: t * 100 + 5, type: 'photo', text: 'Смотри какой закат вчера был', out: false, at: base + 40 * 60000, media: demoSvg('#f59e0b', '#ec4899', 'sunset.jpg') },
+    { id: t * 100 + 6, text: 'Огонь 🔥 где это?', out: true, at: base + 44 * 60000, read: true },
+    { id: t * 100 + 7, text: 'На набережной, у моста', out: false, at: base + 47 * 60000 },
+    { id: t * 100 + 8, type: 'sticker', out: false, at: base + 50 * 60000, media: DEMO_STICKER },
+    { id: t * 100 + 9, text: 'Кстати, скинь фотки с выходных', out: true, at: NOW - 5 * H, edited: true, read: true },
+    { id: t * 100 + 10, text: 'Сейчас найду, там их штук двести 📸', out: false, at: NOW - 4.6 * H, reply: t * 100 + 9, replyName: 'FLEX', replyText: 'Кстати, скинь фотки с выходных' },
+    { id: t * 100 + 11, type: 'document', out: false, at: NOW - 4.2 * H, file: 'отчёт-встреча.pdf', ext: '.pdf' },
+    { id: t * 100 + 12, type: 'voice', out: false, at: NOW - 3.4 * H },
+    { id: t * 100 + 13, type: 'video_note', out: true, at: NOW - 2.2 * H, read: true, media: demoSvg('#4d84ff', '#22d3ee', 'video note') },
+    { id: t * 100 + 14, text: chat.last_message || 'До связи!', out: false, at: NOW - 45 * 60000 }
   ];
   return rows.map(r => ({
-    message_id: r.message_id, connection_id: chat.connection_id, text: r.text || '',
+    message_id: r.id, connection_id: chat.connection_id, text: r.text || '',
     sent_at: new Date(r.at).toISOString(), is_outgoing: r.out, is_read: !!r.read,
     deleted: !!r.deleted, edited: !!r.edited,
     reply_to_message_id: r.reply || 0, reply_to_sender_name: r.replyName || '', reply_to_text: r.replyText || '',
@@ -146,7 +173,7 @@ const DEMO_ADMIN_FULL = {
     { action: 'Выдан Premium', details: 'ID 512… · 30 дней', created_at: new Date(NOW - H).toISOString() },
     { action: 'Новое подключение', details: 'Business-аккаунт · ID 78…', created_at: new Date(NOW - 2 * H).toISOString() },
     { action: 'Оплата получена', details: 'СБП · 120 ₽', created_at: new Date(NOW - 26 * H).toISOString() },
-    { action: 'Обновлено фото подключения', details: 'guide.png · 1.4 МБ', created_at: new Date(NOW - 50 * H).toISOString() }
+    { action: 'Реферал засчитан', details: 'Друг подключил бота · +1 день обоим', created_at: new Date(NOW - 50 * H).toISOString() }
   ],
   media_breakdown: [
     { type: 'photo', total: 14200 }, { type: 'video', total: 4100 }, { type: 'voice', total: 2800 },
@@ -204,6 +231,7 @@ function fmtDaySeparator(v) {
 }
 const fmtDate = (v) => { const d = parseArchiveDate(v); if (!d) return v ? String(v) : ''; return d.toDateString() === new Date().toDateString() ? fmtMessageTime(d) : d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' }); };
 const apiError = (e) => e?.response?.data?.error || e?.message || 'Ошибка сети';
+function plural(n, one, few, many) { const c = Math.abs(n) % 100, o = c % 10; if (c > 10 && c < 20) return many; if (o > 1 && o < 5) return few; if (o === 1) return one; return many; }
 
 /* ── навигация ─────────────────────────────────────────────────────────── */
 function setPage(name) {
@@ -221,14 +249,14 @@ function setPage(name) {
   if (name !== 'chats' && state.bulk) exitBulkMode();
   if (name === 'home') { loadStats(); revealHome(); }
   if (name === 'chats') loadChats();
-  if (name === 'settings') loadSettings();
+  if (name === 'settings') { loadSettings(); applyAppearance(); }
   if (['premium', 'premium-buy', 'premium-payment'].includes(name)) loadPremium();
   if (name === 'referrals') loadReferrals();
   if (name === 'profile') renderProfileMetrics();
   if (name === 'admin') { loadAdminStats(); loadPrefixes(); loadConnectionGuide(); renderSwatches(); }
   if (name === 'statistics') loadAdminStatistics();
   try { name === 'messages' ? tg?.BackButton?.show?.() : tg?.BackButton?.hide?.(); } catch (_) {}
-  window.scrollTo({ top: 0, behavior: 'instant' in document.documentElement.style ? 'instant' : 'auto' });
+  window.scrollTo(0, 0);
 }
 window.switchTab = (n) => { haptic(); setPage(n); };
 function showPreloader(v) { $('preloader')?.classList.toggle('hidden', !v); }
@@ -247,12 +275,7 @@ window.openArchivePreset = (filter) => { state.filter = filter; state.activeView
 /* ── инициализация ─────────────────────────────────────────────────────── */
 async function initApp() {
   loadLocal();
-  document.body.dataset.accent = state.prefs.accent;
-  document.body.dataset.density = state.prefs.density;
-  document.body.classList.toggle('hide-preview', !state.prefs.preview);
-  if ($('accent-select')) $('accent-select').value = state.prefs.accent;
-  if ($('density-select')) $('density-select').value = state.prefs.density;
-  if ($('toggle-preview')) $('toggle-preview').checked = state.prefs.preview;
+  applyAppearance();
   if ($('chat-sort')) $('chat-sort').value = state.sort;
   if (!DEMO) setTelegramInitData(initData);
   showPreloader(true);
@@ -281,7 +304,8 @@ async function initApp() {
       const tu = tg?.initDataUnsafe?.user || {};
       const url = tu.photo_url || (state.username ? `https://t.me/i/userpic/320/${encodeURIComponent(state.username)}.jpg` : '');
       requestPersistentAvatarStorage();
-      if (url) loadCachedProfileAvatar(url).then(u => ['user-avatar-img', 'profile-avatar-img'].forEach(id => setProfileAvatarSource($(id), $(id.replace('-img', '-text')), u)))
+      if (url) loadCachedProfileAvatar(url)
+        .then(u => ['user-avatar-img', 'profile-avatar-img'].forEach(id => setProfileAvatarSource($(id), $(id.replace('-img', '-text')), u)))
         .catch(() => ['user-avatar-img', 'profile-avatar-img'].forEach(id => setProfileAvatarSource($(id), $(id.replace('-img', '-text')), url)));
     }
     const pb = $('profile-prefix-badge'), ppb = $('profile-premium-badge');
@@ -296,11 +320,8 @@ async function initApp() {
       else { $('premium-status-text').textContent = 'Premium активен'; if (data.premium_expires_at) startPremiumTimer(data.premium_expires_at); }
     } else $('premium-status-text').textContent = 'Premium пока не активен';
     $('admin-tab-btn')?.classList.toggle('hidden', !state.isAdmin);
-    $('brand-status-text').textContent = DEMO ? 'DEMO' : 'ONLINE';
     await loadStats();
-    renderHomeActivity();
-    renderViews();
-    syncToolbar();
+    renderHomeActivity(); renderViews(); syncToolbar(); renderPlanRows(); initMethodTiles();
     appInitialized = true;
     setPage(initialPageFromHash());
     void loadChats();
@@ -329,7 +350,7 @@ async function pollSubscriptionStatus() {
 }
 function startSubscriptionPolling() { clearInterval(subscriptionPollTimer); subscriptionPollTimer = setInterval(pollSubscriptionStatus, 20000); }
 document.addEventListener('visibilitychange', () => { if (!document.hidden) pollSubscriptionStatus(); });
-function russianChannelWord(v) { const c = Math.abs(Number(v) || 0), t = c % 100, o = c % 10; if (t >= 11 && t <= 14) return 'каналов'; if (o === 1) return 'канал'; if (o >= 2 && o <= 4) return 'канала'; return 'каналов'; }
+function russianChannelWord(v) { return plural(v, 'канал', 'канала', 'каналов'); }
 function subscriptionGateCopy(c) {
   if (c < 1) return { title: '🔒 Не удалось проверить доступ', lead: 'Список каналов пока не получен. Попробуй проверить ещё раз чуть позже.' };
   if (c === 1) return { title: '🔒 Остался один шаг', lead: 'Подпишись на канал ниже и нажми кнопку проверки — доступ откроется сразу.' };
@@ -378,7 +399,7 @@ async function refreshRequiredSubscriptions() {
 }
 $('subscription-gate-refresh')?.addEventListener('click', refreshRequiredSubscriptions);
 
-/* ── статистика главной ────────────────────────────────────────────────── */
+/* ── статистика ────────────────────────────────────────────────────────── */
 let premiumTimer = null;
 function startPremiumTimer(expiresAt) {
   clearInterval(premiumTimer);
@@ -415,10 +436,11 @@ async function loadStats() {
 }
 function renderHomeActivity() {
   const box = $('home-activity'); if (!box) return;
-  const rows = DEMO ? DEMO_ACTIVITY : (state.chats.slice(0, 4).map(c => ({
+  const rows = DEMO ? DEMO_ACTIVITY : state.chats.slice(0, 4).map(c => ({
     icon: c.deleted ? 'i-trash' : 'i-chat', tone: c.deleted ? 'rose' : 'sapphire',
-    title: c.label || `Чат ${c.chat_id}`, sub: c.last_message || 'Вложение', at: parseArchiveDate(c.last_at)?.getTime() || NOW
-  })));
+    title: c.label || `Чат ${c.chat_id}`, sub: c.last_message || 'Вложение',
+    at: parseArchiveDate(c.last_at)?.getTime() || NOW
+  }));
   box.innerHTML = rows.map(r => `<div class="activity-item" style="--tone:var(--${r.tone});--tone-soft:var(--${r.tone}-soft)">
     <span class="activity-glyph"><svg class="icon"><use href="#${r.icon}"></use></svg></span>
     <span class="activity-copy"><b>${esc(r.title)}</b><small>${esc(r.sub)}</small></span>
@@ -427,9 +449,8 @@ function renderHomeActivity() {
 function renderProfileMetrics() {
   const box = $('profile-metrics'); if (!box || !state.stats) return;
   const d = state.stats;
-  box.innerHTML = [
-    ['Сообщений', d.total_messages], ['Чатов', d.chats_count], ['Медиа', d.media_count]
-  ].map(([l, v]) => `<div class="profile-metric"><strong>${num(v)}</strong><span>${l}</span></div>`).join('');
+  box.innerHTML = [['Сообщений', d.total_messages], ['Чатов', d.chats_count], ['Медиа', d.media_count]]
+    .map(([l, v]) => `<div class="profile-metric"><strong>${num(v)}</strong><span>${l}</span></div>`).join('');
 }
 
 /* ── кэш аватаров ──────────────────────────────────────────────────────── */
@@ -477,7 +498,7 @@ async function ensureChatAvatar(chat) {
       if (!blob.size || !String(blob.type || '').startsWith('image/')) throw new Error('Invalid avatar');
       await avatarDbPut(key, blob);
       return makeAvatarObjectUrl(key, blob);
-    } catch (e) {
+    } catch (_) {
       if (chat.chat_username) { const u = `https://t.me/i/userpic/320/${encodeURIComponent(String(chat.chat_username).replace(/^@/, ''))}.jpg`; chatAvatarCache.set(key, u); return u; }
       return null;
     }
@@ -535,13 +556,12 @@ function setProfileAvatarSource(img, fallback, src) {
   if (img.dataset.sourceUrl !== src) { img.dataset.sourceUrl = src; img.src = src; }
 }
 
-/* ── фильтры / сортировка / виды ───────────────────────────────────────── */
+/* ── фильтры / виды ────────────────────────────────────────────────────── */
 const ATTACH_NAMES = { photo: 'Фото', video: 'Видео', video_note: 'Видеосообщение', voice: 'Голосовое', audio: 'Аудио', animation: 'GIF', document: 'Файл', sticker: 'Стикер' };
 const KIND_META = { private: { icon: 'i-user', tone: 'sapphire', label: 'Личный чат' }, group: { icon: 'i-users', tone: 'cyan', label: 'Группа' }, channel: { icon: 'i-send', tone: 'violet', label: 'Канал' } };
 function chatKind(c) { return c.kind || (Number(c.chat_id) < 0 ? 'group' : 'private'); }
 function highlight(text, q) {
-  const s = esc(text);
-  if (!q) return s;
+  const s = esc(text); if (!q) return s;
   const i = s.toLocaleLowerCase('ru').indexOf(q.toLocaleLowerCase('ru'));
   if (i < 0) return s;
   return s.slice(0, i) + '<mark>' + s.slice(i, i + q.length) + '</mark>' + s.slice(i + q.length);
@@ -577,7 +597,7 @@ function syncToolbar() {
   $('hidden-row')?.classList.toggle('hidden', hc === 0);
   if ($('hidden-count')) $('hidden-count').textContent = hc;
   const unreadTotal = state.chats.reduce((s, c) => s + Number(c.unread || 0), 0);
-  $('home-unread-tag') && ($('home-unread-tag').textContent = unreadTotal);
+  if ($('home-unread-tag')) $('home-unread-tag').textContent = unreadTotal;
   $('nav-unread-dot')?.classList.toggle('hidden', unreadTotal === 0);
 }
 function renderViews() {
@@ -601,8 +621,7 @@ function applyView(id) {
   const v = state.views.find(x => x.id === id); if (!v) return;
   state.activeViewId = id; state.filter = v.filter; state.sort = v.sort; state.chatSearch = v.q || '';
   if ($('chat-search')) $('chat-search').value = state.chatSearch;
-  syncToolbar(); renderViews(); loadChats(); haptic();
-  toast('Вид применён', v.name, 'info');
+  syncToolbar(); renderViews(); loadChats(); haptic(); toast('Вид применён', v.name, 'info');
 }
 function removeView(id) {
   const v = state.views.find(x => x.id === id);
@@ -612,9 +631,9 @@ function removeView(id) {
   toast('Вид удалён', v?.name || '', 'rose', { label: 'Вернуть', run: () => { if (v) { state.views.push(v); saveLocal(); renderViews(); } } });
 }
 window.openSaveViewModal = () => {
-  const s = $('view-summary');
   const fn = { all: 'Все', private: 'Личные', groups: 'Группы', unread: 'Новые', media: 'Медиа', deleted: 'Удалённые', pinned: 'Закреплённые' }[state.filter];
   const sn = { recent: 'Сначала свежие', volume: 'По объёму', name: 'По названию', unread: 'По непрочитанным' }[state.sort];
+  const s = $('view-summary');
   if (s) s.innerHTML = `<span>${esc(fn)}</span><span>${esc(sn)}</span>${state.chatSearch ? `<span>«${esc(state.chatSearch)}»</span>` : ''}`;
   if ($('view-name-input')) $('view-name-input').value = '';
   $('view-modal')?.classList.add('active');
@@ -629,7 +648,7 @@ window.saveCurrentView = () => {
   toast('Вид сохранён', name, 'green'); haptic('medium');
 };
 
-/* ── bulk / закрепление / скрытие ──────────────────────────────────────── */
+/* ── bulk / pin / hide ─────────────────────────────────────────────────── */
 window.toggleBulkMode = () => { state.bulk ? exitBulkMode() : enterBulkMode(); };
 function enterBulkMode() { state.bulk = true; state.selected.clear(); $('bulk-toggle')?.classList.add('is-on'); $('bulk-bar')?.classList.remove('hidden'); updateBulkBar(); renderChats(); haptic(); }
 window.exitBulkMode = () => { state.bulk = false; state.selected.clear(); $('bulk-toggle')?.classList.remove('is-on'); $('bulk-bar')?.classList.add('hidden'); renderChats(); };
@@ -638,7 +657,7 @@ function toggleSelect(id) {
   state.selected.has(id) ? state.selected.delete(id) : state.selected.add(id);
   updateBulkBar();
   document.querySelector(`.chat-row[data-chat-id="${id}"]`)?.classList.toggle('is-selected', state.selected.has(id));
-  haptic('light');
+  haptic();
 }
 window.bulkPin = () => {
   if (!state.selected.size) return toast('Ничего не выбрано', 'Отметь чаты галочками', 'info');
@@ -648,8 +667,7 @@ window.bulkPin = () => {
 };
 window.bulkHide = () => {
   if (!state.selected.size) return toast('Ничего не выбрано', 'Отметь чаты галочками', 'info');
-  const ids = [...state.selected];
-  hideChats(ids); exitBulkMode();
+  const ids = [...state.selected]; hideChats(ids); exitBulkMode();
 };
 function hideChats(ids) {
   const prevHidden = [...state.hidden], prevPinned = [...state.pinned];
@@ -668,7 +686,7 @@ function togglePin(id) {
   toast(on ? 'Откреплено' : 'Закреплено', '', on ? 'info' : 'gold');
 }
 
-/* ── рендер списка чатов ───────────────────────────────────────────────── */
+/* ── рендер чатов ──────────────────────────────────────────────────────── */
 function chatRowNode(chat) {
   const id = Number(chat.chat_id);
   const kind = chatKind(chat), meta = KIND_META[kind] || KIND_META.private;
@@ -676,6 +694,8 @@ function chatRowNode(chat) {
   const title = chat.label || `Чат ${chat.chat_id}`;
   const q = state.chatSearch.trim();
   const preview = chat.last_message || (chat.last_content_type ? ATTACH_NAMES[chat.last_content_type] || 'Вложение' : 'Нет сообщений');
+  const total = Number(chat.total || 0);
+  const unread = Number(chat.unread || 0);
   const item = document.createElement('div');
   item.className = 'chat-row' + (state.pinned.includes(id) ? ' is-pinned' : '') + (state.selected.has(id) ? ' is-selected' : '');
   item.dataset.chatId = String(id);
@@ -693,7 +713,8 @@ function chatRowNode(chat) {
       <time>${esc(fmtChatListTime(chat.last_at))}</time>
       <span class="chat-meta">
         ${Number(chat.deleted || 0) > 0 ? `<svg class="icon chat-flag" aria-label="Есть удалённые"><use href="#i-trash"></use></svg>` : ''}
-        ${Number(chat.unread || 0) > 0 ? `<span class="chat-unread">${Number(chat.unread) > 99 ? '99+' : Number(chat.unread)}</span>` : `<span class="chat-count">${num(chat.total)}</span>`}
+        ${unread > 0 ? `<span class="chat-unread">${unread > 99 ? '99+' : unread}</span>` : ''}
+        <span class="chat-count"><b>${num(total)}</b><i>${plural(total, 'сообщ.', 'сообщ.', 'сообщ.')}</i></span>
       </span>
     </span>
     ${state.bulk ? '' : `<button class="chat-pin-btn" aria-label="Закрепить"><svg class="icon"><use href="#i-pin"></use></svg></button>`}`;
@@ -727,7 +748,9 @@ function renderChats() {
   const { pinned, rest } = visibleChats();
   const total = pinned.length + rest.length;
   const counter = $('chats-counter');
-  if (counter) counter.textContent = total ? `${num(total)} ${total === 1 ? 'переписка' : 'переписок'} · ${num(state.chats.reduce((s, c) => s + Number(c.total || 0), 0))} сообщений` : 'Ничего не найдено';
+  if (counter) counter.textContent = total
+    ? `${num(total)} ${plural(total, 'переписка', 'переписки', 'переписок')} · ${num(state.chats.reduce((s, c) => s + Number(c.total || 0), 0))} сообщений`
+    : 'Ничего не найдено';
   list.innerHTML = '';
   if (!total) {
     list.innerHTML = `<div class="empty-state"><span class="empty-mark"><svg class="icon"><use href="#i-search"></use></svg></span><b>Пусто по этому фильтру</b>Попробуй другой фильтр или сбрось поиск.<br><button onclick="resetArchiveFilters()">Сбросить фильтры</button></div>`;
@@ -748,7 +771,12 @@ function renderChats() {
 }
 window.resetArchiveFilters = () => { state.filter = 'all'; state.chatSearch = ''; state.activeViewId = 0; if ($('chat-search')) $('chat-search').value = ''; renderViews(); loadChats(); };
 window.clearChatSearch = () => { state.chatSearch = ''; if ($('chat-search')) $('chat-search').value = ''; loadChats(); $('chat-search')?.focus(); };
-window.reloadChats = () => { const b = document.querySelector('.chats-title-actions .chats-title-icon:last-child'); b?.classList.add('spinning'); loadChats().finally(() => setTimeout(() => b?.classList.remove('spinning'), 500)); toast('Архив обновлён', '', 'green'); };
+window.reloadChats = () => {
+  const b = document.querySelector('.chats-title-actions .chats-title-icon:last-child');
+  b?.classList.add('spinning');
+  loadChats().finally(() => setTimeout(() => b?.classList.remove('spinning'), 500));
+  toast('Архив обновлён', '', 'green');
+};
 function chatSkeletons() {
   const list = $('chats-list'); if (!list) return;
   list.innerHTML = Array.from({ length: 6 }, () => `<div class="skeleton-row"><span class="sk sk-avatar"></span><span class="sk-lines"><span class="sk sk-line"></span><span class="sk sk-line short"></span></span></div>`).join('');
@@ -758,14 +786,16 @@ async function loadChats() {
   if (!state.chats.length) chatSkeletons();
   try {
     let data;
-    if (DEMO) { await new Promise(r => setTimeout(r, 180)); data = { chats: DEMO_CHATS }; }
+    if (DEMO) { await new Promise(r => setTimeout(r, 160)); data = { chats: DEMO_CHATS }; }
     else {
       const params = {}; if (state.chatSearch.trim()) params.q = state.chatSearch.trim();
       data = (await miniAppClient.get('/api/miniapp/chats', { params })).data;
     }
     state.chats = Array.isArray(data.chats) ? data.chats : [];
     renderChats(); renderHomeActivity(); prefetchChatAvatars(state.chats);
-  } catch (e) { $('chats-list').innerHTML = `<div class="empty-state"><b>Не удалось загрузить</b>${esc(apiError(e))}<br><button onclick="reloadChats()">Повторить</button></div>`; }
+  } catch (e) {
+    $('chats-list').innerHTML = `<div class="empty-state"><b>Не удалось загрузить</b>${esc(apiError(e))}<br><button onclick="reloadChats()">Повторить</button></div>`;
+  }
 }
 
 /* ── переписка ─────────────────────────────────────────────────────────── */
@@ -817,8 +847,8 @@ function messageHtml(msg) {
     else if (type === 'video_note') media = `<video class="message-media message-video-note" src="${url}" ${msg.demo_media ? `poster="${url}"` : ''} controls playsinline preload="metadata" data-media-url="${url}" data-media-type="${type}" data-mid="${msg.message_id}"></video>`;
     else if (['video', 'animation'].includes(type)) media = `<video class="message-media" src="${url}" controls playsinline preload="metadata"></video>`;
     else if (['voice', 'audio'].includes(type)) {
-      media = msg.demo_media
-        ? `<div class="audio-card"><svg class="icon" style="width:18px;height:18px;color:var(--accent)"><use href="#i-mic"></use></svg><span class="audio-wave">${Array.from({ length: 22 }, (_, i) => `<i style="height:${20 + Math.abs(Math.sin(i * 1.1)) * 70}%"></i>`).join('')}</span><span class="audio-dur">0:${String(8 + (msg.message_id % 40)).padStart(2, '0')}</span></div>`
+      media = msg.demo_media || DEMO
+        ? `<div class="audio-card"><svg class="icon"><use href="#i-mic"></use></svg><span class="audio-wave">${Array.from({ length: 22 }, (_, i) => `<i style="height:${20 + Math.abs(Math.sin(i * 1.1)) * 70}%"></i>`).join('')}</span><span class="audio-dur">0:${String(8 + (msg.message_id % 40)).padStart(2, '0')}</span></div>`
         : `<audio class="message-audio" src="${url}" controls preload="metadata"></audio>`;
     } else media = `<div class="document-preview"><span class="document-preview-icon"><svg class="icon"><use href="#i-file"></use></svg></span><span class="document-preview-name">${esc(msg.file_name || 'Документ')}</span><span class="document-preview-type">${esc((msg.media_ext || '').replace('.', '').toUpperCase() || 'ФАЙЛ')}</span></div>`;
   } else if (!body && msg.content_type && msg.content_type !== 'text') {
@@ -867,7 +897,7 @@ async function hydrateTgsStickers(root = document) {
       const animationData = JSON.parse(await gunzipTgs(await r.arrayBuffer()));
       lottie.loadAnimation({ container: host, renderer: 'svg', loop: true, autoplay: true, animationData, rendererSettings: { preserveAspectRatio: 'xMidYMid meet', progressiveLoad: true } });
       host.dataset.playerState = 'ready';
-    } catch (e) {
+    } catch (_) {
       host.dataset.playerState = 'error';
       host.innerHTML = '<span class="sticker-unavailable">Стикер недоступен</span>';
     }
@@ -891,15 +921,13 @@ async function loadMessages(append = false) {
   const oldH = list.scrollHeight;
   try {
     if (DEMO) {
-      await new Promise(r => setTimeout(r, 140));
+      await new Promise(r => setTimeout(r, 130));
       const q = state.messageSearch.trim().toLowerCase();
       const rows = demoMessages(state.activeChat).filter(m => !q || String(m.text || '').toLowerCase().includes(q));
       list.innerHTML = renderMessageBatch(rows) || '<div class="empty-state"><b>Ничего не нашлось</b>Попробуй другое слово</div>';
       if ($('message-search-hits')) $('message-search-hits').textContent = q ? `${rows.length}` : '';
       state.hasMoreMessages = false;
-      list.scrollTop = list.scrollHeight;
-      updateJumpButton();
-      return;
+      list.scrollTop = list.scrollHeight; updateJumpButton(); return;
     }
     const params = { chat_id: state.activeChat.chat_id, connection_id: state.activeChat.connection_id, offset: state.messageOffset, limit: 50 };
     if (state.messageSearch.trim()) params.q = state.messageSearch.trim();
@@ -926,8 +954,7 @@ async function loadMessages(append = false) {
   finally { state.loadingMessages = false; }
 }
 function updateJumpButton() {
-  const l = $('messages-list'), b = $('jump-bottom');
-  if (!l || !b) return;
+  const l = $('messages-list'), b = $('jump-bottom'); if (!l || !b) return;
   b.classList.toggle('hidden', l.scrollHeight - l.scrollTop - l.clientHeight < 420);
 }
 window.scrollMessagesToBottom = () => { const l = $('messages-list'); if (l) l.scrollTo({ top: l.scrollHeight, behavior: 'smooth' }); };
@@ -966,7 +993,13 @@ $('toggle-message-search')?.addEventListener('click', () => {
   if (!w.classList.contains('hidden')) $('message-search')?.focus();
   else { if ($('message-search')) $('message-search').value = ''; state.messageSearch = ''; if ($('message-search-hits')) $('message-search-hits').textContent = ''; loadMessages(false); }
 });
-$('close-message-search')?.addEventListener('click', () => { $('message-search-wrap')?.classList.add('hidden'); if ($('message-search')) $('message-search').value = ''; state.messageSearch = ''; if ($('message-search-hits')) $('message-search-hits').textContent = ''; loadMessages(false); });
+$('close-message-search')?.addEventListener('click', () => {
+  $('message-search-wrap')?.classList.add('hidden');
+  if ($('message-search')) $('message-search').value = '';
+  state.messageSearch = '';
+  if ($('message-search-hits')) $('message-search-hits').textContent = '';
+  loadMessages(false);
+});
 let msgSearchTimer;
 $('message-search')?.addEventListener('input', () => { clearTimeout(msgSearchTimer); msgSearchTimer = setTimeout(() => { state.messageSearch = $('message-search').value; loadMessages(false); }, 320); });
 $('messages-list')?.addEventListener('click', async (ev) => {
@@ -996,7 +1029,7 @@ $('messages-list')?.addEventListener('click', async (ev) => {
   if (m && !ev.target.closest('audio')) openLightbox(m.dataset.mediaUrl, m.dataset.mediaType, Number(m.dataset.mid));
 });
 
-/* ── drawer чата ───────────────────────────────────────────────────────── */
+/* ── drawer ────────────────────────────────────────────────────────────── */
 window.openChatDrawer = () => {
   const c = state.activeChat; if (!c) return;
   const id = Number(c.chat_id), [a, b] = avColors(id);
@@ -1006,15 +1039,9 @@ window.openChatDrawer = () => {
   av.textContent = (c.label || '?').trim().slice(0, 1).toUpperCase();
   $('drawer-title').textContent = c.label || `Чат ${id}`;
   $('drawer-sub').textContent = `${meta.label}${c.chat_username ? ' · @' + c.chat_username : ''}`;
-  $('drawer-stats').innerHTML = [
-    ['Сообщений', num(c.total)], ['Медиа', num(c.media || 0)], ['Удалено', num(c.deleted || 0)]
-  ].map(([l, v]) => `<div class="drawer-stat"><strong>${v}</strong><span>${l}</span></div>`).join('');
-  const parts = [
-    ['Фото и видео', Number(c.media || 0), 'cyan'],
-    ['Удалённые', Number(c.deleted || 0), 'rose'],
-    ['Изменённые', Number(c.edited || 0), 'amber'],
-    ['Непрочитанные', Number(c.unread || 0), 'sapphire']
-  ];
+  $('drawer-stats').innerHTML = [['Сообщений', num(c.total)], ['Медиа', num(c.media || 0)], ['Удалено', num(c.deleted || 0)]]
+    .map(([l, v]) => `<div class="drawer-stat"><strong>${v}</strong><span>${l}</span></div>`).join('');
+  const parts = [['Фото и видео', Number(c.media || 0), 'cyan'], ['Удалённые', Number(c.deleted || 0), 'rose'], ['Изменённые', Number(c.edited || 0), 'amber'], ['Непрочитанные', Number(c.unread || 0), 'sapphire']];
   const max = Math.max(1, ...parts.map(p => p[1]));
   $('drawer-bars').innerHTML = parts.map(([l, v, t]) => `<div class="breakdown-row" style="--tone:var(--${t})"><span><i></i>${l}</span><i><b style="width:${Math.max(2, v / max * 100)}%"></b></i><strong>${num(v)}</strong></div>`).join('');
   const pinned = state.pinned.includes(id);
@@ -1027,7 +1054,7 @@ window.openChatDrawer = () => {
     const btn = e.target.closest('[data-act]'); if (!btn) return;
     const act = btn.dataset.act;
     if (act === 'pin') { togglePin(id); closeChatDrawer(); }
-    if (act === 'copy') { navigator.clipboard?.writeText(String(id)).then(() => toast('ID скопирован', String(id), 'green')).catch(() => alertUser(String(id))); }
+    if (act === 'copy') navigator.clipboard?.writeText(String(id)).then(() => toast('ID скопирован', String(id), 'green')).catch(() => alertUser(String(id)));
     if (act === 'search') { closeChatDrawer(); $('message-search-wrap')?.classList.remove('hidden'); $('message-search')?.focus(); }
     if (act === 'hide') { closeChatDrawer(); hideChats([id]); setPage('chats'); }
   };
@@ -1035,7 +1062,7 @@ window.openChatDrawer = () => {
 };
 window.closeChatDrawer = (e) => { if (e && e.target !== $('chat-drawer') && !e.target.closest('.drawer-close')) return; $('chat-drawer')?.classList.remove('active'); };
 
-/* ── просмотр медиа ────────────────────────────────────────────────────── */
+/* ── медиа ─────────────────────────────────────────────────────────────── */
 function openLightbox(url, type, id) {
   state.currentMedia = { messageId: id, chat: state.activeChat };
   const box = $('lightbox-media-container'); box.innerHTML = '';
@@ -1083,7 +1110,7 @@ window.clearArchive = () => {
   else if (confirm('Удалить весь архив без восстановления?')) run();
 };
 
-/* ── Premium ───────────────────────────────────────────────────────────── */
+/* ── Premium / оплата ──────────────────────────────────────────────────── */
 const PREMIUM_PLAN_VIEW = {
   7: { price: 45, regular: 100, discount: 55, saving: 55, note: 'Попробовать неделю' },
   14: { price: 69, regular: 150, discount: 54, saving: 81, note: 'Оптимальный срок' },
@@ -1092,20 +1119,23 @@ const PREMIUM_PLAN_VIEW = {
 const payBtn = (p) => `Оплатить ${p} ₽<svg class="icon"><use href="#i-arrow-up-right"></use></svg>`;
 function renderPlanRows() {
   const box = $('premium-plan-list'); if (!box) return;
-  box.innerHTML = Object.entries(PREMIUM_PLAN_VIEW).map(([d, p]) => `
-    <button class="premium-plan-row${Number(d) === state.selectedPremiumDays ? ' is-selected' : ''}" data-days="${d}" onclick="selectPremiumPlan(${d})">
-      ${Number(d) === 30 ? '<span class="premium-plan-badge">ВЫГОДНО</span>' : ''}
-      <span class="premium-plan-period"><b>${d} дней</b><small>${p.note}</small><em><svg class="icon"><use href="#i-zap"></use></svg>${Math.round(p.price / Number(d))} ₽ в день</em></span>
+  box.innerHTML = Object.entries(PREMIUM_PLAN_VIEW).map(([d, p]) => {
+    const days = Number(d), sel = days === Number(state.selectedPremiumDays);
+    return `<button type="button" class="premium-plan-row${sel ? ' is-selected' : ''}" data-days="${days}" aria-pressed="${sel}" onclick="selectPremiumPlan(${days})">
+      ${days === 30 ? '<span class="premium-plan-badge">ВЫГОДНО</span>' : days === 14 ? '<span class="premium-plan-badge">ХИТ</span>' : ''}
+      <span class="premium-plan-period"><b>${days} дней</b><small>${p.note}</small><em><svg class="icon"><use href="#i-zap"></use></svg>${Math.round(p.price / days)} ₽ в день</em></span>
       <span class="premium-plan-pricebox"><span class="premium-plan-old">${p.regular} ₽</span><strong>${p.price} ₽</strong><span class="premium-plan-saving">−${p.discount}%</span></span>
       <svg class="icon premium-plan-radio"><use href="#i-check-circle"></use></svg>
-    </button>`).join('');
+    </button>`;
+  }).join('');
 }
 window.selectPremiumPlan = (days) => {
   days = Number(days); if (!PREMIUM_PLAN_VIEW[days]) return;
   state.selectedPremiumDays = days;
   updatePremiumPaymentSummary();
-  document.querySelectorAll('.premium-plan').forEach(c => { const on = Number(c.dataset.days) === days; c.classList.toggle('is-selected', on); c.setAttribute('aria-pressed', on ? 'true' : 'false'); });
-  renderPlanRows(); haptic('light'); setPage('premium-payment');
+  renderPlanRows();
+  haptic('light');
+  setPage('premium-payment');
 };
 function updatePremiumPaymentSummary() {
   const d = Number(state.selectedPremiumDays || 14), p = PREMIUM_PLAN_VIEW[d] || PREMIUM_PLAN_VIEW[14];
@@ -1115,40 +1145,70 @@ function updatePremiumPaymentSummary() {
   if ($('premium-payment-saving')) $('premium-payment-saving').textContent = `Экономия ${p.saving} ₽ · скидка ${p.discount}%`;
   const b = $('premium-action-btn'); if (b && !b.disabled) b.innerHTML = payBtn(p.price);
 }
+function initMethodTiles() {
+  const wrap = $('method-tiles'), sel = $('premium-payment-method');
+  if (!wrap || !sel) return;
+  if (wrap.dataset.bound === '1') return;
+  wrap.dataset.bound = '1';
+  wrap.addEventListener('click', (e) => {
+    const tile = e.target.closest('.method-tile');
+    if (!tile || tile.disabled) return;
+    const method = Number(tile.dataset.method);
+    state.paymentMethod = method;
+    sel.value = String(method);
+    wrap.querySelectorAll('.method-tile').forEach(t => t.classList.toggle('is-active', Number(t.dataset.method) === method));
+    haptic(); updatePremiumPaymentSummary();
+  });
+  sel.value = String(state.paymentMethod);
+  wrap.querySelectorAll('.method-tile').forEach(t => t.classList.toggle('is-active', Number(t.dataset.method) === state.paymentMethod));
+}
 async function loadPremium() {
-  renderPlanRows();
+  renderPlanRows(); initMethodTiles();
   try {
     const data = DEMO ? DEMO_PROFILE : (await miniAppClient.get('/api/miniapp/stats')).data;
     state.hasPermanentAccess = Boolean(data.has_permanent_access);
     if ($('premium-status-text')) $('premium-status-text').textContent = data.has_permanent_access ? 'Все функции открыты на этом аккаунте' : data.is_premium ? 'Premium активен' : 'Доступ включится после оплаты';
     if ($('premium-checkout-status')) $('premium-checkout-status').textContent = data.has_permanent_access ? 'Все функции уже открыты' : data.is_premium ? 'Новый срок добавится к текущему' : 'Разовый платёж · без автопродления';
-    const co = $('premium-payment-method')?.querySelector('option[value="13"]');
-    if (co) co.disabled = !data.premium_crypto_enabled;
+    const cryptoTile = document.querySelector('.method-tile[data-method="13"]');
+    const cryptoOpt = $('premium-payment-method')?.querySelector('option[value="13"]');
+    const cryptoOn = Boolean(data.premium_crypto_enabled);
+    if (cryptoOpt) cryptoOpt.disabled = !cryptoOn;
+    if (cryptoTile) {
+      cryptoTile.disabled = !cryptoOn;
+      const small = cryptoTile.querySelector('small');
+      if (small) small.textContent = cryptoOn ? 'USDT, TON, BTC' : 'Скоро появится';
+      if (!cryptoOn && state.paymentMethod === 13) {
+        state.paymentMethod = 2;
+        if ($('premium-payment-method')) $('premium-payment-method').value = '2';
+        document.querySelectorAll('.method-tile').forEach(t => t.classList.toggle('is-active', Number(t.dataset.method) === 2));
+      }
+    }
     const b = $('premium-action-btn');
     if (b) {
       const p = PREMIUM_PLAN_VIEW[state.selectedPremiumDays] || PREMIUM_PLAN_VIEW[14];
-      if (data.has_permanent_access) { b.disabled = true; b.innerHTML = 'Все функции уже открыты <svg class="icon"><use href="#i-check-circle"></use></svg>'; }
+      if (data.has_permanent_access) { b.disabled = true; b.innerHTML = 'Все функции уже открыты<svg class="icon"><use href="#i-check-circle"></use></svg>'; }
       else { b.disabled = !data.premium_payment_ready; b.innerHTML = data.premium_payment_ready ? payBtn(p.price) : 'Оплата временно недоступна'; }
     }
     const t = $('premium-timer');
     if (t) { if (!data.has_permanent_access && data.premium_expires_at) { t.classList.remove('hidden'); startPremiumTimer(data.premium_expires_at); } else t.classList.add('hidden'); }
     updatePremiumPaymentSummary();
-    if (b && data.has_permanent_access) { b.disabled = true; b.innerHTML = 'Все функции уже открыты <svg class="icon"><use href="#i-check-circle"></use></svg>'; }
+    if (b && data.has_permanent_access) { b.disabled = true; b.innerHTML = 'Все функции уже открыты<svg class="icon"><use href="#i-check-circle"></use></svg>'; }
   } catch (e) { console.warn('premium', e); }
 }
-$('premium-payment-method')?.addEventListener('change', updatePremiumPaymentSummary);
 window.startPremiumPayment = async () => {
   if (demoBlock()) return;
   const input = $('premium-email'), btn = $('premium-action-btn');
   const email = String(input?.value || '').trim();
   if (!input || !input.checkValidity() || !email) { input?.focus(); return alertUser('Укажи корректный email — на него придёт чек.'); }
   if (state.hasPermanentAccess) return alertUser('Все функции уже открыты на этом аккаунте.');
+  const plan = PREMIUM_PLAN_VIEW[state.selectedPremiumDays] || PREMIUM_PLAN_VIEW[14];
   if (btn) { btn.disabled = true; btn.textContent = 'Создаём платёж…'; }
   try {
-    const method = Number($('premium-payment-method')?.value || 2);
+    const method = Number($('premium-payment-method')?.value || state.paymentMethod || 2);
     const { data } = await miniAppClient.post('/api/miniapp/premium/create', { email, payment_method: method, plan_days: state.selectedPremiumDays });
     if (!data.redirect || !/^https:\/\//i.test(data.redirect)) throw new Error('Platega не вернула ссылку на оплату.');
     tg?.openLink ? tg.openLink(data.redirect) : window.open(data.redirect, '_blank', 'noopener');
+    toast('Платёж создан', `${plan.price} ₽ · ${state.selectedPremiumDays} дней`, 'gold');
   } catch (e) { alertUser(e?.response?.data?.error || e.message || 'Не удалось создать платёж. Попробуй позже.'); }
   finally { if (btn) { btn.disabled = false; await loadPremium(); } }
 };
@@ -1160,9 +1220,10 @@ async function loadReferrals() {
     state.refLink = d.link || '';
     const c = Number(d.count || 0);
     animateNumber($('ref-count'), c);
+    const left = 5 - (c % 5);
     const bar = $('ref-progress-bar'), txt = $('ref-progress-text');
     if (bar) bar.style.width = `${Math.min(100, (c % 5) / 5 * 100)}%`;
-    if (txt) txt.textContent = c === 0 ? 'До первого бонуса — 1 друг' : `До круглого бонуса — ${5 - (c % 5)} ${5 - (c % 5) === 1 ? 'друг' : 'друзей'}`;
+    if (txt) txt.textContent = c === 0 ? 'До первого бонуса — 1 друг' : `До круглого бонуса — ${left} ${plural(left, 'друг', 'друга', 'друзей')}`;
   } catch (e) { console.warn(e); }
 }
 window.copyRefLink = async () => {
@@ -1172,7 +1233,8 @@ window.copyRefLink = async () => {
 };
 window.shareRefLink = () => {
   if (!state.refLink) return;
-  const url = `https://t.me/share/url?url=${encodeURIComponent(state.refLink)}&text=${encodeURIComponent('Сохраняй переписки в HadesSave — удалённое тоже остаётся')}`;
+  const text = 'Подключай HadesSave — архив переписок, где сохраняется даже удалённое. Нам обоим дадут день Premium.';
+  const url = `https://t.me/share/url?url=${encodeURIComponent(state.refLink)}&text=${encodeURIComponent(text)}`;
   tg?.openTelegramLink ? tg.openTelegramLink(url) : window.open(url, '_blank', 'noopener');
 };
 const FEATURE_INFO = {
@@ -1411,7 +1473,7 @@ window.removeUserPrefix = async () => {
   catch (e) { alertUser(apiError(e)); }
 };
 
-/* ── кнопка «Назад» и клавиши ──────────────────────────────────────────── */
+/* ── назад / клавиши ───────────────────────────────────────────────────── */
 function goBack() {
   if ($('chat-drawer')?.classList.contains('active')) return closeChatDrawer();
   if ($('history-modal')?.classList.contains('active')) return closeHistory();
